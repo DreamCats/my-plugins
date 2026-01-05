@@ -1,0 +1,143 @@
+{
+  "name": "my-plugins",
+  "description": "我的 Claude Code 插件集合，包含各种实用技能和工具",
+  "version": "1.0.0",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "plugins": [
+    {
+      "name": "ark-generate-image",
+      "description": "使用 ark-cli generate 根据文本提示生成图片并获取返回 URL，支持指定尺寸和格式输出",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills/ark-generate-image",
+      "category": "image-generation",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/ark-generate-image"
+    },
+    {
+      "name": "byted-codebase",
+      "description": "字节代码库相关工具，提供代码分析和处理功能",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills/byted-codebase",
+      "category": "development",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/byted-codebase"
+    },
+    {
+      "name": "byted-logid",
+      "description": "字节日志ID处理工具，用于日志追踪和分析",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills/byted-logid",
+      "category": "development",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/byted-logid"
+    },
+    {
+      "name": "figma-mcp",
+      "description": "Figma集成工具，支持设计文件操作和组件管理",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills/figma-mcp",
+      "category": "design",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/figma-mcp"
+    },
+    {
+      "name": "gcmsg",
+      "description": "消息处理工具，提供消息格式化和处理功能",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills/gcmsg",
+      "category": "communication",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/gcmsg"
+    },
+    {
+      "name": "gcmsge",
+      "description": "增强版消息处理工具，扩展了gcmsg的功能",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills/gcmsge",
+      "category": "communication",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/gcmsge"
+    },
+    {
+      "name": "lark-add-permission",
+      "description": "飞书权限管理工具，用于添加和管理用户权限",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills/lark-add-permission",
+      "category": "productivity",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/lark-add-permission"
+    },
+    {
+      "name": "lark-create-plantuml",
+      "description": "飞书PlantUML图表创建工具，支持在飞书中生成UML图表",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills/lark-create-plantuml",
+      "category": "productivity",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/lark-create-plantuml"
+    },
+    {
+      "name": "lark-doc-to-md",
+      "description": "飞书文档转Markdown工具，将飞书文档转换为Markdown格式",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills/lark-doc-to-md",
+      "category": "productivity",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/lark-doc-to-md"
+    },
+    {
+      "name": "lark-md-to-doc",
+      "description": "Markdown转飞书文档工具，将Markdown内容转换为飞书文档格式",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills/lark-md-to-doc",
+      "category": "productivity",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/lark-md-to-doc"
+    },
+    {
+      "name": "lark-send-msg",
+      "description": "使用 lark-cli send-message 向飞书用户或群聊发送消息，自动判断消息类型并构造content JSON",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills/lark-send-msg",
+      "category": "communication",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/lark-send-msg"
+    },
+    {
+      "name": "polish-image-prompt",
+      "description": "图片提示词优化工具，用于改进和优化AI图像生成的提示词",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills/polish-image-prompt",
+      "category": "image-generation",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/polish-image-prompt"
+    }
+  ]
+}
