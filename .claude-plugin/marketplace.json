@@ -1,9 +1,12 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "my-plugins",
   "description": "我的 Claude Code 插件集合，包含各种实用技能和工具",
   "version": "1.0.0",
   "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "owner": {
     "name": "DreamCats",
     "email": "maifeng@bytedance.com"
   },
