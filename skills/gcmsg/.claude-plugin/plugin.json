@@ -5,5 +5,5 @@
   "author": {
     "name": "Feng Mai"
   },
-  "skills": ["../SKILL.md"]
+  "skills": ["./SKILL.md"]
 }
