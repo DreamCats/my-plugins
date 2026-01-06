@@ -23,8 +23,7 @@ description: This skill should be used when the user asks to "飞书文档转 Ma
 ## 脚本用法
 
 ```bash
-# 先进入技能目录（重要）
-cd xxx/skills/lark-doc-to-md
+首先进入插件目录，在找到对应技能目录：${CLAUDE_PLUGIN_ROOT}
 
 # 使用 doc_id 导出
 python3 scripts/lark_doc_to_md.py --doc-id <DOC_ID> --out ./output.md

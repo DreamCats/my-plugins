@@ -15,6 +15,8 @@ description: This skill should be used when the user asks to "byted-codebase", "
 
 ## 快速开始
 
+首先进入插件目录，在找到对应技能目录：${CLAUDE_PLUGIN_ROOT}
+
 ### 1. 命令行使用（简洁版）
 
 ```bash

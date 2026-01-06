@@ -7,8 +7,7 @@ description: This skill should be used when the user asks to "Figma MCP", "figma
 
 ## 快速开始
 
-1. 进入技能目录再执行脚本：
-   `cd /Users/bytedance/.codex/skills/figma-mcp`
+1. 首先插件目录：${CLAUDE_PLUGIN_ROOT}：
 2. 确认密钥文件：`~/.config/figma-mcp/.env`（内容示例：`key=xxx`）。
 3. 列出工具：`python3 scripts/figma_mcp.py list-tools`
 4. 调用工具：

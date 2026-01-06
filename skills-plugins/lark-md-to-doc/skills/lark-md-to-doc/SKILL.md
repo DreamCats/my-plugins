@@ -21,8 +21,7 @@ description: This skill should be used when the user asks to "Markdown 转飞书
 使用 `scripts/render_lark_doc.py` 读取 Markdown，按段调用 lark-cli：
 
 ```bash
-# 先进入技能目录（重要），或者使用绝对路径
-cd /Users/bytedance/.codex/skills/lark-md-to-doc
+首先进入插件目录，在找到对应技能目录：${CLAUDE_PLUGIN_ROOT}
 
 # 创建新文档并渲染
 python3 scripts/render_lark_doc.py --md ./doc.md --title "文档标题" [--folder-token <token>]

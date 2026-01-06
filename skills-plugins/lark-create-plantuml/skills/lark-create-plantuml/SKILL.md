@@ -51,6 +51,8 @@ description: This skill should be used when the user asks to "生成 PlantUML", 
 
 ## 脚本
 
+首先进入插件目录，在找到对应技能目录：${CLAUDE_PLUGIN_ROOT}
+
 使用 `scripts/sanitize_plantuml.py` 对用户给定的 PlantUML 进行自动降级：
 
 ```bash
