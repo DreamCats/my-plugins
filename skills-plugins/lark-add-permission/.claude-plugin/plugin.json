@@ -1,0 +1,12 @@
+{
+  "name": "lark-add-permission",
+  "version": "1.0.0",
+  "description": "飞书权限管理工具，用于添加和管理用户权限",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "skills": [
+    "./skills/lark-add-permission/SKILL.md"
+  ]
+}

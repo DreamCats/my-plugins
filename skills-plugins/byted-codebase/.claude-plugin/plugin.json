@@ -1,0 +1,12 @@
+{
+  "name": "byted-codebase",
+  "version": "1.0.0",
+  "description": "字节代码库相关工具，提供代码分析和处理功能",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "skills": [
+    "./skills/byted-codebase/SKILL.md"
+  ]
+}

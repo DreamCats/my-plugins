@@ -18,9 +18,9 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills/ark-generate-image",
+      "source": "./skills-plugins/ark-generate-image",
       "category": "image-generation",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/ark-generate-image"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/ark-generate-image"
     },
     {
       "name": "byted-codebase",
@@ -29,9 +29,9 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills/byted-codebase",
+      "source": "./skills-plugins/byted-codebase",
       "category": "development",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/byted-codebase"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/byted-codebase"
     },
     {
       "name": "byted-logid",
@@ -40,9 +40,9 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills/byted-logid",
+      "source": "./skills-plugins/byted-logid",
       "category": "development",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/byted-logid"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/byted-logid"
     },
     {
       "name": "figma-mcp",
@@ -51,9 +51,9 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills/figma-mcp",
+      "source": "./skills-plugins/figma-mcp",
       "category": "design",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/figma-mcp"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/figma-mcp"
     },
     {
       "name": "gcmsg",
@@ -62,9 +62,9 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills/gcmsg",
+      "source": "./skills-plugins/gcmsg",
       "category": "communication",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/gcmsg"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/gcmsg"
     },
     {
       "name": "gcmsge",
@@ -73,9 +73,9 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills/gcmsge",
+      "source": "./skills-plugins/gcmsge",
       "category": "communication",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/gcmsge"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/gcmsge"
     },
     {
       "name": "lark-add-permission",
@@ -84,9 +84,9 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills/lark-add-permission",
+      "source": "./skills-plugins/lark-add-permission",
       "category": "productivity",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/lark-add-permission"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/lark-add-permission"
     },
     {
       "name": "lark-create-plantuml",
@@ -95,9 +95,9 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills/lark-create-plantuml",
+      "source": "./skills-plugins/lark-create-plantuml",
       "category": "productivity",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/lark-create-plantuml"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/lark-create-plantuml"
     },
     {
       "name": "lark-doc-to-md",
@@ -106,9 +106,9 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills/lark-doc-to-md",
+      "source": "./skills-plugins/lark-doc-to-md",
       "category": "productivity",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/lark-doc-to-md"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/lark-doc-to-md"
     },
     {
       "name": "lark-md-to-doc",
@@ -117,9 +117,9 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills/lark-md-to-doc",
+      "source": "./skills-plugins/lark-md-to-doc",
       "category": "productivity",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/lark-md-to-doc"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/lark-md-to-doc"
     },
     {
       "name": "lark-send-msg",
@@ -128,9 +128,9 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills/lark-send-msg",
+      "source": "./skills-plugins/lark-send-msg",
       "category": "communication",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/lark-send-msg"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/lark-send-msg"
     },
     {
       "name": "polish-image-prompt",
@@ -139,9 +139,9 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills/polish-image-prompt",
+      "source": "./skills-plugins/polish-image-prompt",
       "category": "image-generation",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills/polish-image-prompt"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/polish-image-prompt"
     }
   ]
 }

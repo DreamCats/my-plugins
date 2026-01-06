@@ -1,0 +1,12 @@
+{
+  "name": "gcmsge",
+  "version": "1.0.0",
+  "description": "增强版消息处理工具，扩展了gcmsg的功能",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "skills": [
+    "./skills/gcmsge/SKILL.md"
+  ]
+}

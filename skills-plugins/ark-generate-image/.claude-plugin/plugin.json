@@ -1,0 +1,12 @@
+{
+  "name": "ark-generate-image",
+  "version": "1.0.0",
+  "description": "使用 ark-cli generate 根据文本提示生成图片并获取返回 URL，支持指定尺寸和格式输出",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "skills": [
+    "./skills/ark-generate-image/SKILL.md"
+  ]
+}

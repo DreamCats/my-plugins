@@ -1,0 +1,12 @@
+{
+  "name": "figma-mcp",
+  "version": "1.0.0",
+  "description": "Figma集成工具，支持设计文件操作和组件管理",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "skills": [
+    "./skills/figma-mcp/SKILL.md"
+  ]
+}

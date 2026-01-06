@@ -1,0 +1,12 @@
+{
+  "name": "polish-image-prompt",
+  "version": "1.0.0",
+  "description": "图片提示词优化工具，用于改进和优化AI图像生成的提示词",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "skills": [
+    "./skills/polish-image-prompt/SKILL.md"
+  ]
+}
