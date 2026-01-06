@@ -6,6 +6,6 @@
     "name": "Feng Mai"
   },
   "skills": [
-    "./skills/lark-send-msg/SKILL.md"
+    "./skills/lark-send-msg"
   ]
 }

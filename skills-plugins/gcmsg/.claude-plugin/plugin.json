@@ -6,6 +6,6 @@
     "name": "Feng Mai"
   },
   "skills": [
-    "./skills/gcmsg/SKILL.md"
+    "./skills/gcmsg"
   ]
 }

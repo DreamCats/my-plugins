@@ -7,6 +7,6 @@
     "email": "maifeng@bytedance.com"
   },
   "skills": [
-    "./skills/lark-doc-to-md/SKILL.md"
+    "./skills/lark-doc-to-md"
   ]
 }

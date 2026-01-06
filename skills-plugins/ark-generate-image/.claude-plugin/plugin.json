@@ -7,6 +7,6 @@
     "email": "maifeng@bytedance.com"
   },
   "skills": [
-    "./skills/ark-generate-image/SKILL.md"
+    "./skills/ark-generate-image"
   ]
 }

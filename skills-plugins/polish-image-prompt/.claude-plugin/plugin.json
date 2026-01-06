@@ -7,6 +7,6 @@
     "email": "maifeng@bytedance.com"
   },
   "skills": [
-    "./skills/polish-image-prompt/SKILL.md"
+    "./skills/polish-image-prompt"
   ]
 }
