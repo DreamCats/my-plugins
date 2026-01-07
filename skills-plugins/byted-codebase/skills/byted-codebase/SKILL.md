@@ -1,6 +1,6 @@
 ---
 name: byted-codebase
-description: This skill should be used when the user asks to "byted-codebase", "字节码本", "codebase MCP", "查询代码库", or needs ByteDance codebase tooling.
+description: This skill should be used when the user asks to "byted-codebase", "字节仓库", "codebase MCP", "查询代码库", or needs ByteDance codebase tooling.
 ---
 
 # 字节码本 MCP 工具（CN 区域 - 默认配置版）
