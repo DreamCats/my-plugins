@@ -1,0 +1,12 @@
+{
+  "name": "claude-cli-wrapper",
+  "version": "1.0.0",
+  "description": "用非交互 JSON 协议封装本机 claude CLI，统一返回包含 session_id 的结果，便于其他技能/工作流复用。",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "skills": [
+    "./skills/claude-cli-wrapper"
+  ]
+}
