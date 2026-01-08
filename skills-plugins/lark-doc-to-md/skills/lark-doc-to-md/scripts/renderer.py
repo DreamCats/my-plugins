@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 from html import escape as html_escape
 
 from lark_cli import get_user_info, run_cmd
@@ -185,7 +186,9 @@ class LarkDocRenderer:
             token = block["image"].get("token")
             if token:
                 rel_path = self.download_media(token)
-                return [f"![]({rel_path})"], block_type
+                if rel_path:
+                    return [f"![]({rel_path})"], block_type
+                return [f"<!-- image download failed: {token} -->"], block_type
             return [], block_type
         if block_type == 31:
             lines = self.render_table(block)
@@ -194,13 +197,17 @@ class LarkDocRenderer:
             token = block["board"].get("token")
             if token:
                 rel_path = self.download_board(token)
-                return [f"![]({rel_path})"], block_type
+                if rel_path:
+                    return [f"![]({rel_path})"], block_type
+                return [f"<!-- image download failed: {token} -->"], block_type
             return [], block_type
         if block_type == 21:
             token = block.get("diagram", {}).get("token")
             if token:
                 rel_path = self.download_board(token)
-                return [f"![]({rel_path})"], block_type
+                if rel_path:
+                    return [f"![]({rel_path})"], block_type
+                return [f"<!-- image download failed: {token} -->"], block_type
             return [], block_type
         if block_type in (24, 25, 34):
             children = block.get("children", [])
@@ -213,7 +220,8 @@ class LarkDocRenderer:
             if os.path.exists(candidate):
                 return os.path.join(self.assets_rel, token + ext)
         abs_path = os.path.join(self.assets_dir, token)
-        if self.download_assets and not os.path.exists(abs_path):
+        attempted_download = self.download_assets and not os.path.exists(abs_path)
+        if attempted_download:
             os.makedirs(self.assets_dir, exist_ok=True)
             cmd = [
                 "lark-cli",
@@ -223,7 +231,12 @@ class LarkDocRenderer:
                 "--extra",
                 json.dumps({"drive_route_token": self.doc_id}),
             ]
-            run_cmd(cmd)
+            try:
+                run_cmd(cmd)
+            except subprocess.CalledProcessError:
+                return None
+        if attempted_download and not os.path.exists(abs_path):
+            return None
         ext = detect_image_ext(abs_path)
         if ext:
             final_path = abs_path + ext
@@ -237,10 +250,16 @@ class LarkDocRenderer:
     def download_board(self, token):
         filename = f"{token}.png"
         abs_path = os.path.join(self.assets_dir, filename)
-        if self.download_assets and not os.path.exists(abs_path):
+        attempted_download = self.download_assets and not os.path.exists(abs_path)
+        if attempted_download:
             os.makedirs(self.assets_dir, exist_ok=True)
             cmd = ["lark-cli", "get-board-image", token, abs_path]
-            run_cmd(cmd)
+            try:
+                run_cmd(cmd)
+            except subprocess.CalledProcessError:
+                return None
+        if attempted_download and not os.path.exists(abs_path):
+            return None
         return os.path.join(self.assets_rel, filename)
 
     def render_table(self, block):

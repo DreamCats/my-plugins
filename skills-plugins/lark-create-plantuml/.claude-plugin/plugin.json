@@ -1,12 +1,10 @@
 {
   "name": "lark-create-plantuml",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "飞书PlantUML图表创建工具，支持在飞书中生成UML图表",
   "author": {
     "name": "DreamCats",
     "email": "maifeng@bytedance.com"
   },
-  "skills": [
-    "./skills/lark-create-plantuml"
-  ]
+  "skills": ["./skills/lark-create-plantuml"]
 }

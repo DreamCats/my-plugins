@@ -1,6 +1,6 @@
 ---
 name: lark-doc-to-md
-description: This skill should be used when the user asks to "飞书文档转 Markdown", "lark doc to md", "导出飞书文档为 Markdown", or download Lark doc assets to Markdown.
+description: 将飞书云文档导出为 Markdown，基于 lark-cli get-blocks 解析块结构，下载图片/画板缩略图到 assets/ 并生成相对路径引用。
 ---
 
 # Lark Doc to Markdown
@@ -22,8 +22,13 @@ description: This skill should be used when the user asks to "飞书文档转 Ma
 
 ## 脚本用法
 
+注意：
+
+1. 不能 cd 到技能目录，必须在工作/仓库目录下执行。
+2. 输出文档与 `assets/` 必须写入工作/仓库目录，禁止写入技能目录（例如 `~/.xxx/skills/...`）。
+
+
 ```bash
-首先进入插件目录，在找到对应技能目录：${CLAUDE_PLUGIN_ROOT}
 
 # 使用 doc_id 导出
 python3 scripts/lark_doc_to_md.py --doc-id <DOC_ID> --out ./output.md

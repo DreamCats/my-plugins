@@ -21,7 +21,10 @@ description: This skill should be used when the user asks to "Markdown 转飞书
 使用 `scripts/render_lark_doc.py` 读取 Markdown，按段调用 lark-cli：
 
 ```bash
-首先进入插件目录，在找到对应技能目录：${CLAUDE_PLUGIN_ROOT}
+
+注意：
+1. 不能 cd 到技能目录，必须在工作/仓库目录下执行。
+2. 输出文档与 `assets/` 必须写入工作/仓库目录，禁止写入技能目录（例如 `~/.xxx/skills/...`）。
 
 # 创建新文档并渲染
 python3 scripts/render_lark_doc.py --md ./doc.md --title "文档标题" [--folder-token <token>]

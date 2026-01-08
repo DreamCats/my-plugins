@@ -1,12 +1,10 @@
 {
   "name": "lark-doc-to-md",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "飞书文档转Markdown工具，将飞书文档转换为Markdown格式",
   "author": {
     "name": "DreamCats",
     "email": "maifeng@bytedance.com"
   },
-  "skills": [
-    "./skills/lark-doc-to-md"
-  ]
+  "skills": ["./skills/lark-doc-to-md"]
 }

@@ -51,7 +51,9 @@ description: This skill should be used when the user asks to "生成 PlantUML", 
 
 ## 脚本
 
-首先进入插件目录，在找到对应技能目录：${CLAUDE_PLUGIN_ROOT}
+注意：
+1. 不能 cd 到技能目录，必须在工作/仓库目录下执行。
+2. 输出文档与 `assets/` 必须写入工作/仓库目录，禁止写入技能目录（例如 `~/.xxx/skills/...`）。
 
 使用 `scripts/sanitize_plantuml.py` 对用户给定的 PlantUML 进行自动降级：
 

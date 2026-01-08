@@ -15,7 +15,9 @@ description: This skill should be used when the user asks to "byted-codebase", "
 
 ## 快速开始
 
-首先进入插件目录，在找到对应技能目录：${CLAUDE_PLUGIN_ROOT}
+注意：
+1. 不能 cd 到技能目录，必须在工作/仓库目录下执行。
+2. 输出文档与 `assets/` 必须写入工作/仓库目录，禁止写入技能目录（例如 `~/.xxx/skills/...`）。
 
 ### 1. 命令行使用（简洁版）
 
