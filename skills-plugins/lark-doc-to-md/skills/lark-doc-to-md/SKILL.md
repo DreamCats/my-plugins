@@ -1,6 +1,6 @@
 ---
 name: lark-doc-to-md
-description: 将飞书云文档导出为 Markdown，基于 lark-cli get-blocks 解析块结构，下载图片/画板缩略图到 assets/ 并生成相对路径引用。
+description: 阅读飞书文档，或者将飞书云文档导出为 Markdown，基于 lark-cli get-blocks 解析块结构，下载图片/画板缩略图到 assets/ 并生成相对路径引用。
 ---
 
 # Lark Doc to Markdown
