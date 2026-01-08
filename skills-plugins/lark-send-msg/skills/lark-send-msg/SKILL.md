@@ -1,6 +1,6 @@
 ---
 name: lark-send-msg
-description: This skill should be used when the user asks to "发送飞书消息", "lark send-message", "构造消息 JSON", "选择 msg_type", or send/reply/edit Lark messages.
+description: This skill should be used when the user asks to "发送飞书消息", "发送飞书用户","lark send-message", "构造消息 JSON", "选择 msg_type", or send/reply/edit Lark messages.
 ---
 
 # lark-send-msg

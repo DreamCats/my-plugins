@@ -1,11 +1,9 @@
 {
   "name": "lark-send-msg",
-  "version": "1.0.0",
-  "description": "使用 lark-cli send-message 向飞书用户或群聊发送消息，构造 content JSON 并自动判断 msg_type（text/post/image/file/audio/media/sticker/interactive/share_chat/share_user/system）。当用户需要“发送飞书消息”“把内容转成消息 JSON”“选择消息类型”“用 lark-cli 发送消息/回复消息/编辑消息”时使用。",
+  "version": "1.0.1",
+  "description": "This skill should be used when the user asks to \"发送飞书消息\", \"发送飞书用户\", \"lark send-message\", \"构造消息 JSON\", \"选择 msg_type\", or send/reply/edit Lark messages.",
   "author": {
     "name": "Feng Mai"
   },
-  "skills": [
-    "./skills/lark-send-msg"
-  ]
+  "skills": ["./skills/lark-send-msg"]
 }
