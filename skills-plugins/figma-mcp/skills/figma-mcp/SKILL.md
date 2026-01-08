@@ -7,10 +7,12 @@ description: This skill should be used when the user asks to "Figma MCP", "figma
 
 ## 快速开始
 
-1. 首先插件目录：${CLAUDE_PLUGIN_ROOT}：
-2. 确认密钥文件：`~/.config/figma-mcp/.env`（内容示例：`key=xxx`）。
-3. 列出工具：`python3 scripts/figma_mcp.py list-tools`
-4. 调用工具：
+注意：
+1. 不能 cd 到技能目录，必须在工作/仓库目录下执行。
+2. 输出文档与 `assets/` 必须写入工作/仓库目录，禁止写入技能目录（例如 `~/.xxx/skills/...`）。
+3. 确认密钥文件：`~/.config/figma-mcp/.env`（内容示例：`key=xxx`）。
+4. 列出工具：`python3 scripts/figma_mcp.py list-tools`
+5. 调用工具：
    `python3 scripts/figma_mcp.py call --name <tool> --args '{"key":"value"}'`
 
 ## 配置与规则
