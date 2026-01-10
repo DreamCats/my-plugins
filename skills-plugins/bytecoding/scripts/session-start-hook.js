@@ -106,55 +106,38 @@ Bytecoding \u7684 Repotalk \u53D6\u8BC1\u529F\u80FD\u9700\u8981\u914D\u7F6E CAS 
 ---
 `;
 }
-function showSelfIntroduction() {
-  console.error("");
-  console.error("\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557");
-  console.error("\u2551  \u{1F44B} \u563F\uFF01\u6211\u662F MaiMai\uFF0C\u4E00\u4F4D\u6781\u81F4\u4E13\u6CE8\u7684\u5F00\u53D1\u8005\uFF5E                      \u2551");
-  console.error("\u2551                                                            \u2551");
-  console.error("\u2551  \u{1F4AB} \u6211\u7684\u8D85\u80FD\u529B\uFF1A                                             \u2551");
-  console.error("\u2551     \u2022 \u80FD\u5728\u4EE3\u7801\u7684\u6D77\u6D0B\u91CC\u7CBE\u51C6\u5B9A\u4F4D Bug                             \u2551");
-  console.error("\u2551     \u2022 \u628A\u590D\u6742\u9700\u6C42\u53D8\u6210\u4F18\u96C5\u7684\u4EE3\u7801                                 \u2551");
-  console.error("\u2551     \u2022 \u5728\u5496\u5561\u56E0\u548C\u903B\u8F91\u4E4B\u95F4\u627E\u5230\u5B8C\u7F8E\u5E73\u8861                            \u2551");
-  console.error("\u2551                                                            \u2551");
-  console.error("\u2551  \u{1F4EE} \u6709\u8DA3\u7684\u7075\u9B42\u60F3\u79C1\u804A\uFF1F\u968F\u65F6\u6253\u6270\uFF5E                                \u2551");
-  console.error("\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D");
-  console.error("");
-}
-function checkBytecodingStatus() {
+function buildWelcomeMessage() {
   const userBytecodingDir = getUserBytecodingDir();
   const projectBytecodingDir = getProjectBytecodingDir();
+  let statusInfo = "";
   if (!import_fs.default.existsSync(userBytecodingDir) && !import_fs.default.existsSync(projectBytecodingDir)) {
-    console.error("\u{1F4A1} Bytecoding is not initialized.");
-    console.error("   Run /repo-init to set up the directory structure.\n");
-    return;
-  }
-  const planDir = getUserPlansDir();
-  if (import_fs.default.existsSync(planDir)) {
-    const plans = import_fs.default.readdirSync(planDir).filter((name) => name.startsWith("PLAN-")).sort().reverse();
-    if (plans.length > 0) {
-      console.error(`\u{1F4CB} Bytecoding: ${plans.length} plan(s) available`);
-      console.error(`   Latest: ${plans[0]}
-`);
-    }
-  }
-  const configPath = getUserConfigPath();
-  if (import_fs.default.existsSync(configPath)) {
-    const config = JSON.parse(import_fs.default.readFileSync(configPath, "utf-8"));
-    const cookie = config.repotalk?.auth?.cas_session_cookie;
-    const cookieValid = isValidCasSessionCookie(cookie);
-    console.error("\u2699\uFE0F  Bytecoding configuration:");
-    console.error(`   - Prefer local: ${config.repo_plan?.prefer_local ?? true}`);
-    console.error(`   - Verify mode: ${config.repo_plan?.verify_mode ?? "smart"}`);
-    console.error(`   - Repotalk Cookie: ${cookieValid ? "\u2705 \u5DF2\u914D\u7F6E" : "\u274C \u672A\u914D\u7F6E"}
-`);
-    if (!cookieValid) {
-      console.error("\u{1F36A} \u63D0\u793A: Repotalk Cookie \u672A\u914D\u7F6E\uFF0C\u4EE3\u7801\u53D6\u8BC1\u529F\u80FD\u5C06\u65E0\u6CD5\u4F7F\u7528");
-      console.error("   \u8BF7\u5728 ~/.bytecoding/config.json \u4E2D\u914D\u7F6E cas_session_cookie\n");
-    }
+    statusInfo = "\n\u{1F4A1} Bytecoding \u672A\u521D\u59CB\u5316\uFF0C\u8FD0\u884C /repo-init \u8BBE\u7F6E\u76EE\u5F55\u7ED3\u6784\u3002";
   } else {
-    console.error("\u{1F36A} \u63D0\u793A: Repotalk Cookie \u672A\u914D\u7F6E\uFF0C\u4EE3\u7801\u53D6\u8BC1\u529F\u80FD\u5C06\u65E0\u6CD5\u4F7F\u7528");
-    console.error("   \u8BF7\u5728 ~/.bytecoding/config.json \u4E2D\u914D\u7F6E cas_session_cookie\n");
+    const planDir = getUserPlansDir();
+    if (import_fs.default.existsSync(planDir)) {
+      const plans = import_fs.default.readdirSync(planDir).filter((name) => name.startsWith("PLAN-")).sort().reverse();
+      if (plans.length > 0) {
+        statusInfo = `
+\u{1F4CB} Bytecoding: ${plans.length} \u4E2A\u53EF\u7528\u8BA1\u5212\uFF0C\u6700\u65B0: ${plans[0]}`;
+      }
+    }
+    const configPath = getUserConfigPath();
+    if (import_fs.default.existsSync(configPath)) {
+      try {
+        const config = JSON.parse(import_fs.default.readFileSync(configPath, "utf-8"));
+        const cookie = config.repotalk?.auth?.cas_session_cookie;
+        const cookieValid = isValidCasSessionCookie(cookie);
+        statusInfo += `
+\u2699\uFE0F \u914D\u7F6E: Prefer local=${config.repo_plan?.prefer_local ?? true}, Verify mode=${config.repo_plan?.verify_mode ?? "smart"}`;
+        statusInfo += `
+\u{1F36A} Repotalk Cookie: ${cookieValid ? "\u2705 \u5DF2\u914D\u7F6E" : "\u274C \u672A\u914D\u7F6E"}`;
+      } catch (e) {
+      }
+    }
   }
+  return `\u{1F44B} \u563F\uFF01\u6211\u662F MaiMai\uFF0C\u4E00\u4F4D\u6781\u81F4\u4E13\u6CE8\u7684\u5F00\u53D1\u8005\uFF5E
+\u{1F4AB} \u8D85\u80FD\u529B\uFF1A\u7CBE\u51C6\u5B9A\u4F4D Bug\u3001\u4F18\u96C5\u4EE3\u7801\u8BBE\u8BA1\u3001\u5B8C\u7F8E\u5E73\u8861\u5496\u5561\u56E0\u4E0E\u903B\u8F91
+\u{1F4EE} \u6709\u8DA3\u7684\u7075\u9B42\u60F3\u79C1\u804A\uFF1F\u968F\u65F6\u6253\u6270\uFF5E${statusInfo}`;
 }
 function handleSessionStart(_input) {
   const additionalContextParts = [];
@@ -162,21 +145,21 @@ function handleSessionStart(_input) {
   if (cookieTip) {
     additionalContextParts.push(cookieTip);
   }
-  try {
-    showSelfIntroduction();
-    checkBytecodingStatus();
-  } catch (error) {
-    console.error("\u26A0\uFE0F  Bytecoding hook error:", error instanceof Error ? error.message : error);
-  }
+  const welcomeMessage = buildWelcomeMessage();
+  const output = {
+    systemMessage: welcomeMessage
+  };
   if (additionalContextParts.length > 0) {
-    return {
-      hookSpecificOutput: {
-        hookEventName: "SessionStart",
-        additionalContext: additionalContextParts.join("\n")
-      }
+    output.hookSpecificOutput = {
+      hookEventName: "SessionStart",
+      additionalContext: additionalContextParts.join("\n")
+    };
+  } else {
+    output.hookSpecificOutput = {
+      hookEventName: "SessionStart"
     };
   }
-  return {};
+  return output;
 }
 if (true) {
   (async () => {
