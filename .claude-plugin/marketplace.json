@@ -1,7 +1,7 @@
 {
   "name": "my-plugins",
   "description": "我的 Claude Code 插件集合，包含各种实用技能和工具",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "DreamCats",
     "email": "maifeng@bytedance.com"
@@ -43,6 +43,17 @@
       "source": "./skills-plugins/byted-logid",
       "category": "development",
       "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/byted-logid"
+    },
+    {
+      "name": "live_rd",
+      "description": "Go 项目的 AI Review 与 AI Commit Message 规范化工具（含 commands/skills/hooks 兜底）",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills-plugins/live_rd",
+      "category": "development",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/live_rd"
     },
     {
       "name": "figma-mcp",

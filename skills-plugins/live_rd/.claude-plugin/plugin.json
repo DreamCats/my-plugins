@@ -1,0 +1,8 @@
+{
+  "name": "live_rd",
+  "description": "AI Review 与 AI Commit 规范化落地（Go 项目）",
+  "version": "0.1.0",
+  "author": {
+    "name": "ByteDance RD"
+  }
+}
