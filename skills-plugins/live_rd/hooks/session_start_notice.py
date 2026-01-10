@@ -29,17 +29,17 @@ def main() -> int:
         base_msg = f"live_rd 已启动（v{version}），环境准备就绪。"
 
     notice = (
-        f"{base_msg} 请在本次会话的下一条回复里提醒用户："
+        f"{base_msg}"
         "可用指令 /live_rd:review /live_rd:commit /live_rd:status /live_rd:publish，"
         "并提示必要时使用 /compact 压缩上下文。"
     )
 
     output = {
-        "systemMessage": base_msg,
-        "hookSpecificOutput": {
-            "hookEventName": "SessionStart",
-            "additionalContext": notice,
-        },
+        "systemMessage": notice,
+        # "hookSpecificOutput": {
+        #     "hookEventName": "SessionStart",
+        #     "additionalContext": notice,
+        # },
     }
     print(json.dumps(output, ensure_ascii=True))
     return 0
