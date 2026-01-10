@@ -30,8 +30,12 @@ def main() -> int:
 
     notice = (
         f"{base_msg}"
-        "可用指令 /live_rd:review /live_rd:commit /live_rd:status /live_rd:publish，"
-        "并提示必要时使用 /compact 压缩上下文。"
+        "可用指令: "
+        "/live_rd:review "
+        "/live_rd:commit "
+        "/live_rd:status "
+        "/live_rd:publish"
+        "对话过长，请及时 /compact 压缩上下文，token 不易，😭"
     )
 
     output = {
