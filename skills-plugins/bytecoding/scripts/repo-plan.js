@@ -3557,10 +3557,11 @@ async function tryGetGitRepo(cwd) {
       }).trim().substring(0, 8);
     } catch {
     }
+    const fullName = owner ? `${owner}/${repoName}` : repoName;
     return {
       type: "git",
       owner,
-      name: repoName,
+      name: fullName,
       remote: remoteUrl,
       branch,
       commit,
@@ -4793,9 +4794,128 @@ function generateRepotalkContent(proposal, results) {
   return lines.join("\n");
 }
 
-// src/utils/claude/tasker.ts
+// src/utils/claude/tasker-v2.ts
 var import_fs7 = __toESM(require("fs"), 1);
 var import_path6 = __toESM(require("path"), 1);
+async function generateDesign(options) {
+  console.log("\u{1F3A8} \u6B65\u9AA45: \u51C6\u5907\u751F\u6210\u8BBE\u8BA1\u548C\u4EFB\u52A1\u6E05\u5355...\n");
+  const log2 = getLogger();
+  try {
+    await validateInputs(options);
+    log2.info("tasker", "\u8F93\u5165\u6587\u4EF6\u9A8C\u8BC1\u901A\u8FC7");
+    const proposalContent = import_fs7.default.readFileSync(options.proposalPath, "utf-8");
+    const repotalkContent = import_fs7.default.readFileSync(options.repotalkPath, "utf-8");
+    const taskPrompt = buildTaskPrompt(options, proposalContent, repotalkContent);
+    const taskPromptPath = import_path6.default.join(options.outputDir, "task-prompt.md");
+    import_fs7.default.writeFileSync(taskPromptPath, taskPrompt, "utf-8");
+    log2.info("tasker", `\u4FDD\u5B58\u4EFB\u52A1\u63D0\u793A: ${taskPromptPath}`);
+    console.log("\u2705 \u8BBE\u8BA1\u548C\u4EFB\u52A1\u51C6\u5907\u5B8C\u6210!\n");
+    console.log("\u{1F4CB} \u4E0B\u4E00\u6B65\uFF1A\u8BA9\u5F53\u524D Claude Code \u4F1A\u8BDD\u7EE7\u7EED\u6267\u884C\n");
+    console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501");
+    console.log("\u{1F4A1} \u590D\u5236\u4EE5\u4E0B\u5185\u5BB9\u53D1\u9001\u7ED9 Claude\uFF0C\u7EE7\u7EED\u751F\u6210\u8BBE\u8BA1\u548C\u4EFB\u52A1\uFF1A\n");
+    console.log("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
+    console.log(taskPrompt);
+    console.log("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
+    console.log("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n");
+    console.log(`\u{1F4C4} \u6216\u8005\u76F4\u63A5\u8BFB\u53D6\u4EFB\u52A1\u63D0\u793A\u6587\u4EF6: ${taskPromptPath}
+`);
+    return {
+      success: true,
+      designPath: import_path6.default.join(options.outputDir, "design.md"),
+      tasksPath: import_path6.default.join(options.outputDir, "tasks.md"),
+      taskPrompt
+    };
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error(`\u274C \u51C6\u5907\u4EFB\u52A1\u5931\u8D25: ${err.message}
+`);
+    log2.error("tasker", "\u51C6\u5907\u4EFB\u52A1\u5931\u8D25", err);
+    return { success: false, error: err };
+  }
+}
+async function validateInputs(options) {
+  const { proposalPath, repotalkPath, outputDir } = options;
+  if (!import_fs7.default.existsSync(proposalPath)) {
+    throw new Error(`proposal.md \u4E0D\u5B58\u5728: ${proposalPath}`);
+  }
+  if (!import_fs7.default.existsSync(repotalkPath)) {
+    throw new Error(`repotalk.md \u4E0D\u5B58\u5728: ${repotalkPath}`);
+  }
+  if (!import_fs7.default.existsSync(outputDir)) {
+    import_fs7.default.mkdirSync(outputDir, { recursive: true });
+  }
+}
+function buildTaskPrompt(options, _proposalContent, _repotalkContent) {
+  const repoName = import_path6.default.basename(options.repoPath);
+  const proposalRel = import_path6.default.relative(options.repoPath, options.proposalPath);
+  const repotalkRel = import_path6.default.relative(options.repoPath, options.repotalkPath);
+  const outputRel = import_path6.default.relative(options.repoPath, options.outputDir);
+  return `\u8BF7\u5E2E\u6211\u751F\u6210\u6280\u672F\u8BBE\u8BA1\u548C\u4EFB\u52A1\u6E05\u5355\u3002
+
+## \u4E0A\u4E0B\u6587
+
+\u6211\u6B63\u5728\u4E3A\u4ED3\u5E93 **${repoName}** \u5F00\u53D1\u65B0\u529F\u80FD\uFF0C\u5DF2\u7ECF\u5B8C\u6210\u4E86\u9700\u6C42\u5206\u6790\u548C\u4EE3\u7801\u53D6\u8BC1\u3002
+
+## \u8F93\u5165\u6587\u6863
+
+### 1. \u9700\u6C42\u6587\u6863
+
+\u8DEF\u5F84: \`${proposalRel}\`
+
+### 2. \u4EE3\u7801\u53D6\u8BC1\u7ED3\u679C
+
+\u8DEF\u5F84: \`${repotalkRel}\`
+
+## \u8F93\u51FA\u8981\u6C42
+
+\u8BF7\u6309\u7167\u4EE5\u4E0B\u6B65\u9AA4\u5B8C\u6210\uFF1A
+
+### \u6B65\u9AA4 1: \u4EE3\u7801\u63A2\u7D22
+
+\u4F7F\u7528 Read\u3001Grep\u3001Glob \u5DE5\u5177\u63A2\u7D22\u4EE3\u7801\u5E93\uFF0C\u91CD\u70B9\u5173\u6CE8\uFF1A
+- \u73B0\u6709\u5B9E\u73B0\u6A21\u5F0F
+- \u4EE3\u7801\u7EC4\u7EC7\u7ED3\u6784
+- \u53EF\u590D\u7528\u7684\u7EC4\u4EF6
+- \u6F5C\u5728\u7684\u6280\u672F\u98CE\u9669
+
+### \u6B65\u9AA4 2: \u751F\u6210 design.md
+
+\u4FDD\u5B58\u5230: \`${outputRel}/design.md\`
+
+\u5305\u542B\u4EE5\u4E0B\u7AE0\u8282\uFF1A
+- **\u67B6\u6784\u8BBE\u8BA1**: \u6574\u4F53\u67B6\u6784\u56FE\u3001\u6A21\u5757\u5212\u5206\u3001\u6570\u636E\u6D41\u5411
+- **\u6570\u636E\u6A21\u578B**: \u6838\u5FC3\u6570\u636E\u7ED3\u6784\u3001\u5B9E\u4F53\u5173\u7CFB\u56FE
+- **\u63A5\u53E3\u8BBE\u8BA1**: API \u7AEF\u70B9\u5B9A\u4E49\u3001\u8BF7\u6C42/\u54CD\u5E94\u683C\u5F0F
+- **\u5B9E\u73B0\u65B9\u6848**: \u5173\u952E\u6280\u672F\u70B9\u3001\u5B9E\u73B0\u7B56\u7565
+- **\u6D4B\u8BD5\u7B56\u7565**: \u5355\u5143\u6D4B\u8BD5\u8303\u56F4\u3001\u96C6\u6210\u6D4B\u8BD5\u65B9\u6848
+- **\u98CE\u9669\u8BC4\u4F30**: \u6280\u672F\u98CE\u9669\u3001\u4F9D\u8D56\u98CE\u9669
+
+### \u6B65\u9AA4 3: \u4F7F\u7528 TodoWrite \u521B\u5EFA\u4EFB\u52A1\u5217\u8868
+
+\u4F7F\u7528 TodoWrite \u5DE5\u5177\u521B\u5EFA\u53EF\u6267\u884C\u7684\u4EFB\u52A1\u5217\u8868\uFF0C\u6BCF\u4E2A\u4EFB\u52A1\u5305\u542B\uFF1A
+- **content**: \u4EFB\u52A1\u63CF\u8FF0\uFF08\u4F7F\u7528\u7948\u4F7F\u53E5\uFF0C\u5982 "\u521B\u5EFA\u7528\u6237\u670D\u52A1"\uFF09
+- **status**: pending/in_progress/completed
+- **activeForm**: \u8FDB\u884C\u65F6\u5F62\u5F0F\u7684\u63CF\u8FF0\uFF08\u5982 "\u521B\u5EFA\u7528\u6237\u670D\u52A1\u4E2D"\uFF09
+
+\u4EFB\u52A1\u62C6\u89E3\u539F\u5219\uFF1A
+1. \u9897\u7C92\u5EA6\u9002\u4E2D\uFF081-4 \u5C0F\u65F6\u53EF\u5B8C\u6210\uFF09
+2. \u72EC\u7ACB\u53EF\u6D4B\uFF08\u4F9D\u8D56\u6E05\u6670\uFF09
+3. \u8DEF\u5F84\u660E\u786E\uFF08\u660E\u786E\u6587\u4EF6\u8DEF\u5F84\uFF09
+4. \u9A8C\u6536\u5177\u4F53\uFF08\u6709\u660E\u786E\u7684\u5B8C\u6210\u6807\u51C6\uFF09
+
+### \u6B65\u9AA4 4: \u751F\u6210 tasks.md
+
+\u4FDD\u5B58\u5230: \`${outputRel}/tasks.md\`
+
+\u5C06 TodoWrite \u4E2D\u7684\u4EFB\u52A1\u6574\u7406\u6210 Markdown \u683C\u5F0F\uFF0C\u4FBF\u4E8E\u67E5\u770B\u548C\u8DDF\u8E2A\u3002
+
+---
+
+**\u4ED3\u5E93\u8DEF\u5F84**: \`${options.repoPath}\`
+**\u8F93\u51FA\u76EE\u5F55**: \`${outputRel}\`
+
+\u8BF7\u5F00\u59CB\u6267\u884C\u4E0A\u8FF0\u6B65\u9AA4\u3002`;
+}
 
 // src/commands/repo-plan.ts
 var program2 = new Command();
@@ -4850,7 +4970,7 @@ program2.name("repo-plan").description("\u57FA\u4E8E\u9700\u6C42\u751F\u6210\u62
       console.log("\u23ED\uFE0F  \u8DF3\u8FC7 Repotalk \u53D6\u8BC1\n");
       log.info("main", "\u8DF3\u8FC7 Repotalk \u53D6\u8BC1");
     }
-    if (false) {
+    if (!options.noClaude) {
       const designResult = await generateDesign({
         proposalPath: `${planDir}/proposal.md`,
         repotalkPath: repotalkPath || `${planDir}/repotalk.md`,
