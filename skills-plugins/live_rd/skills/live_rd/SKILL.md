@@ -45,11 +45,12 @@ description: 用于 Go 项目的 AI Review 与 AI Commit Message 规范化。用
 
 ## Commit Message 规范（必须）
 
-**格式**：`<type>(<scope>): <subject>`
+**格式**：`<type>(<scope>): <subject>` + 列表正文
 
 - `type`（必填）：`feat`、`fix`、`docs`、`refactor`、`test`、`chore`、`perf`、`style`、`build`、`ci`
 - `scope`（必填）：kebab-case，小写，2-20 个字符（示例：`auth`、`http-client`）
 - `subject`（必填）：中文动词短语，50 字以内，不要句号或表情
+- 正文（必填）：3-8 条列表项，每行以 `- ` 开头
 
 **Footer（必填，且顺序固定）**：
 

@@ -123,11 +123,16 @@ def extract_commit_message(cmd: str, root: str) -> Optional[str]:
 
 
 def validate_message(msg: str) -> Optional[str]:
-    lines = [line.rstrip() for line in msg.splitlines() if line.strip() != ""]
-    if not lines:
+    raw_lines = [line.rstrip() for line in msg.splitlines()]
+    header_idx = None
+    for idx, line in enumerate(raw_lines):
+        if line.strip():
+            header_idx = idx
+            break
+    if header_idx is None:
         return "提交信息为空"
 
-    header = lines[0]
+    header = raw_lines[header_idx].strip()
     header_match = re.match(r"^(?P<type>[a-z]+)\((?P<scope>[^)]+)\): (?P<subject>.+)$", header)
     if not header_match:
         return "提交信息格式不正确，必须是 type(scope): subject"
@@ -147,15 +152,18 @@ def validate_message(msg: str) -> Optional[str]:
     if not re.search(r"[\u4e00-\u9fff]", subject):
         return "subject 必须包含中文"
 
-    try:
-        gen_idx = lines.index("Generated-By: live_rd")
-    except ValueError:
+    gen_idx = None
+    for idx, line in enumerate(raw_lines):
+        if line.strip() == "Generated-By: live_rd":
+            gen_idx = idx
+            break
+    if gen_idx is None:
         return "缺少 footer: Generated-By: live_rd"
 
     coauthor_prefix = "Co-Authored-By: "
     co_idx = None
-    for idx, line in enumerate(lines):
-        if line.startswith(coauthor_prefix):
+    for idx, line in enumerate(raw_lines):
+        if line.strip().startswith(coauthor_prefix):
             co_idx = idx
             break
     if co_idx is None:
@@ -163,6 +171,25 @@ def validate_message(msg: str) -> Optional[str]:
 
     if gen_idx > co_idx:
         return "footer 顺序错误，必须先 Generated-By 再 Co-Authored-By"
+
+    content_lines = []
+    for line in raw_lines[header_idx + 1 : gen_idx]:
+        if line.strip():
+            content_lines.append(line.strip())
+
+    if not content_lines:
+        return "提交说明不能为空，需提供 3-8 条列表项"
+
+    if any(not line.startswith("- ") for line in content_lines):
+        return "提交说明必须是列表，每行以 '- ' 开头"
+
+    item_count = len(content_lines)
+    if item_count < 3 or item_count > 8:
+        return "提交说明需为 3-8 条列表项"
+
+    for idx in range(co_idx + 1, len(raw_lines)):
+        if raw_lines[idx].strip():
+            return "footer 后不能有额外内容"
 
     return None
 
