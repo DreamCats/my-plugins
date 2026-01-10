@@ -53,7 +53,7 @@ def build_ai_lines(data: Dict[str, Any]) -> List[str]:
     lines.append(f"> Updated: {updated}")
     lines.append("")
     lines.append("### Summary")
-    lines.append(f"- {summary}" if summary else "- None")
+    lines.append(f"> {summary}" if summary else "> None")
     lines.append("")
     lines.extend(_section("Defects", defects))
     lines.extend(_section("Risks", risks))

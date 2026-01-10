@@ -271,13 +271,19 @@ def write_report(
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=True, indent=2)
 
+    status_label = "PASS" if review_status == "pass" else "FAIL"
     md_lines = [
         "# live_rd Review Report",
         "",
-        f"> Generated: {timestamp} | Branch: `{branch}` | Scope: `{scope}`",
+        f"> **Status:** {status_label}",
+        f"> **Generated:** {timestamp}",
+        f"> **Branch:** `{branch}`",
+        f"> **Scope:** `{scope}`",
         "",
-        "## Overview",
-        "| Key | Value |",
+        "---",
+        "",
+        "## 1. Overview",
+        "| Item | Value |",
         "| --- | --- |",
         f"| Module Mode | `{module_mode}` |",
         f"| Target Mode | `{target_mode}` |",
@@ -286,8 +292,11 @@ def write_report(
         f"| Go Files | `{len(go_files)}` |",
         f"| Modules | `{len(modules)}` |",
         f"| Packages | `{len(packages)}` |",
+        f"| Failed Checks | `{len(failed_checks)}` |",
         "",
-        "## Checks",
+        "---",
+        "",
+        "## 2. Checks",
         "| Check | Status | Note |",
         "| --- | --- | --- |",
     ]
@@ -298,7 +307,9 @@ def write_report(
     md_lines.extend(
         [
             "",
-            "## Issues",
+            "---",
+            "",
+            "## 3. Issues",
         ]
     )
     if failed_checks:
@@ -314,7 +325,11 @@ def write_report(
         md_lines.append("")
     md_lines.extend(
         [
-            "## Changed Go Files",
+            "---",
+            "",
+            "## 4. Changes",
+            "",
+            "### 4.1 Go Files",
             "```text",
         ]
     )
@@ -326,7 +341,7 @@ def write_report(
         [
             "```",
             "",
-            "## Modules",
+            "### 4.2 Modules",
             "```text",
         ]
     )
@@ -338,7 +353,7 @@ def write_report(
         [
             "```",
             "",
-            "## Packages",
+            "### 4.3 Packages",
             "```text",
         ]
     )
@@ -350,29 +365,33 @@ def write_report(
         [
             "```",
             "",
-            "## AI Review",
+            "---",
+            "",
+            "## 5. AI Review",
             "<!-- LIVE_RD_AI_REVIEW_START -->",
             "### Summary",
-            "-",
+            "> None",
             "",
             "### Defects",
-            "-",
+            "- None",
             "",
             "### Risks",
-            "-",
+            "- None",
             "",
             "### Suggestions",
-            "-",
+            "- None",
             "",
             "### Concurrency",
-            "-",
+            "- None",
             "",
             "### Transaction",
-            "-",
+            "- None",
             "",
             "### Error Handling",
-            "-",
+            "- None",
             "<!-- LIVE_RD_AI_REVIEW_END -->",
+            "",
+            "---",
             "",
             "## Review Stamp",
             f"`{stamp_path}`",
