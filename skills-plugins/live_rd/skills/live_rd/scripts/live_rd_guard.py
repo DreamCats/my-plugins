@@ -207,6 +207,10 @@ def main() -> int:
     if not stamp or stamp.get("diff_sha256") != current_sha:
         block("请先运行 /live_rd:review，确保当前暂存区已完成 Review。")
         return 0
+    status = stamp.get("status")
+    if status and status != "pass":
+        block("Review 未通过，请修复问题后重新评审再提交。")
+        return 0
 
     message = extract_commit_message(command, root)
     if not message:

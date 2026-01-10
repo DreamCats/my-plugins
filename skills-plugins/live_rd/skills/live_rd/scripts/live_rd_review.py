@@ -8,7 +8,7 @@ import shutil
 import subprocess
 import sys
 import time
-from typing import Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 
 
 def run_cmd(cmd: List[str], cwd: str, allow_fail: bool = False) -> Tuple[int, str]:
@@ -164,6 +164,19 @@ def has_git_head(root: str) -> bool:
     return result.returncode == 0
 
 
+def trim_output(output: str, max_lines: int) -> str:
+    if not output:
+        return ""
+    if max_lines <= 0:
+        return output.strip()
+    lines = output.splitlines()
+    if len(lines) <= max_lines:
+        return output.strip()
+    head = "\n".join(lines[:max_lines]).rstrip()
+    tail = len(lines) - max_lines
+    return f"{head}\n... truncated {tail} lines"
+
+
 def chunked(items: Iterable[str], size: int) -> Iterable[List[str]]:
     batch: List[str] = []
     for item in items:
@@ -175,13 +188,17 @@ def chunked(items: Iterable[str], size: int) -> Iterable[List[str]]:
         yield batch
 
 
-def write_stamp(root: str, scope: str, diff_text: str) -> str:
+def write_stamp(
+    root: str, scope: str, diff_text: str, status: str, failed_checks: List[str]
+) -> str:
     stamp_dir = os.path.join(root, ".claude")
     os.makedirs(stamp_dir, exist_ok=True)
     payload = {
         "scope": scope,
         "timestamp": int(time.time()),
         "diff_sha256": hashlib.sha256(diff_text.encode("utf-8")).hexdigest(),
+        "status": status,
+        "failed_checks": failed_checks,
     }
     path = os.path.join(stamp_dir, "live_rd_review.json")
     with open(path, "w", encoding="utf-8") as f:
@@ -201,10 +218,12 @@ def write_report(
     module_mode: str,
     lint_mode: str,
     target_mode: str,
+    review_status: str,
     branch: str,
     go_files: List[str],
     modules: List[str],
     packages: List[str],
+    failed_checks: List[str],
     checks: dict,
     stamp_path: str,
     diff_text: str,
@@ -224,6 +243,8 @@ def write_report(
             "module_mode": module_mode,
             "lint_mode": lint_mode,
             "target_mode": target_mode,
+            "review_status": review_status,
+            "failed_checks": failed_checks,
             "root": root,
             "go_files_count": len(go_files),
             "modules_count": len(modules),
@@ -261,6 +282,7 @@ def write_report(
         f"| Module Mode | `{module_mode}` |",
         f"| Target Mode | `{target_mode}` |",
         f"| Lint Mode | `{lint_mode}` |",
+        f"| Review Status | `{review_status}` |",
         f"| Go Files | `{len(go_files)}` |",
         f"| Modules | `{len(modules)}` |",
         f"| Packages | `{len(packages)}` |",
@@ -276,6 +298,22 @@ def write_report(
     md_lines.extend(
         [
             "",
+            "## Issues",
+        ]
+    )
+    if failed_checks:
+        for key in failed_checks:
+            detail = checks.get(key, {}).get("errors", "")
+            md_lines.append(f"### {key}")
+            md_lines.append("```text")
+            md_lines.append(detail or "(no output)")
+            md_lines.append("```")
+            md_lines.append("")
+    else:
+        md_lines.append("- None")
+        md_lines.append("")
+    md_lines.extend(
+        [
             "## Changed Go Files",
             "```text",
         ]
@@ -394,6 +432,22 @@ def main() -> int:
         default=os.environ.get("LIVE_RD_REVIEW_TARGET_MODE", "package"),
         help="Run checks on full module or only changed packages",
     )
+    soft_fail_default = os.environ.get("LIVE_RD_REVIEW_SOFT_FAIL", "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    parser.add_argument(
+        "--soft-fail",
+        action="store_true",
+        default=soft_fail_default,
+        help="Continue even if checks fail",
+    )
+    parser.add_argument(
+        "--fail-fast",
+        action="store_true",
+        help="Stop on first failure",
+    )
     parser.add_argument(
         "--report-keep",
         type=int,
@@ -403,6 +457,8 @@ def main() -> int:
     parser.add_argument("--no-fmt", action="store_true")
     parser.add_argument("--no-lint", action="store_true")
     args = parser.parse_args()
+    soft_fail = args.soft_fail and not args.fail_fast
+    max_output_lines = int(os.environ.get("LIVE_RD_REVIEW_OUTPUT_MAX_LINES", "0"))
 
     root = git_root()
 
@@ -419,15 +475,27 @@ def main() -> int:
         print("No Go files detected in scope.")
 
     checks: dict = {}
+    failed_checks: List[str] = []
+    check_outputs: Dict[str, List[str]] = {}
+
+    def record_failure(key: str, note: str, output: str) -> None:
+        checks[key] = {"status": "fail", "note": note}
+        if key not in failed_checks:
+            failed_checks.append(key)
+        cleaned = trim_output(output, max_output_lines)
+        if cleaned:
+            check_outputs.setdefault(key, []).append(cleaned)
 
     if not args.no_fmt and go_files:
         print("Running gofmt...")
         for batch in chunked(go_files, 50):
             code, output = run_cmd(["gofmt", "-w"] + batch, cwd=root)
             if code != 0:
-                checks["gofmt"] = {"status": "fail", "note": "gofmt failed"}
-                return code
-        checks["gofmt"] = {"status": "success", "note": "formatted Go files"}
+                record_failure("gofmt", "gofmt failed", output)
+                if not soft_fail:
+                    return code
+        if "gofmt" not in checks:
+            checks["gofmt"] = {"status": "success", "note": "formatted Go files"}
 
         goimports_path = shutil.which("goimports")
         if goimports_path:
@@ -435,12 +503,11 @@ def main() -> int:
             for batch in chunked(go_files, 50):
                 code, output = run_cmd([goimports_path, "-w"] + batch, cwd=root)
                 if code != 0:
-                    checks["goimports"] = {
-                        "status": "fail",
-                        "note": "goimports failed",
-                    }
-                    return code
-            checks["goimports"] = {"status": "success", "note": "imports adjusted"}
+                    record_failure("goimports", "goimports failed", output)
+                    if not soft_fail:
+                        return code
+            if "goimports" not in checks:
+                checks["goimports"] = {"status": "success", "note": "imports adjusted"}
         else:
             print("goimports not found, skipped.")
             checks["goimports"] = {
@@ -482,24 +549,29 @@ def main() -> int:
                     for batch in chunked(packages_target, 50):
                         code, output = run_cmd(["go", "vet"] + batch, cwd=target)
                         if code != 0:
-                            checks["go_vet"] = {
-                                "status": "fail",
-                                "note": f"go vet failed in {rel_target}",
-                            }
-                            return code
+                            record_failure(
+                                "go_vet",
+                                f"go vet failed in {rel_target}",
+                                output,
+                            )
+                            if not soft_fail:
+                                return code
                 else:
                     print(f"Running go vet in {rel_target}...")
                     code, output = run_cmd(["go", "vet", "./..."], cwd=target)
                     if code != 0:
-                        checks["go_vet"] = {
-                            "status": "fail",
-                            "note": f"go vet failed in {rel_target}",
-                        }
-                        return code
-            checks["go_vet"] = {
-                "status": "success",
-                "note": f"mode={args.target_mode}",
-            }
+                        record_failure(
+                            "go_vet",
+                            f"go vet failed in {rel_target}",
+                            output,
+                        )
+                        if not soft_fail:
+                            return code
+            if "go_vet" not in checks:
+                checks["go_vet"] = {
+                    "status": "success",
+                    "note": f"mode={args.target_mode}",
+                }
 
             golangci = shutil.which("golangci-lint")
             if golangci:
@@ -524,24 +596,29 @@ def main() -> int:
                         for batch in chunked(packages_target, 50):
                             code, output = run_cmd(lint_args + batch, cwd=target)
                             if code != 0:
-                                checks["golangci_lint"] = {
-                                    "status": "fail",
-                                    "note": f"golangci-lint failed in {rel_target}",
-                                }
-                                return code
+                                record_failure(
+                                    "golangci_lint",
+                                    f"golangci-lint failed in {rel_target}",
+                                    output,
+                                )
+                                if not soft_fail:
+                                    return code
                     else:
                         print(f"Running golangci-lint in {rel_target}...")
                         code, output = run_cmd(lint_args, cwd=target)
                         if code != 0:
-                            checks["golangci_lint"] = {
-                                "status": "fail",
-                                "note": f"golangci-lint failed in {rel_target}",
-                            }
-                            return code
-                checks["golangci_lint"] = {
-                    "status": "success",
-                    "note": f"mode={args.lint_mode}, target={args.target_mode}",
-                }
+                            record_failure(
+                                "golangci_lint",
+                                f"golangci-lint failed in {rel_target}",
+                                output,
+                            )
+                            if not soft_fail:
+                                return code
+                if "golangci_lint" not in checks:
+                    checks["golangci_lint"] = {
+                        "status": "success",
+                        "note": f"mode={args.lint_mode}, target={args.target_mode}",
+                    }
             else:
                 print("golangci-lint not found, skipped.")
                 checks["golangci_lint"] = {
@@ -553,20 +630,31 @@ def main() -> int:
         checks["golangci_lint"] = {"status": "skipped", "note": "lint disabled"}
 
     diff_text = git_diff(args.scope, root)
-    stamp_path = write_stamp(root, args.scope, diff_text)
+    review_status = "pass" if not failed_checks else "fail"
+    stamp_path = write_stamp(
+        root, args.scope, diff_text, review_status, failed_checks
+    )
     branch = git_branch(root)
     modules = module_roots(go_files, root, args.module_mode)
     packages = packages_repo_rel(go_files)
+    for key, chunks in check_outputs.items():
+        combined = "\n".join([c for c in chunks if c]).strip()
+        if combined:
+            checks.setdefault(key, {})
+            checks[key]["errors"] = combined
+
     md_path, json_path = write_report(
         root,
         args.scope,
         args.module_mode,
         args.lint_mode,
         args.target_mode,
+        review_status,
         branch,
         go_files,
         modules,
         packages,
+        failed_checks,
         checks,
         stamp_path,
         diff_text,
@@ -574,6 +662,8 @@ def main() -> int:
     print(f"Report written: {md_path}")
     print(f"Report written: {json_path}")
     prune_reports(os.path.dirname(md_path), args.report_keep)
+    if failed_checks and soft_fail:
+        print("Review completed with failures:", ", ".join(failed_checks))
     return 0
 
 

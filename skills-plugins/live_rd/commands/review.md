@@ -15,7 +15,7 @@ allowed-tools:
 - 当前分支: !`git rev-parse --abbrev-ref HEAD`
 - 暂存区状态: !`git status --porcelain`
 - 暂存区差异: !`git diff --cached`
-- Review 运行结果: !`python3 "${CLAUDE_PLUGIN_ROOT}/skills/live_rd/scripts/live_rd_review.py" --scope "${LIVE_RD_REVIEW_SCOPE:-staged}" --module-mode "${LIVE_RD_REVIEW_MODULE_MODE:-module}" --lint-mode "${LIVE_RD_REVIEW_LINT_MODE:-incremental}" --target-mode "${LIVE_RD_REVIEW_TARGET_MODE:-package}" ${LIVE_RD_REVIEW_ARGS:-}`
+- Review 运行结果: !`python3 "${CLAUDE_PLUGIN_ROOT}/skills/live_rd/scripts/live_rd_review.py" --scope "${LIVE_RD_REVIEW_SCOPE:-staged}" --module-mode "${LIVE_RD_REVIEW_MODULE_MODE:-module}" --lint-mode "${LIVE_RD_REVIEW_LINT_MODE:-incremental}" --target-mode "${LIVE_RD_REVIEW_TARGET_MODE:-package}" --soft-fail ${LIVE_RD_REVIEW_ARGS:-}`
 - 最新报告路径: !`python3 -c "import os, glob; d='.claude/live_rd/reports'; files=glob.glob(os.path.join(d,'review_*.md')); print(max(files, key=os.path.getmtime) if files else 'no report')"`
 - 提交人邮箱: !`git config user.email`
 
@@ -49,3 +49,5 @@ EOF
    - `LIVE_RD_REVIEW_ARGS="--no-lint"` 跳过 go vet/golangci-lint
    - `LIVE_RD_REVIEW_ARGS="--no-fmt"` 跳过 gofmt/goimports
    - `LIVE_RD_REVIEW_TARGET_MODE=module` 使用全模块扫描（更慢）
+   - `LIVE_RD_REVIEW_ARGS="--fail-fast"` 出错即中断（不生成报告）
+   - `LIVE_RD_REVIEW_OUTPUT_MAX_LINES=0` 报告里保留全部错误输出（0 为不限行）
