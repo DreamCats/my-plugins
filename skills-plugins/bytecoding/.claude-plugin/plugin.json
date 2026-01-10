@@ -1,0 +1,19 @@
+{
+  "name": "bytecoding",
+  "version": "0.1.0",
+  "description": "Spec-driven development workflow with PlanSpec generation, repotalk MCP integration, and automated change execution",
+  "author": {
+    "name": "Maifeng"
+  },
+  "repository": "https://github.com/Dreamcats/my-plugins/bytecoding",
+  "license": "MIT",
+  "keywords": [
+    "spec-driven",
+    "planspec",
+    "workflow",
+    "repotalk",
+    "mcp",
+    "automation",
+    "code-generation"
+  ]
+}
