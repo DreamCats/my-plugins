@@ -12,7 +12,7 @@ allowed-tools:
 ---
 
 ## Context
-- 当前分支: !`git branch --show-current`
+- 当前分支: !`git rev-parse --abbrev-ref HEAD`
 - 暂存区状态: !`git status --porcelain`
 - 暂存区差异: !`git diff --cached`
 - Review 运行结果: !`python3 "${CLAUDE_PLUGIN_ROOT}/skills/live_rd/scripts/live_rd_review.py" --scope staged --module-mode module --lint-mode incremental`

@@ -49,7 +49,18 @@ def git_branch(root: str) -> str:
         text=True,
     )
     branch = result.stdout.strip()
-    return branch or "detached"
+    if branch:
+        return branch
+    # Fallback for older git versions.
+    result = subprocess.run(
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    branch = result.stdout.strip()
+    return branch if branch and branch != "HEAD" else "detached"
 
 
 def git_diff(scope: str, root: str) -> str:
