@@ -35,10 +35,11 @@ def main() -> int:
     )
 
     output = {
+        "systemMessage": base_msg,
         "hookSpecificOutput": {
             "hookEventName": "SessionStart",
             "additionalContext": notice,
-        }
+        },
     }
     print(json.dumps(output, ensure_ascii=True))
     return 0
