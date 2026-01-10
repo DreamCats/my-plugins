@@ -50,7 +50,7 @@ def build_ai_lines(data: Dict[str, Any]) -> List[str]:
     updated = time.strftime("%Y%m%d-%H%M%S", time.localtime())
 
     lines: List[str] = []
-    lines.append(f"> Updated: {updated}")
+    lines.append(f"> 🕒 Updated: {updated}")
     lines.append("")
     lines.append("### Summary")
     lines.append(f"> {summary}" if summary else "> None")

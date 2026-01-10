@@ -272,17 +272,20 @@ def write_report(
         json.dump(report, f, ensure_ascii=True, indent=2)
 
     status_label = "PASS" if review_status == "pass" else "FAIL"
+    status_emoji = "🟢" if review_status == "pass" else "🔴"
     md_lines = [
         "# live_rd Review Report",
         "",
-        f"> **Status:** {status_label}",
+        f"> **Status:** {status_emoji} {status_label}",
         f"> **Generated:** {timestamp}",
         f"> **Branch:** `{branch}`",
         f"> **Scope:** `{scope}`",
         "",
+        f"**Badges:** `STATUS:{status_label}` `LINT:{lint_mode}` `TARGET:{target_mode}`",
+        "",
         "---",
         "",
-        "## 1. Overview",
+        "## 1. Overview 📌",
         "| Item | Value |",
         "| --- | --- |",
         f"| Module Mode | `{module_mode}` |",
@@ -296,7 +299,7 @@ def write_report(
         "",
         "---",
         "",
-        "## 2. Checks",
+        "## 2. Checks ✅",
         "| Check | Status | Note |",
         "| --- | --- | --- |",
     ]
@@ -307,15 +310,35 @@ def write_report(
     md_lines.extend(
         [
             "",
+            "### 2.1 Checklist",
+        ]
+    )
+    check_order = ["gofmt", "goimports", "go_vet", "golangci_lint"]
+    check_names = {
+        "gofmt": "gofmt",
+        "goimports": "goimports",
+        "go_vet": "go vet",
+        "golangci_lint": "golangci-lint",
+    }
+    for key in check_order:
+        meta = checks.get(key, {})
+        status = meta.get("status", "unknown")
+        mark = "x" if status == "success" else " "
+        label = check_names.get(key, key)
+        suffix = f" ({status})" if status and status != "success" else ""
+        md_lines.append(f"- [{mark}] {label}{suffix}")
+    md_lines.extend(
+        [
+            "",
             "---",
             "",
-            "## 3. Issues",
+            "## 3. Issues 🚨",
         ]
     )
     if failed_checks:
         for key in failed_checks:
             detail = checks.get(key, {}).get("errors", "")
-            md_lines.append(f"### {key}")
+            md_lines.append(f"### ⚠️ {key}")
             md_lines.append("```text")
             md_lines.append(detail or "(no output)")
             md_lines.append("```")
@@ -327,7 +350,7 @@ def write_report(
         [
             "---",
             "",
-            "## 4. Changes",
+            "## 4. Changes 🧾",
             "",
             "### 4.1 Go Files",
             "```text",
@@ -367,7 +390,7 @@ def write_report(
             "",
             "---",
             "",
-            "## 5. AI Review",
+            "## 5. AI Review 🧠",
             "<!-- LIVE_RD_AI_REVIEW_START -->",
             "### Summary",
             "> None",
@@ -393,7 +416,7 @@ def write_report(
             "",
             "---",
             "",
-            "## Review Stamp",
+            "## Review Stamp 🔖",
             f"`{stamp_path}`",
         ]
     )
