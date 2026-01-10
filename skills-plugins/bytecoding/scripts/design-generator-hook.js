@@ -1,14 +1,42 @@
 #!/usr/bin/env node
-var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
-}) : x)(function(x) {
-  if (typeof require !== "undefined") return require.apply(this, arguments);
-  throw Error('Dynamic require of "' + x + '" is not supported');
-});
+"use strict";
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // src/hooks/design-generator-hook.ts
-import fs from "fs";
-import path from "path";
+var design_generator_hook_exports = {};
+__export(design_generator_hook_exports, {
+  handleSubagentStop: () => handleSubagentStop,
+  main: () => main
+});
+module.exports = __toCommonJS(design_generator_hook_exports);
+var import_fs = __toESM(require("fs"), 1);
+var import_path = __toESM(require("path"), 1);
 function handleSubagentStop(input) {
   const { tool_name, tool_input, result, cwd } = input;
   if (tool_name !== "Task") {
@@ -52,25 +80,25 @@ function isDesignGeneratorTask(agentName, prompt) {
 }
 function findGeneratedFiles(cwd) {
   const searchDirs = [
-    path.join(cwd, ".bytecoding", "changes"),
-    path.join(cwd, ".bytecoding", "plans"),
+    import_path.default.join(cwd, ".bytecoding", "changes"),
+    import_path.default.join(cwd, ".bytecoding", "plans"),
     cwd
   ];
   for (const baseDir of searchDirs) {
-    if (!fs.existsSync(baseDir)) continue;
-    const planDirs = fs.readdirSync(baseDir).filter((name) => name.startsWith("plan-") || name.startsWith("PLAN-")).sort().reverse();
+    if (!import_fs.default.existsSync(baseDir)) continue;
+    const planDirs = import_fs.default.readdirSync(baseDir).filter((name) => name.startsWith("plan-") || name.startsWith("PLAN-")).sort().reverse();
     for (const planDir of planDirs) {
-      const fullPath = path.join(baseDir, planDir);
-      const designPath2 = path.join(fullPath, "design.md");
-      const tasksPath2 = path.join(fullPath, "tasks.md");
-      if (fs.existsSync(designPath2) && fs.existsSync(tasksPath2)) {
+      const fullPath = import_path.default.join(baseDir, planDir);
+      const designPath2 = import_path.default.join(fullPath, "design.md");
+      const tasksPath2 = import_path.default.join(fullPath, "tasks.md");
+      if (import_fs.default.existsSync(designPath2) && import_fs.default.existsSync(tasksPath2)) {
         return { designPath: designPath2, tasksPath: tasksPath2, outputDir: fullPath };
       }
     }
   }
-  const designPath = path.join(cwd, "design.md");
-  const tasksPath = path.join(cwd, "tasks.md");
-  if (fs.existsSync(designPath) && fs.existsSync(tasksPath)) {
+  const designPath = import_path.default.join(cwd, "design.md");
+  const tasksPath = import_path.default.join(cwd, "tasks.md");
+  if (import_fs.default.existsSync(designPath) && import_fs.default.existsSync(tasksPath)) {
     return { designPath, tasksPath, outputDir: cwd };
   }
   return {};
@@ -83,7 +111,7 @@ function validateGeneratedFiles(designPath, tasksPath) {
     taskCount: 0
   };
   try {
-    const designContent = fs.readFileSync(designPath, "utf-8");
+    const designContent = import_fs.default.readFileSync(designPath, "utf-8");
     const requiredSections = [
       "\u67B6\u6784\u8BBE\u8BA1",
       "\u6570\u636E\u6A21\u578B",
@@ -98,7 +126,7 @@ function validateGeneratedFiles(designPath, tasksPath) {
   } catch (error) {
   }
   try {
-    const tasksContent = fs.readFileSync(tasksPath, "utf-8");
+    const tasksContent = import_fs.default.readFileSync(tasksPath, "utf-8");
     const taskMatches = tasksContent.match(/### Task \d+\.\d+/g);
     result.taskCount = taskMatches ? taskMatches.length : 0;
     result.tasksValid = result.taskCount > 0;
@@ -159,10 +187,11 @@ function main() {
     process.exit(1);
   }
 }
-if (__require.main === module) {
+if (require.main === module) {
   main();
 }
-export {
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
   handleSubagentStop,
   main
-};
+});
