@@ -15,7 +15,7 @@ allowed-tools:
 - 当前分支: !`git rev-parse --abbrev-ref HEAD`
 - 暂存区状态: !`git status --porcelain`
 - 暂存区差异: !`git diff --cached`
-- Review 运行结果: !`python3 "${CLAUDE_PLUGIN_ROOT}/skills/live_rd/scripts/live_rd_review.py" --scope staged --module-mode module --lint-mode incremental`
+- Review 运行结果: !`python3 "${CLAUDE_PLUGIN_ROOT}/skills/live_rd/scripts/live_rd_review.py" --scope "${LIVE_RD_REVIEW_SCOPE:-staged}" --module-mode "${LIVE_RD_REVIEW_MODULE_MODE:-module}" --lint-mode "${LIVE_RD_REVIEW_LINT_MODE:-incremental}" --target-mode "${LIVE_RD_REVIEW_TARGET_MODE:-package}" ${LIVE_RD_REVIEW_ARGS:-}`
 - 最新报告路径: !`python3 -c "import os, glob; d='.claude/live_rd/reports'; files=glob.glob(os.path.join(d,'review_*.md')); print(max(files, key=os.path.getmtime) if files else 'no report')"`
 - 提交人邮箱: !`git config user.email`
 
@@ -45,3 +45,7 @@ EOF
 ```
 5. 运行 `/live_rd:publish`，启动 Task 任务把报告发布到飞书并通知提交人。
 6. 提示报告位置：`.claude/live_rd/reports/review_<branch>_<timestamp>.{md,json}`。
+7. 如需加速，可设置环境变量，例如：
+   - `LIVE_RD_REVIEW_ARGS="--no-lint"` 跳过 go vet/golangci-lint
+   - `LIVE_RD_REVIEW_ARGS="--no-fmt"` 跳过 gofmt/goimports
+   - `LIVE_RD_REVIEW_TARGET_MODE=module` 使用全模块扫描（更慢）

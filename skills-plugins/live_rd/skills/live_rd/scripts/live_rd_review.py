@@ -90,6 +90,10 @@ def list_go_files(scope: str, root: str) -> List[str]:
     return [f for f in files if f.endswith(".go")]
 
 
+def is_vendor_path(path: str) -> bool:
+    return path.startswith("vendor/") or "/vendor/" in path.replace("\\", "/")
+
+
 def find_module_root(path: str, root: str) -> Optional[str]:
     abs_root = os.path.abspath(root)
     current = os.path.abspath(os.path.join(root, path))
@@ -106,6 +110,13 @@ def find_module_root(path: str, root: str) -> Optional[str]:
         current = parent
 
 
+def resolve_module_root(path: str, root: str, mode: str) -> str:
+    if mode == "repo":
+        return root
+    mod_root = find_module_root(path, root)
+    return mod_root or root
+
+
 def module_roots(go_files: List[str], root: str, mode: str) -> List[str]:
     if mode == "repo":
         return [root]
@@ -115,6 +126,31 @@ def module_roots(go_files: List[str], root: str, mode: str) -> List[str]:
         if mod_root:
             roots.add(mod_root)
     return sorted(roots)
+
+
+def packages_by_module(go_files: List[str], root: str, mode: str) -> dict:
+    mapping: dict = {}
+    for path in go_files:
+        if is_vendor_path(path):
+            continue
+        mod_root = resolve_module_root(path, root, mode)
+        dir_path = os.path.dirname(path) or "."
+        abs_dir = os.path.abspath(os.path.join(root, dir_path))
+        rel = os.path.relpath(abs_dir, mod_root)
+        rel = "." if rel == "." else rel.replace(os.sep, "/")
+        pkg = "./" if rel == "." else f"./{rel}"
+        mapping.setdefault(mod_root, set()).add(pkg)
+    return {key: sorted(list(values)) for key, values in mapping.items()}
+
+
+def packages_repo_rel(go_files: List[str]) -> List[str]:
+    dirs = set()
+    for path in go_files:
+        if is_vendor_path(path):
+            continue
+        dir_path = os.path.dirname(path) or "."
+        dirs.add(dir_path)
+    return sorted(dirs)
 
 
 def has_git_head(root: str) -> bool:
@@ -164,9 +200,11 @@ def write_report(
     scope: str,
     module_mode: str,
     lint_mode: str,
+    target_mode: str,
     branch: str,
     go_files: List[str],
     modules: List[str],
+    packages: List[str],
     checks: dict,
     stamp_path: str,
     diff_text: str,
@@ -185,14 +223,17 @@ def write_report(
             "scope": scope,
             "module_mode": module_mode,
             "lint_mode": lint_mode,
+            "target_mode": target_mode,
             "root": root,
             "go_files_count": len(go_files),
             "modules_count": len(modules),
+            "packages_count": len(packages),
             "diff_sha256": hashlib.sha256(diff_text.encode("utf-8")).hexdigest(),
             "stamp_path": stamp_path,
         },
         "go_files": go_files,
         "modules": [os.path.relpath(path, root) for path in modules],
+        "packages": packages,
         "checks": checks,
         "ai_review": {
             "summary": "",
@@ -212,36 +253,91 @@ def write_report(
     md_lines = [
         "# live_rd Review Report",
         "",
-        "## Basic Info",
-        f"- Timestamp: {timestamp}",
-        f"- Branch: {branch}",
-        f"- Scope: {scope}",
-        f"- Module Mode: {module_mode}",
-        f"- Lint Mode: {lint_mode}",
-        f"- Go Files: {len(go_files)}",
-        f"- Modules: {len(modules)}",
+        f"> Generated: {timestamp} | Branch: `{branch}` | Scope: `{scope}`",
+        "",
+        "## Overview",
+        "| Key | Value |",
+        "| --- | --- |",
+        f"| Module Mode | `{module_mode}` |",
+        f"| Target Mode | `{target_mode}` |",
+        f"| Lint Mode | `{lint_mode}` |",
+        f"| Go Files | `{len(go_files)}` |",
+        f"| Modules | `{len(modules)}` |",
+        f"| Packages | `{len(packages)}` |",
         "",
         "## Checks",
+        "| Check | Status | Note |",
+        "| --- | --- | --- |",
     ]
     for key, value in checks.items():
         status = value.get("status", "unknown")
         note = value.get("note", "")
-        md_lines.append(f"- {key}: {status}{' - ' + note if note else ''}")
+        md_lines.append(f"| `{key}` | `{status}` | {note or '-'} |")
     md_lines.extend(
         [
             "",
+            "## Changed Go Files",
+            "```text",
+        ]
+    )
+    if go_files:
+        md_lines.extend(go_files)
+    else:
+        md_lines.append("(none)")
+    md_lines.extend(
+        [
+            "```",
+            "",
+            "## Modules",
+            "```text",
+        ]
+    )
+    if modules:
+        md_lines.extend([os.path.relpath(path, root) for path in modules])
+    else:
+        md_lines.append("(none)")
+    md_lines.extend(
+        [
+            "```",
+            "",
+            "## Packages",
+            "```text",
+        ]
+    )
+    if packages:
+        md_lines.extend(packages)
+    else:
+        md_lines.append("(none)")
+    md_lines.extend(
+        [
+            "```",
+            "",
             "## AI Review",
             "<!-- LIVE_RD_AI_REVIEW_START -->",
-            "- Summary:",
-            "- Defects:",
-            "- Risks:",
-            "- Suggestions:",
-            "- Concurrency:",
-            "- Transaction:",
-            "- Error Handling:",
+            "### Summary",
+            "-",
+            "",
+            "### Defects",
+            "-",
+            "",
+            "### Risks",
+            "-",
+            "",
+            "### Suggestions",
+            "-",
+            "",
+            "### Concurrency",
+            "-",
+            "",
+            "### Transaction",
+            "-",
+            "",
+            "### Error Handling",
+            "-",
             "<!-- LIVE_RD_AI_REVIEW_END -->",
             "",
-            f"Review Stamp: {stamp_path}",
+            "## Review Stamp",
+            f"`{stamp_path}`",
         ]
     )
 
@@ -291,6 +387,12 @@ def main() -> int:
         choices=["incremental", "full"],
         default="incremental",
         help="Run incremental or full linting",
+    )
+    parser.add_argument(
+        "--target-mode",
+        choices=["module", "package"],
+        default=os.environ.get("LIVE_RD_REVIEW_TARGET_MODE", "package"),
+        help="Run checks on full module or only changed packages",
     )
     parser.add_argument(
         "--report-keep",
@@ -361,21 +463,43 @@ def main() -> int:
             targets = module_roots(go_files, root, args.module_mode)
             if not targets:
                 targets = [root]
+            packages_by_target = packages_by_module(go_files, root, args.module_mode)
+            packages = packages_repo_rel(go_files)
             print(f"Lint targets ({len(targets)}):")
             for target in targets:
                 print(f"- {os.path.relpath(target, root)}")
 
             for target in targets:
                 rel_target = os.path.relpath(target, root)
-                print(f"Running go vet in {rel_target}...")
-                code, output = run_cmd(["go", "vet", "./..."], cwd=target)
-                if code != 0:
-                    checks["go_vet"] = {
-                        "status": "fail",
-                        "note": f"go vet failed in {rel_target}",
-                    }
-                    return code
-            checks["go_vet"] = {"status": "success", "note": "modules checked"}
+                if args.target_mode == "package":
+                    packages_target = packages_by_target.get(target, [])
+                    if not packages_target:
+                        print(f"No packages detected in {rel_target}, skip go vet.")
+                        continue
+                    print(
+                        f"Running go vet in {rel_target} (packages={len(packages_target)})..."
+                    )
+                    for batch in chunked(packages_target, 50):
+                        code, output = run_cmd(["go", "vet"] + batch, cwd=target)
+                        if code != 0:
+                            checks["go_vet"] = {
+                                "status": "fail",
+                                "note": f"go vet failed in {rel_target}",
+                            }
+                            return code
+                else:
+                    print(f"Running go vet in {rel_target}...")
+                    code, output = run_cmd(["go", "vet", "./..."], cwd=target)
+                    if code != 0:
+                        checks["go_vet"] = {
+                            "status": "fail",
+                            "note": f"go vet failed in {rel_target}",
+                        }
+                        return code
+            checks["go_vet"] = {
+                "status": "success",
+                "note": f"mode={args.target_mode}",
+            }
 
             golangci = shutil.which("golangci-lint")
             if golangci:
@@ -387,17 +511,36 @@ def main() -> int:
                         print("Git HEAD not found, fallback to full lint.")
                 for target in targets:
                     rel_target = os.path.relpath(target, root)
-                    print(f"Running golangci-lint in {rel_target}...")
-                    code, output = run_cmd(lint_args, cwd=target)
-                    if code != 0:
-                        checks["golangci_lint"] = {
-                            "status": "fail",
-                            "note": f"golangci-lint failed in {rel_target}",
-                        }
-                        return code
+                    if args.target_mode == "package":
+                        packages_target = packages_by_target.get(target, [])
+                        if not packages_target:
+                            print(
+                                f"No packages detected in {rel_target}, skip golangci-lint."
+                            )
+                            continue
+                        print(
+                            f"Running golangci-lint in {rel_target} (packages={len(packages_target)})..."
+                        )
+                        for batch in chunked(packages_target, 50):
+                            code, output = run_cmd(lint_args + batch, cwd=target)
+                            if code != 0:
+                                checks["golangci_lint"] = {
+                                    "status": "fail",
+                                    "note": f"golangci-lint failed in {rel_target}",
+                                }
+                                return code
+                    else:
+                        print(f"Running golangci-lint in {rel_target}...")
+                        code, output = run_cmd(lint_args, cwd=target)
+                        if code != 0:
+                            checks["golangci_lint"] = {
+                                "status": "fail",
+                                "note": f"golangci-lint failed in {rel_target}",
+                            }
+                            return code
                 checks["golangci_lint"] = {
                     "status": "success",
-                    "note": f"mode={args.lint_mode}",
+                    "note": f"mode={args.lint_mode}, target={args.target_mode}",
                 }
             else:
                 print("golangci-lint not found, skipped.")
@@ -413,14 +556,17 @@ def main() -> int:
     stamp_path = write_stamp(root, args.scope, diff_text)
     branch = git_branch(root)
     modules = module_roots(go_files, root, args.module_mode)
+    packages = packages_repo_rel(go_files)
     md_path, json_path = write_report(
         root,
         args.scope,
         args.module_mode,
         args.lint_mode,
+        args.target_mode,
         branch,
         go_files,
         modules,
+        packages,
         checks,
         stamp_path,
         diff_text,

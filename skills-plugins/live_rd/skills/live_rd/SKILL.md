@@ -26,9 +26,9 @@ description: 用于 Go 项目的 AI Review 与 AI Commit Message 规范化。用
 ## AI Review 流程（Go）
 
 - 对暂存区 Go 文件执行：`gofmt`，若有 `goimports` 则一并执行。
-- 运行：`go vet ./...`、`golangci-lint run`（若已安装）。
-- 默认按模块执行（基于变更 Go 文件定位 `go.mod`），并使用增量 lint（相对 `HEAD`）。
-- 如需全量检查：`--module-mode repo --lint-mode full`。
+- 运行：`go vet`、`golangci-lint run`（若已安装）。
+- 默认按模块定位 `go.mod`，并基于变更包目录执行（`--target-mode package`），使用增量 lint（相对 `HEAD`）。
+- 如需全量模块扫描：设置 `LIVE_RD_REVIEW_TARGET_MODE=module` 或使用 `--module-mode repo --lint-mode full`。
 - 产出 Review 结论：风险点、明显缺陷、可改进建议、必要时给出补丁建议。
 - 执行成功后写入 Review 标记（供 hooks 校验）。
 - 自动生成报告（默认保留最近 10 份，可用 `LIVE_RD_REPORT_KEEP` 调整），路径：`.claude/live_rd/reports/review_<branch>_<timestamp>.{md,json}`。

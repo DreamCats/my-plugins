@@ -47,21 +47,33 @@ def build_ai_lines(data: Dict[str, Any]) -> List[str]:
     transaction = normalize_list(data.get("transaction"))
     error_handling = normalize_list(data.get("error_handling"))
 
+    updated = time.strftime("%Y%m%d-%H%M%S", time.localtime())
+
     lines: List[str] = []
-    lines.append(f"- Summary: {summary}" if summary else "- Summary:")
+    lines.append(f"> Updated: {updated}")
+    lines.append("")
+    lines.append("### Summary")
+    lines.append(f"- {summary}" if summary else "- None")
+    lines.append("")
     lines.extend(_section("Defects", defects))
     lines.extend(_section("Risks", risks))
     lines.extend(_section("Suggestions", suggestions))
     lines.extend(_section("Concurrency", concurrency))
     lines.extend(_section("Transaction", transaction))
     lines.extend(_section("Error Handling", error_handling))
+    if lines and not lines[-1].strip():
+        lines.pop()
     return lines
 
 
 def _section(title: str, items: List[str]) -> List[str]:
-    lines = [f"- {title}:"]
-    for item in items:
-        lines.append(f"  - {item}")
+    lines = [f"### {title}"]
+    if items:
+        for item in items:
+            lines.append(f"- {item}")
+    else:
+        lines.append("- None")
+    lines.append("")
     return lines
 
 
