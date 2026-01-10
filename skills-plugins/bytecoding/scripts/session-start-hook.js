@@ -40,9 +40,6 @@ var import_os = __toESM(require("os"), 1);
 function getUserBytecodingDir() {
   return import_path.default.join(import_os.default.homedir(), ".bytecoding");
 }
-function getUserPlansDir() {
-  return import_path.default.join(getUserBytecodingDir(), "changes");
-}
 function getUserConfigPath() {
   return import_path.default.join(getUserBytecodingDir(), "config.json");
 }
@@ -113,14 +110,6 @@ function buildWelcomeMessage() {
   if (!import_fs.default.existsSync(userBytecodingDir) && !import_fs.default.existsSync(projectBytecodingDir)) {
     statusInfo = "\n\u{1F4A1} Bytecoding \u672A\u521D\u59CB\u5316\uFF0C\u8FD0\u884C /repo-init \u8BBE\u7F6E\u76EE\u5F55\u7ED3\u6784\u3002";
   } else {
-    const planDir = getUserPlansDir();
-    if (import_fs.default.existsSync(planDir)) {
-      const plans = import_fs.default.readdirSync(planDir).filter((name) => name.startsWith("PLAN-")).sort().reverse();
-      if (plans.length > 0) {
-        statusInfo = `
-\u{1F4CB} Bytecoding: ${plans.length} \u4E2A\u53EF\u7528\u8BA1\u5212\uFF0C\u6700\u65B0: ${plans[0]}`;
-      }
-    }
     const configPath = getUserConfigPath();
     if (import_fs.default.existsSync(configPath)) {
       try {
