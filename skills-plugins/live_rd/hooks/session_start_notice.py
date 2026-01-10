@@ -30,12 +30,12 @@ def main() -> int:
 
     notice = (
         f"{base_msg}"
-        "可用指令: "
-        "/live_rd:review "
-        "/live_rd:commit "
-        "/live_rd:status "
-        "/live_rd:publish"
-        "对话过长，请及时 /compact 压缩上下文，token 不易，😭"
+        "\n可用指令: "
+        "\n/live_rd:review "
+        "\n/live_rd:commit "
+        "\n/live_rd:status "
+        "\n/live_rd:publish"
+        "\n对话过长，请及时 /compact 压缩上下文，token 不易，😭"
     )
 
     output = {
