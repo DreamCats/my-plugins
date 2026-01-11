@@ -84,6 +84,13 @@ async function startService(serviceScriptPath, pidFilePath) {
     const path = require("path");
     const logFilePath = path.join(path.dirname(serviceScriptPath), "repotalk-server.log");
     const serviceDir = path.dirname(serviceScriptPath);
+    if (!fs.existsSync(serviceScriptPath)) {
+      return { success: false, error: `Script not found: ${serviceScriptPath}` };
+    }
+    const nodeModulesPath = path.join(serviceDir, "node_modules", "@modelcontextprotocol", "sdk");
+    if (!fs.existsSync(nodeModulesPath)) {
+      return { success: false, error: `MCP SDK not found at: ${nodeModulesPath}` };
+    }
     const child = spawn(process.execPath, [serviceScriptPath], {
       cwd: serviceDir,
       // 设置工作目录
@@ -97,6 +104,12 @@ async function startService(serviceScriptPath, pidFilePath) {
         NODE_ENV: "production"
       }
     });
+    let errorMsg = "";
+    if (child.stderr) {
+      child.stderr.on("data", (data) => {
+        errorMsg += data.toString();
+      });
+    }
     const logStream = fs.createWriteStream(logFilePath, { flags: "a" });
     if (child.stdout) {
       child.stdout.pipe(logStream);
@@ -109,14 +122,14 @@ async function startService(serviceScriptPath, pidFilePath) {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     if (!isProcessRunning(child.pid)) {
       logStream.end();
-      return false;
+      return { success: false, error: `Process exited. Error: ${errorMsg || "Unknown error"}` };
     }
     setTimeout(() => {
       logStream.end();
     }, 3e3);
-    return true;
-  } catch {
-    return false;
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
 async function waitForServiceHealthy(port, timeout, interval) {
@@ -183,39 +196,44 @@ async function handleSessionStart(_input) {
     }
   }
   message = `[RepoTalk] Port ${CONFIG.PORT} is available, starting service...`;
-  if (await startService(serviceScriptPath, pidFilePath)) {
-    const newPid = getServicePid(pidFilePath);
+  const startResult = await startService(serviceScriptPath, pidFilePath);
+  if (!startResult.success) {
     message += `
-[RepoTalk] Service started (PID: ${newPid})`;
-    message += "\n[RepoTalk] Waiting for service to be ready...";
-    if (await waitForServiceHealthy(CONFIG.PORT, CONFIG.HEALTH_CHECK_TIMEOUT, CONFIG.HEALTH_CHECK_INTERVAL)) {
-      message += "\n[RepoTalk] Service is ready \u2713";
+[RepoTalk] Failed to start service \u2717`;
+    if (startResult.error) {
       message += `
-[RepoTalk] Listening on http://localhost:${CONFIG.PORT}/mcp`;
-      return {
-        systemMessage: `\u2705 [RepoTalk] \u670D\u52A1\u5DF2\u542F\u52A8 (PID: ${newPid}, \u7AEF\u53E3 ${CONFIG.PORT})`,
-        hookSpecificOutput: {
-          hookEventName: "SessionStart",
-          additionalContext: message
-        }
-      };
-    } else {
-      message += "\n[RepoTalk] Warning: Service started but health check timed out";
-      message += "\n[RepoTalk] The service may still be initializing...";
-      return {
-        systemMessage: `\u23F3 [RepoTalk] \u670D\u52A1\u542F\u52A8\u4E2D\uFF0C\u5065\u5EB7\u68C0\u67E5\u8D85\u65F6 (PID: ${newPid})`,
-        hookSpecificOutput: {
-          hookEventName: "SessionStart",
-          additionalContext: message
-        }
-      };
+[RepoTalk] Error: ${startResult.error}`;
     }
-  } else {
-    message += "\n[RepoTalk] Failed to start service \u2717";
     message += `
 [RepoTalk] Check logs at: ${path.join(pluginRoot, "scripts/repotalk-server/repotalk-server.log")}`;
     return {
       systemMessage: `\u274C [RepoTalk] \u670D\u52A1\u542F\u52A8\u5931\u8D25`,
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: message
+      }
+    };
+  }
+  const newPid = getServicePid(pidFilePath);
+  message += `
+[RepoTalk] Service started (PID: ${newPid})`;
+  message += "\n[RepoTalk] Waiting for service to be ready...";
+  if (await waitForServiceHealthy(CONFIG.PORT, CONFIG.HEALTH_CHECK_TIMEOUT, CONFIG.HEALTH_CHECK_INTERVAL)) {
+    message += "\n[RepoTalk] Service is ready \u2713";
+    message += `
+[RepoTalk] Listening on http://localhost:${CONFIG.PORT}/mcp`;
+    return {
+      systemMessage: `\u2705 [RepoTalk] \u670D\u52A1\u5DF2\u542F\u52A8 (PID: ${newPid}, \u7AEF\u53E3 ${CONFIG.PORT})`,
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: message
+      }
+    };
+  } else {
+    message += "\n[RepoTalk] Warning: Service started but health check timed out";
+    message += "\n[RepoTalk] The service may still be initializing...";
+    return {
+      systemMessage: `\u23F3 [RepoTalk] \u670D\u52A1\u542F\u52A8\u4E2D\uFF0C\u5065\u5EB7\u68C0\u67E5\u8D85\u65F6 (PID: ${newPid})`,
       hookSpecificOutput: {
         hookEventName: "SessionStart",
         additionalContext: message
