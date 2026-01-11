@@ -3,8 +3,8 @@
  * 完全零依赖实现，仅使用 Node.js 原生 http 模块
  */
 import http from 'http';
-import { TokenManager } from './token-manager.js';
-import { RepoTalkClient } from './repotalk-client.js';
+import { TokenManager } from '../token-manager.js';
+import { RepoTalkClient } from '../repotalk-client.js';
 export class RepoTalkMCPServer {
     httpServer = null;
     // 每个 sessionId 对应一个 TokenManager 和 RepoTalkClient

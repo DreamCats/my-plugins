@@ -1,5 +1,5 @@
 /**
- * RepoTalk MCP Server - 主入口
+ * RepoTalk MCP Server - HTTP 版本主入口
  *
  * 环境变量:
  * - PORT: 可选，服务端口，默认 3005

@@ -1,10 +1,10 @@
 {
   "mcpServers": {
-    "repotalk": {
-      "type": "http",
-      "url": "http://localhost:3005/mcp",
-      "headers": {
-        "X-CAS-Session": "18818dfc9057a57857925e102d69d867"
+    "repotalk-stdio": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/repotalk-server/stdio/repotalk-index.js"],
+      "env": {
+        "CAS_SESSION": "18818dfc9057a57857925e102d69d867"
       }
     }
   }
