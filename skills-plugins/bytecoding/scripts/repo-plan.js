@@ -1187,17 +1187,17 @@ var require_suggestSimilar = __commonJS({
 // node_modules/commander/lib/command.js
 var require_command = __commonJS({
   "node_modules/commander/lib/command.js"(exports2) {
-    var EventEmitter2 = require("node:events").EventEmitter;
+    var EventEmitter = require("node:events").EventEmitter;
     var childProcess = require("node:child_process");
-    var path7 = require("node:path");
-    var fs7 = require("node:fs");
+    var path6 = require("node:path");
+    var fs6 = require("node:fs");
     var process2 = require("node:process");
     var { Argument: Argument2, humanReadableArgName } = require_argument();
     var { CommanderError: CommanderError2 } = require_error();
     var { Help: Help2, stripColor } = require_help();
     var { Option: Option2, DualOptions } = require_option();
     var { suggestSimilar } = require_suggestSimilar();
-    var Command2 = class _Command extends EventEmitter2 {
+    var Command2 = class _Command extends EventEmitter {
       /**
        * Initialize a new `Command`.
        *
@@ -2184,7 +2184,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} subcommandName
        */
       _checkForMissingExecutable(executableFile, executableDir, subcommandName) {
-        if (fs7.existsSync(executableFile)) return;
+        if (fs6.existsSync(executableFile)) return;
         const executableDirMessage = executableDir ? `searched for local subcommand relative to directory '${executableDir}'` : "no directory for search for local subcommand, use .executableDir() to supply a custom directory";
         const executableMissing = `'${executableFile}' does not exist
  - if '${subcommandName}' is not meant to be an executable command, remove description parameter from '.command()' and use '.description()' instead
@@ -2202,11 +2202,11 @@ Expecting one of '${allowedValues.join("', '")}'`);
         let launchWithNode = false;
         const sourceExt = [".js", ".ts", ".tsx", ".mjs", ".cjs"];
         function findFile(baseDir, baseName) {
-          const localBin = path7.resolve(baseDir, baseName);
-          if (fs7.existsSync(localBin)) return localBin;
-          if (sourceExt.includes(path7.extname(baseName))) return void 0;
+          const localBin = path6.resolve(baseDir, baseName);
+          if (fs6.existsSync(localBin)) return localBin;
+          if (sourceExt.includes(path6.extname(baseName))) return void 0;
           const foundExt = sourceExt.find(
-            (ext) => fs7.existsSync(`${localBin}${ext}`)
+            (ext) => fs6.existsSync(`${localBin}${ext}`)
           );
           if (foundExt) return `${localBin}${foundExt}`;
           return void 0;
@@ -2218,21 +2218,21 @@ Expecting one of '${allowedValues.join("', '")}'`);
         if (this._scriptPath) {
           let resolvedScriptPath;
           try {
-            resolvedScriptPath = fs7.realpathSync(this._scriptPath);
+            resolvedScriptPath = fs6.realpathSync(this._scriptPath);
           } catch {
             resolvedScriptPath = this._scriptPath;
           }
-          executableDir = path7.resolve(
-            path7.dirname(resolvedScriptPath),
+          executableDir = path6.resolve(
+            path6.dirname(resolvedScriptPath),
             executableDir
           );
         }
         if (executableDir) {
           let localFile = findFile(executableDir, executableFile);
           if (!localFile && !subcommand._executableFile && this._scriptPath) {
-            const legacyName = path7.basename(
+            const legacyName = path6.basename(
               this._scriptPath,
-              path7.extname(this._scriptPath)
+              path6.extname(this._scriptPath)
             );
             if (legacyName !== this._name) {
               localFile = findFile(
@@ -2243,7 +2243,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
           }
           executableFile = localFile || executableFile;
         }
-        launchWithNode = sourceExt.includes(path7.extname(executableFile));
+        launchWithNode = sourceExt.includes(path6.extname(executableFile));
         let proc;
         if (process2.platform !== "win32") {
           if (launchWithNode) {
@@ -3158,7 +3158,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @return {Command}
        */
       nameFromFilename(filename) {
-        this._name = path7.basename(filename, path7.extname(filename));
+        this._name = path6.basename(filename, path6.extname(filename));
         return this;
       }
       /**
@@ -3172,9 +3172,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} [path]
        * @return {(string|null|Command)}
        */
-      executableDir(path8) {
-        if (path8 === void 0) return this._executableDir;
-        this._executableDir = path8;
+      executableDir(path7) {
+        if (path7 === void 0) return this._executableDir;
+        this._executableDir = path7;
         return this;
       }
       /**
@@ -3469,6 +3469,10 @@ var {
   Help
 } = import_index.default;
 
+// src/commands/repo-plan.ts
+var import_fs5 = __toESM(require("fs"), 1);
+var import_path5 = __toESM(require("path"), 1);
+
 // src/utils/repo/locator.ts
 var import_child_process = require("child_process");
 var import_fs = __toESM(require("fs"), 1);
@@ -3680,157 +3684,9 @@ function initLogFile(logPath, planId, repoPath) {
   import_fs2.default.writeFileSync(logPath, header + repoInfo + separator, "utf-8");
 }
 
-// src/utils/llm/refiner.ts
+// src/utils/planner/planner.ts
 var import_fs4 = __toESM(require("fs"), 1);
 var import_path4 = __toESM(require("path"), 1);
-
-// src/utils/claude-cli/api.ts
-var import_child_process2 = require("child_process");
-async function claude(options) {
-  const startTime = Date.now();
-  try {
-    const claudeAvailable = checkClaudeAvailable();
-    if (!claudeAvailable) {
-      return {
-        success: false,
-        error: "claude \u547D\u4EE4\u4E0D\u53EF\u7528\uFF0C\u8BF7\u786E\u4FDD\u5DF2\u5B89\u88C5 Claude Code CLI"
-      };
-    }
-    const command = buildCommand(options);
-    const output = execCommand(command, {
-      cwd: options.workingDirectory || process.cwd(),
-      timeout: options.timeout || 12e4
-      // 默认 2 分钟
-    });
-    const result = parseOutput(output, options.outputFormat || "text");
-    result.command = command;
-    const duration = Date.now() - startTime;
-    console.log(`\u2705 Claude CLI \u8C03\u7528\u6210\u529F (\u8017\u65F6: ${duration}ms)`);
-    return result;
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error(`\u274C Claude CLI \u8C03\u7528\u5931\u8D25: ${errorMsg}`);
-    return {
-      success: false,
-      error: errorMsg,
-      command: buildCommand(options)
-    };
-  }
-}
-function checkClaudeAvailable() {
-  try {
-    (0, import_child_process2.execSync)("claude --version", { stdio: "ignore" });
-    return true;
-  } catch {
-    return false;
-  }
-}
-function buildCommand(options) {
-  const parts = ["claude", "-p"];
-  if (options.outputFormat) {
-    parts.push(`--output-format`, options.outputFormat);
-  }
-  if (options.model) {
-    parts.push(`--model`, options.model);
-  }
-  if (options.systemPromptFile) {
-    parts.push(`--system-prompt-file`, options.systemPromptFile);
-  } else if (options.systemPrompt) {
-    parts.push(`--system-prompt`, escapeShellArg(options.systemPrompt));
-  } else if (options.appendSystemPrompt) {
-    parts.push(`--append-system-prompt`, escapeShellArg(options.appendSystemPrompt));
-  }
-  if (options.allowedTools && options.allowedTools.length > 0) {
-    parts.push(`--allowedTools`, `"${options.allowedTools.join(" ")}"`);
-  }
-  if (options.disallowedTools && options.disallowedTools.length > 0) {
-    parts.push(`--disallowedTools`, `"${options.disallowedTools.join(" ")}"`);
-  }
-  if (options.maxTurns) {
-    parts.push(`--max-turns`, String(options.maxTurns));
-  }
-  if (options.verbose) {
-    parts.push(`--verbose`);
-  }
-  parts.push(escapeShellArg(options.prompt));
-  return parts.join(" ");
-}
-function execCommand(command, options) {
-  try {
-    const output = (0, import_child_process2.execSync)(command, {
-      cwd: options.cwd,
-      timeout: options.timeout,
-      encoding: "utf-8",
-      stdio: ["ignore", "pipe", "pipe"],
-      maxBuffer: 10 * 1024 * 1024
-      // 10MB
-    });
-    return output;
-  } catch (error) {
-    if (error.signal === "SIGTERM" || error.signal === "SIGKILL") {
-      throw new Error(`\u547D\u4EE4\u6267\u884C\u8D85\u65F6\uFF08${options.timeout}ms\uFF09`);
-    }
-    const stderr = error.stderr || "";
-    throw new Error(`\u547D\u4EE4\u6267\u884C\u5931\u8D25: ${stderr || error.message}`);
-  }
-}
-function parseOutput(rawOutput, format) {
-  const trimmed = rawOutput.trim();
-  if (format === "json") {
-    try {
-      const data = JSON.parse(trimmed);
-      return { success: true, data };
-    } catch (error) {
-      const lastJson = extractLastJson(trimmed);
-      if (lastJson) {
-        return { success: true, data: lastJson };
-      }
-      return {
-        success: true,
-        output: trimmed,
-        error: "JSON \u89E3\u6790\u5931\u8D25\uFF0C\u8FD4\u56DE\u539F\u59CB\u6587\u672C"
-      };
-    }
-  }
-  if (format === "stream-json") {
-    const lines = trimmed.split("\n");
-    const lastLine = lines[lines.length - 1];
-    try {
-      const data = JSON.parse(lastLine);
-      return { success: true, data };
-    } catch {
-      return { success: true, output: trimmed };
-    }
-  }
-  return { success: true, output: trimmed };
-}
-function extractLastJson(text) {
-  const lastOpenBrace = text.lastIndexOf("{");
-  const lastCloseBrace = text.lastIndexOf("}");
-  if (lastOpenBrace !== -1 && lastCloseBrace !== -1 && lastCloseBrace > lastOpenBrace) {
-    try {
-      const jsonStr = text.substring(lastOpenBrace, lastCloseBrace + 1);
-      return JSON.parse(jsonStr);
-    } catch {
-      return null;
-    }
-  }
-  return null;
-}
-function escapeShellArg(arg) {
-  return `'${arg.replace(/'/g, "'\\''")}'`;
-}
-async function claudeText(prompt, options) {
-  const result = await claude({
-    prompt,
-    outputFormat: "text",
-    ...options
-  });
-  if (!result.success) {
-    throw new Error(result.error || "Claude CLI \u8C03\u7528\u5931\u8D25");
-  }
-  return result.output || "";
-}
 
 // src/utils/logger/index.ts
 var import_fs3 = __toESM(require("fs"), 1);
@@ -3895,919 +3751,17 @@ var log = {
   stepComplete: (step, name, duration) => getLogger().stepComplete(step, name, duration)
 };
 
-// src/utils/llm/refiner.ts
-async function refineRequirement(options) {
-  console.log("\u{1F916} \u6B65\u9AA43: \u4F7F\u7528 LLM \u91CD\u7EC4\u9700\u6C42...\n");
-  const log2 = getLogger();
-  try {
-    const userPrompt = buildUserPrompt(options);
-    log2.info("llm", "\u6784\u5EFA LLM prompt");
-    const systemPrompt = getSystemPromptContent();
-    console.log("\u{1F4E4} \u6B63\u5728\u8C03\u7528 Claude CLI \u751F\u6210\u9700\u6C42\u6587\u6863...");
-    log2.info("llm", "\u8C03\u7528 Claude CLI");
-    const refinedContent = await claudeText(userPrompt, {
-      systemPrompt,
-      // 使用内联的系统提示词
-      model: options.model || "sonnet",
-      workingDirectory: options.repoInfo.path || process.cwd(),
-      timeout: 12e4
-      // 2 分钟
-    });
-    log2.info("llm", "Claude CLI \u8FD4\u56DE\u6210\u529F");
-    const proposalPath = import_path4.default.join(options.outputDir, "proposal.md");
-    import_fs4.default.writeFileSync(proposalPath, refinedContent, "utf-8");
-    console.log(`\u2705 \u9700\u6C42\u6587\u6863\u5DF2\u751F\u6210: ${proposalPath}
-`);
-    log2.info("llm", `\u4FDD\u5B58 proposal.md: ${proposalPath}`);
-    return { success: true, proposalPath };
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    console.error(`\u274C LLM \u91CD\u7EC4\u5931\u8D25: ${err.message}
-`);
-    log2.error("llm", "LLM \u91CD\u7EC4\u5931\u8D25", err);
-    return { success: false, error: err };
-  }
-}
-function buildUserPrompt(options) {
-  const { repoInfo, rawInput, detailLevel } = options;
-  const repoContext = buildRepoContext(repoInfo);
-  const detailInstruction = getDetailInstruction(detailLevel || "standard");
-  return `
-\u8BF7\u91CD\u7EC4\u4EE5\u4E0B\u9700\u6C42\u4E3A\u7ED3\u6784\u5316\u7684\u6280\u672F\u9700\u6C42\u6587\u6863\u3002
-
-${detailInstruction}
-
-# \u539F\u59CB\u9700\u6C42
-
-${rawInput}
-
-# \u4ED3\u5E93\u4FE1\u606F
-
-${repoContext}
-
-\u8BF7\u4E25\u683C\u6309\u7167\u7CFB\u7EDF\u63D0\u793A\u8BCD\u4E2D\u5B9A\u4E49\u7684\u683C\u5F0F\u8F93\u51FA Markdown \u6587\u6863\u3002
-`.trim();
-}
-function buildRepoContext(repoInfo) {
-  const parts = [];
-  if (repoInfo.name) {
-    parts.push(`**\u4ED3\u5E93\u540D\u79F0**: ${repoInfo.name}`);
-  }
-  if (repoInfo.type === "git") {
-    parts.push(`**\u7C7B\u578B**: Git \u4ED3\u5E93`);
-    if (repoInfo.owner) {
-      parts.push(`**\u6240\u6709\u8005**: ${repoInfo.owner}`);
-    }
-    if (repoInfo.remote) {
-      parts.push(`**\u8FDC\u7A0B\u5730\u5740**: ${repoInfo.remote}`);
-    }
-    if (repoInfo.branch) {
-      parts.push(`**\u5F53\u524D\u5206\u652F**: ${repoInfo.branch}`);
-    }
-    if (repoInfo.commit) {
-      parts.push(`**\u5F53\u524D\u63D0\u4EA4**: ${repoInfo.commit}`);
-    }
-  } else if (repoInfo.type === "path") {
-    parts.push(`**\u7C7B\u578B**: \u672C\u5730\u76EE\u5F55`);
-  }
-  if (repoInfo.path) {
-    parts.push(`**\u672C\u5730\u8DEF\u5F84**: ${repoInfo.path}`);
-  }
-  return parts.map((line) => `- ${line}`).join("\n");
-}
-function getDetailInstruction(level) {
-  switch (level) {
-    case "simple":
-      return `
-**\u8BE6\u7EC6\u7A0B\u5EA6**: \u7B80\u6D01\u7248
-
-\u8BF7\u751F\u6210\u7B80\u6D01\u7684\u9700\u6C42\u6587\u6863\uFF0C\u5305\u542B\uFF1A
-- \u9700\u6C42\u6807\u9898
-- \u80CC\u666F\u4E0E\u76EE\u6807\uFF081-2 \u6BB5\uFF09
-- \u6838\u5FC3\u529F\u80FD\u9700\u6C42\uFF08\u4EC5\u5217\u51FA\u4E3B\u8981\u529F\u80FD\uFF09
-- \u7B80\u8981\u7684\u6280\u672F\u65B9\u6848\u5EFA\u8BAE
-
-\u53EF\u4EE5\u7701\u7565\u6216\u7B80\u5316\uFF1A\u975E\u529F\u80FD\u9700\u6C42\u3001\u591A\u4E2A\u65B9\u6848\u5BF9\u6BD4\u3001\u5B9E\u65BD\u8003\u8651\u7B49\u90E8\u5206\u3002
-`.trim();
-    case "detailed":
-      return `
-**\u8BE6\u7EC6\u7A0B\u5EA6**: \u8BE6\u7EC6\u7248
-
-\u8BF7\u751F\u6210\u5B8C\u6574\u8BE6\u7EC6\u7684\u9700\u6C42\u6587\u6863\uFF0C\u5305\u542B\u7CFB\u7EDF\u63D0\u793A\u8BCD\u4E2D\u5B9A\u4E49\u7684\u6240\u6709\u90E8\u5206\uFF0C\u5E76\u4E14\uFF1A
-- \u529F\u80FD\u9700\u6C42\u9700\u8981\u5305\u542B\u8BE6\u7EC6\u7684\u63CF\u8FF0\u3001\u9A8C\u6536\u6807\u51C6\u3001\u4F9D\u8D56\u5173\u7CFB
-- \u975E\u529F\u80FD\u9700\u6C42\u8981\u5C3D\u53EF\u80FD\u5168\u9762\uFF08\u6027\u80FD\u3001\u5B89\u5168\u3001\u53EF\u7EF4\u62A4\u6027\u3001\u517C\u5BB9\u6027\u7B49\uFF09
-- \u6280\u672F\u65B9\u6848\u8981\u63D0\u4F9B 2-3 \u4E2A\u9009\u9879\u5E76\u8FDB\u884C\u8BE6\u7EC6\u5BF9\u6BD4
-- \u5B9E\u65BD\u8003\u8651\u8981\u5305\u542B\u98CE\u9669\u8BC4\u4F30\u3001\u4F9D\u8D56\u670D\u52A1\u3001\u6570\u636E\u8FC1\u79FB\u3001\u6D4B\u8BD5\u7B56\u7565\u7B49
-- \u9A8C\u6536\u6807\u51C6\u8981\u5177\u4F53\u53EF\u91CF\u5316
-`.trim();
-    case "standard":
-    default:
-      return `
-**\u8BE6\u7EC6\u7A0B\u5EA6**: \u6807\u51C6\u7248
-
-\u8BF7\u751F\u6210\u6807\u51C6\u683C\u5F0F\u7684\u9700\u6C42\u6587\u6863\uFF0C\u5305\u542B\u7CFB\u7EDF\u63D0\u793A\u8BCD\u4E2D\u5B9A\u4E49\u7684\u4E3B\u8981\u90E8\u5206\u3002
-\u529F\u80FD\u9700\u6C42\u805A\u7126\u6838\u5FC3\u9700\u6C42\uFF0C\u6280\u672F\u65B9\u6848\u63D0\u4F9B\u63A8\u8350\u65B9\u6848\u53CA\u7B80\u8981\u5BF9\u6BD4\u3002
-`.trim();
-  }
-}
-function getSystemPromptContent() {
-  return `\u4F60\u662F\u4E00\u4E2A\u4E13\u4E1A\u7684\u9700\u6C42\u5206\u6790\u5E08\uFF0C\u8D1F\u8D23\u5C06\u7528\u6237\u7684\u539F\u59CB\u9700\u6C42\u91CD\u7EC4\u4E3A\u7ED3\u6784\u5316\u7684\u6280\u672F\u9700\u6C42\u6587\u6863\u3002
-
-# \u4F60\u7684\u4EFB\u52A1
-
-1. **\u7406\u89E3\u9700\u6C42**\uFF1A\u6DF1\u5165\u7406\u89E3\u7528\u6237\u7684\u771F\u5B9E\u610F\u56FE\uFF0C\u8BC6\u522B\u6838\u5FC3\u9700\u6C42\u548C\u8FB9\u754C\u6761\u4EF6
-2. **\u8865\u5145\u4E0A\u4E0B\u6587**\uFF1A\u57FA\u4E8E\u4ED3\u5E93\u4FE1\u606F\uFF0C\u63A8\u65AD\u6280\u672F\u6808\u3001\u67B6\u6784\u6A21\u5F0F\u7B49\u4E0A\u4E0B\u6587
-3. **\u7ED3\u6784\u5316\u8F93\u51FA**\uFF1A\u6309\u7167\u6307\u5B9A\u683C\u5F0F\u751F\u6210 Markdown \u6587\u6863
-
-# \u8F93\u51FA\u683C\u5F0F
-
-\u8BF7\u4E25\u683C\u6309\u7167\u4EE5\u4E0B\u683C\u5F0F\u8F93\u51FA\uFF1A
-
-\`\`\`markdown
-# \u9700\u6C42\u6807\u9898
-
-## \u80CC\u666F\u4E0E\u76EE\u6807
-
-[\u63CF\u8FF0\u9700\u6C42\u7684\u80CC\u666F\u3001\u52A8\u673A\u548C\u8981\u8FBE\u6210\u7684\u76EE\u6807]
-
-## \u73B0\u72B6\u5206\u6790
-
-[\u5206\u6790\u5F53\u524D\u7CFB\u7EDF\u7684\u76F8\u5173\u90E8\u5206\uFF0C\u8BC6\u522B\u9700\u8981\u4FEE\u6539\u7684\u70B9]
-
-## \u529F\u80FD\u9700\u6C42
-
-### \u9700\u6C42 1: [\u6807\u9898]
-- **\u63CF\u8FF0**: [\u8BE6\u7EC6\u63CF\u8FF0]
-- **\u4F18\u5148\u7EA7**: high/medium/low
-- **\u4F9D\u8D56**: [\u5176\u4ED6\u9700\u6C42\u6216\u5916\u90E8\u4F9D\u8D56]
-
-### \u9700\u6C42 2: [\u6807\u9898]
-...
-
-## \u975E\u529F\u80FD\u9700\u6C42
-
-### \u6027\u80FD\u8981\u6C42
-[\u5217\u51FA\u6027\u80FD\u76F8\u5173\u7684\u7EA6\u675F\u548C\u8981\u6C42]
-
-### \u5B89\u5168\u8981\u6C42
-[\u5217\u51FA\u5B89\u5168\u76F8\u5173\u7684\u7EA6\u675F\u548C\u8981\u6C42]
-
-### \u53EF\u7EF4\u62A4\u6027\u8981\u6C42
-[\u5217\u51FA\u53EF\u7EF4\u62A4\u6027\u76F8\u5173\u7684\u7EA6\u675F\u548C\u8981\u6C42]
-
-## \u6280\u672F\u65B9\u6848\u5EFA\u8BAE
-
-### \u65B9\u6848\u9009\u9879
-
-#### \u9009\u9879 1: [\u65B9\u6848\u540D\u79F0]
-- **\u63CF\u8FF0**: [\u7B80\u8981\u63CF\u8FF0]
-- **\u4F18\u52BF**: [\u5217\u51FA\u4F18\u52BF]
-- **\u98CE\u9669**: [\u5217\u51FA\u98CE\u9669]
-
-#### \u9009\u9879 2: [\u65B9\u6848\u540D\u79F0]
-...
-
-### \u63A8\u8350\u65B9\u6848
-[\u7ED9\u51FA\u63A8\u8350\u65B9\u6848\u53CA\u7406\u7531]
-
-## \u5B9E\u65BD\u8003\u8651
-
-### \u6280\u672F\u98CE\u9669
-[\u5217\u51FA\u53EF\u80FD\u7684\u6280\u672F\u98CE\u9669]
-
-### \u4F9D\u8D56\u670D\u52A1
-[\u5217\u51FA\u4F9D\u8D56\u7684\u5916\u90E8\u670D\u52A1\u6216\u7EC4\u4EF6]
-
-### \u6570\u636E\u8FC1\u79FB
-[\u5982\u679C\u6D89\u53CA\u6570\u636E\u53D8\u66F4\uFF0C\u8BF4\u660E\u8FC1\u79FB\u65B9\u6848]
-
-## \u9A8C\u6536\u6807\u51C6
-
-[\u5217\u51FA\u660E\u786E\u7684\u9A8C\u6536\u6807\u51C6\uFF0C\u4FBF\u4E8E\u540E\u7EED\u9A8C\u8BC1]
-
-## \u9644\u5F55
-
-### \u53C2\u8003\u8D44\u6599
-[\u5217\u51FA\u76F8\u5173\u7684\u53C2\u8003\u6587\u6863\u6216\u94FE\u63A5]
-
-### \u672F\u8BED\u8868
-[\u89E3\u91CA\u6587\u6863\u4E2D\u4F7F\u7528\u7684\u4E13\u4E1A\u672F\u8BED]
-\`\`\`
-
-# \u6CE8\u610F\u4E8B\u9879
-
-1. **\u4FDD\u6301\u7B80\u6D01**\uFF1A\u907F\u514D\u5197\u4F59\uFF0C\u6BCF\u4E2A\u90E8\u5206\u90FD\u5E94\u6709\u5B9E\u8D28\u6027\u5185\u5BB9
-2. **\u6280\u672F\u53EF\u884C**\uFF1A\u63D0\u51FA\u7684\u65B9\u6848\u5E94\u8BE5\u662F\u6280\u672F\u53EF\u884C\u7684
-3. **\u660E\u786E\u4F18\u5148\u7EA7**\uFF1A\u5E2E\u52A9\u5B9E\u65BD\u8005\u7406\u89E3\u54EA\u4E9B\u662F\u6838\u5FC3\u9700\u6C42
-4. **\u8003\u8651\u6269\u5C55\u6027**\uFF1A\u5728\u5408\u7406\u8303\u56F4\u5185\u8003\u8651\u672A\u6765\u7684\u6269\u5C55\u9700\u6C42
-5. **\u4F7F\u7528\u4E2D\u6587**\uFF1A\u9664\u975E\u662F\u4E13\u6709\u540D\u8BCD\uFF0C\u5426\u5219\u4F7F\u7528\u4E2D\u6587\u8868\u8FF0
-
-# \u4ED3\u5E93\u4FE1\u606F
-
-\u4F60\u5C06\u6536\u5230\u4ED3\u5E93\u4FE1\u606F\u4F5C\u4E3A\u989D\u5916\u4E0A\u4E0B\u6587\uFF0C\u5305\u62EC\uFF1A
-- \u4ED3\u5E93\u540D\u79F0
-- \u4ED3\u5E93\u7C7B\u578B\uFF08git/hg/svn\uFF09
-- \u5F53\u524D\u5206\u652F
-- \u5F53\u524D\u63D0\u4EA4
-- \u4ED3\u5E93\u8DEF\u5F84
-
-\u8BF7\u5229\u7528\u8FD9\u4E9B\u4FE1\u606F\u63A8\u65AD\u6280\u672F\u6808\u548C\u9879\u76EE\u7ED3\u6784\u3002`;
-}
-
-// src/utils/repotask/investigator.ts
-var import_fs5 = __toESM(require("fs"), 1);
-var import_path5 = __toESM(require("path"), 1);
-
-// src/utils/mcp-repotalk/client.ts
-var import_child_process3 = require("child_process");
-var import_events = require("events");
-var RepotalkClient = class extends import_events.EventEmitter {
-  process = null;
-  config;
-  messageId = 0;
-  pendingRequests = /* @__PURE__ */ new Map();
-  isConnected = false;
-  constructor(config = {}) {
-    super();
-    this.config = {
-      command: config.command || "npx",
-      args: config.args || ["-y", "@modelcontextprotocol/server-repotalk"],
-      env: config.env || {},
-      timeout: config.timeout || 3e4,
-      debug: config.debug || false
-    };
-  }
-  /**
-   * 连接到 Repotalk MCP 服务器
-   */
-  async connect() {
-    if (this.isConnected) {
-      this.log("\u5DF2\u7ECF\u8FDE\u63A5\uFF0C\u8DF3\u8FC7\u91CD\u590D\u8FDE\u63A5");
-      return;
-    }
-    return new Promise((resolve, reject) => {
-      this.log("\u542F\u52A8 Repotalk MCP \u670D\u52A1\u5668...");
-      this.log(`\u547D\u4EE4: ${this.config.command} ${this.config.args.join(" ")}`);
-      this.process = (0, import_child_process3.spawn)(this.config.command, this.config.args, {
-        stdio: ["pipe", "pipe", "pipe"],
-        env: { ...process.env, ...this.config.env }
-      });
-      if (!this.process.stdout || !this.process.stdin || !this.process.stderr) {
-        reject(new Error("\u65E0\u6CD5\u521B\u5EFA\u8FDB\u7A0B stdio"));
-        return;
-      }
-      this.process.stdout.on("data", (data) => {
-        this.handleResponse(data.toString());
-      });
-      this.process.stderr.on("data", (data) => {
-        this.log(`stderr: ${data.toString()}`);
-      });
-      this.process.on("close", (code) => {
-        this.log(`\u8FDB\u7A0B\u9000\u51FA\uFF0C\u4EE3\u7801: ${code}`);
-        this.isConnected = false;
-        this.rejectAllPending(new Error(`MCP \u670D\u52A1\u5668\u8FDB\u7A0B\u9000\u51FA (code: ${code})`));
-      });
-      this.process.on("error", (error) => {
-        this.log(`\u8FDB\u7A0B\u9519\u8BEF: ${error.message}`);
-        this.isConnected = false;
-        reject(error);
-      });
-      setTimeout(() => {
-        this.isConnected = true;
-        this.log("\u5DF2\u8FDE\u63A5\u5230 Repotalk MCP \u670D\u52A1\u5668");
-        resolve();
-      }, 1e3);
-    });
-  }
-  /**
-   * 断开连接
-   */
-  async disconnect() {
-    this.log("\u65AD\u5F00\u8FDE\u63A5...");
-    this.rejectAllPending(new Error("\u5BA2\u6237\u7AEF\u5DF2\u65AD\u5F00\u8FDE\u63A5"));
-    if (this.process) {
-      this.process.kill();
-      this.process = null;
-    }
-    this.isConnected = false;
-    this.log("\u5DF2\u65AD\u5F00\u8FDE\u63A5");
-  }
-  /**
-   * 调用 MCP 工具
-   */
-  async callTool(toolName, args) {
-    if (!this.isConnected || !this.process?.stdin) {
-      throw new Error("\u672A\u8FDE\u63A5\u5230 MCP \u670D\u52A1\u5668");
-    }
-    const id = ++this.messageId;
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.pendingRequests.delete(id);
-        reject(new Error(`\u5DE5\u5177\u8C03\u7528\u8D85\u65F6: ${toolName}`));
-      }, this.config.timeout);
-      this.pendingRequests.set(id, { resolve, reject, timeout });
-      const request = {
-        jsonrpc: "2.0",
-        id,
-        method: "tools/call",
-        params: {
-          name: toolName,
-          arguments: args
-        }
-      };
-      this.log(`\u53D1\u9001\u8BF7\u6C42 #${id}: ${toolName}`);
-      this.process?.stdin?.write(JSON.stringify(request) + "\n");
-    });
-  }
-  /**
-   * 处理服务器响应
-   */
-  handleResponse(data) {
-    const lines = data.split("\n").filter((line) => line.trim());
-    for (const line of lines) {
-      try {
-        const response = JSON.parse(line);
-        if (response.id !== void 0) {
-          const pending = this.pendingRequests.get(response.id);
-          if (pending) {
-            clearTimeout(pending.timeout);
-            this.pendingRequests.delete(response.id);
-            if (response.error) {
-              pending.reject(new Error(response.error.message || "\u672A\u77E5\u9519\u8BEF"));
-            } else {
-              pending.resolve(response.result);
-            }
-          }
-        }
-      } catch (error) {
-        this.log(`\u89E3\u6790\u54CD\u5E94\u5931\u8D25: ${error}`);
-      }
-    }
-  }
-  /**
-   * 拒绝所有待处理的请求
-   */
-  rejectAllPending(error) {
-    for (const [, pending] of this.pendingRequests) {
-      clearTimeout(pending.timeout);
-      pending.reject(error);
-    }
-    this.pendingRequests.clear();
-  }
-  /**
-   * 调试日志
-   */
-  log(message) {
-    if (this.config.debug) {
-      console.log(`[RepotalkClient] ${message}`);
-    }
-  }
-  // ==================== Repotalk 工具方法 ====================
-  /**
-   * 获取仓库详细信息
-   */
-  async getReposDetail(repoNames) {
-    const result = await this.callTool("get_repos_detail", {
-      repo_names: repoNames
-    });
-    return result;
-  }
-  /**
-   * 获取包详细信息
-   */
-  async getPackagesDetail(repoName, packageIds) {
-    const result = await this.callTool("get_packages_detail", {
-      repo_name: repoName,
-      package_ids: packageIds
-    });
-    return result;
-  }
-  /**
-   * 搜索节点（语义搜索）
-   */
-  async searchNodes(question, repoNames, packageIds) {
-    const args = {
-      question,
-      repo_names: repoNames
-    };
-    if (packageIds && packageIds.length > 0) {
-      args.package_ids = packageIds;
-    }
-    const result = await this.callTool("search_nodes", args);
-    return result;
-  }
-  /**
-   * 获取节点详细信息
-   */
-  async getNodesDetail(repoName, nodeIds, needRelatedCodes = false) {
-    const result = await this.callTool("get_nodes_detail", {
-      repo_name: repoName,
-      node_ids: nodeIds,
-      need_related_codes: needRelatedCodes
-    });
-    return result;
-  }
-  /**
-   * 获取文件详细信息
-   */
-  async getFilesDetail(repoName, filePath) {
-    const result = await this.callTool("get_files_detail", {
-      repo_name: repoName,
-      file_path: filePath
-    });
-    return result;
-  }
-  /**
-   * 获取服务 API
-   */
-  async getServiceApis(repoName, apiNames) {
-    const result = await this.callTool("get_service_apis", {
-      repo_name: repoName,
-      api_names: apiNames
-    });
-    return result;
-  }
-  /**
-   * 获取 RPC 信息
-   */
-  async getRpcInfo(psm, method) {
-    const args = { PSM: psm };
-    if (method) {
-      args.Method = method;
-    }
-    const result = await this.callTool("get_rpcinfo", args);
-    return result;
-  }
-  /**
-   * 基础设施搜索
-   */
-  async infraSearch(component, question) {
-    const result = await this.callTool("infra_search", {
-      component,
-      question
-    });
-    return result;
-  }
-  /**
-   * 获取资产文件
-   */
-  async getAssetFile(repoName, filePaths) {
-    const result = await this.callTool("get_asset_file", {
-      repo_name: repoName,
-      file_paths: filePaths
-    });
-    return result;
-  }
-};
-
-// src/utils/auth/repotalk.ts
-var import_https = __toESM(require("https"), 1);
-async function getRepotalkToken(config) {
-  const log2 = getLogger();
-  return new Promise((resolve, reject) => {
-    const url = "https://cloud.bytedance.net/auth/api/v1/jwt";
-    const timeout = config.timeout || 1e4;
-    log2.info("auth", `\u83B7\u53D6 Repotalk Token: ${url}`);
-    const headers = {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-      "Accept": "application/json, text/plain, */*",
-      "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-      "Accept-Encoding": "gzip, deflate, br, zstd",
-      "Cookie": `CAS_SESSION=${config.casSessionCookie}`
-    };
-    const req = import_https.default.request(url, {
-      method: "GET",
-      headers,
-      timeout
-    }, (res) => {
-      const jwtToken = res.headers["x-jwt-token"];
-      if (!jwtToken) {
-        const error = new Error("\u54CD\u5E94\u5934\u4E2D\u672A\u627E\u5230 X-Jwt-Token");
-        log2.error("auth", "\u83B7\u53D6 Token \u5931\u8D25", error);
-        log2.info("auth", `\u54CD\u5E94\u5934: ${JSON.stringify(res.headers)}`);
-        reject(error);
-        return;
-      }
-      log2.info("auth", "\u6210\u529F\u83B7\u53D6 JWT Token");
-      resolve(jwtToken);
-      res.on("data", () => {
-      });
-      res.on("end", () => {
-      });
-    });
-    req.on("error", (error) => {
-      log2.error("auth", "\u8BF7\u6C42\u5931\u8D25", error);
-      reject(new Error(`\u83B7\u53D6 Token \u5931\u8D25: ${error.message}`));
-    });
-    req.on("timeout", () => {
-      req.destroy();
-      log2.error("auth", "\u8BF7\u6C42\u8D85\u65F6");
-      reject(new Error(`\u83B7\u53D6 Token \u8D85\u65F6\uFF08${timeout}ms\uFF09`));
-    });
-    req.end();
-  });
-}
-function getCasSessionCookie(userDir) {
-  try {
-    const fs7 = require("fs");
-    const path7 = require("path");
-    const configPath = path7.join(userDir, "config.json");
-    if (!fs7.existsSync(configPath)) {
-      return void 0;
-    }
-    const config = JSON.parse(fs7.readFileSync(configPath, "utf-8"));
-    return config.repotalk?.auth?.cas_session_cookie;
-  } catch (error) {
-    const log2 = getLogger();
-    log2.error("auth", "\u8BFB\u53D6\u914D\u7F6E\u6587\u4EF6\u5931\u8D25", error);
-    return void 0;
-  }
-}
-function isValidCasSessionCookie(cookie) {
-  if (!cookie) {
-    return false;
-  }
-  const casSessionRegex = /^[a-f0-9]{32}$/i;
-  return casSessionRegex.test(cookie);
-}
-
-// src/utils/mcp-repotalk/EXAMPLE.ts
-async function createRepotalkClient(userDir, options) {
-  const casSessionCookie = getCasSessionCookie(userDir);
-  if (!isValidCasSessionCookie(casSessionCookie)) {
-    throw new Error("\u65E0\u6548\u7684 CAS Session Cookie\uFF0C\u8BF7\u68C0\u67E5 ~/.bytecoding/config.json");
-  }
-  const jwtToken = await getRepotalkToken({ casSessionCookie });
-  const client = new RepotalkClient({
-    debug: options?.debug || false,
-    command: "npx",
-    args: [
-      "--registry",
-      "https://bnpm.byted.org",
-      "-y",
-      "@byted/mcp-proxy@latest"
-    ],
-    env: {
-      MCP_SERVER_PSM: "bytedance.mcp.repotalk",
-      MCP_GATEWAY_REGION: "CN",
-      SERVICE_ACCOUNT_SECRET_KEY: "b16b7db2ae051b6e68970470c5ed2c1a",
-      MCP_SERVER_CALL_TOOL_HEADERS: `x-jwt-token=${jwtToken}`
-    }
-  });
-  return client;
-}
-
-// src/utils/fs/index.ts
-function getUserDir() {
-  const homeDir = process.env.HOME || process.env.USERPROFILE || "";
-  if (!homeDir) {
-    throw new Error("\u65E0\u6CD5\u786E\u5B9A\u7528\u6237\u4E3B\u76EE\u5F55");
-  }
-  return homeDir + "/.bytecoding";
-}
-
-// src/utils/repotask/investigator.ts
-async function investigate(options) {
-  console.log("\u{1F50E} \u6B65\u9AA44: Repotalk \u53D6\u8BC1...\n");
-  const log2 = getLogger();
-  let client = null;
-  try {
-    const proposal = await readProposal(options.proposalPath);
-    log2.info("repotalk", "\u8BFB\u53D6 proposal.md");
-    const targetRepo = options.rawInput ? resolveTargetRepo(options.rawInput, options.repoInfo) : options.repoInfo?.name || "unknown";
-    log2.info("repotalk", `\u76EE\u6807\u4ED3\u5E93: ${targetRepo}`);
-    const queries = await analyzeQueries(proposal, options.repoInfo, targetRepo, options.rawInput);
-    console.log(`\u{1F4CB} \u6784\u5EFA ${queries.length} \u4E2A\u67E5\u8BE2`);
-    log2.info("repotalk", `\u6784\u5EFA\u67E5\u8BE2\u7B56\u7565: ${queries.length} \u4E2A`);
-    const userDir = options.userDir || getUserDir();
-    client = await createRepotalkClient(userDir, { debug: false });
-    await client.connect();
-    log2.info("repotalk", "Repotalk MCP \u5BA2\u6237\u7AEF\u5DF2\u8FDE\u63A5");
-    const results = await executeQueries(client, queries, targetRepo);
-    const successCount = results.filter((r) => r.status === "success").length;
-    console.log(`\u2705 \u5B8C\u6210 ${results.length} \u4E2A\u67E5\u8BE2 (${successCount} \u6210\u529F)
-`);
-    log2.info("repotalk", `\u6267\u884C\u67E5\u8BE2\u5B8C\u6210: ${successCount}/${results.length} \u6210\u529F`);
-    const repotalkPath = await saveRepotalkResult(options.outputDir, results, proposal);
-    console.log(`\u2705 \u53D6\u8BC1\u6587\u6863\u5DF2\u751F\u6210: ${repotalkPath}
-`);
-    log2.info("repotalk", `\u4FDD\u5B58 repotalk.md: ${repotalkPath}`);
-    return {
-      success: true,
-      repotalkPath,
-      queryCount: results.length,
-      successCount
-    };
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    console.error(`\u274C Repotalk \u53D6\u8BC1\u5931\u8D25: ${err.message}
-`);
-    log2.error("repotalk", "Repotalk \u53D6\u8BC1\u5931\u8D25", err);
-    return { success: false, error: err };
-  } finally {
-    if (client) {
-      await client.disconnect();
-    }
-  }
-}
-async function readProposal(filePath) {
-  try {
-    const content = import_fs5.default.readFileSync(filePath, "utf-8");
-    return content;
-  } catch (error) {
-    throw new Error(`\u65E0\u6CD5\u8BFB\u53D6 proposal.md: ${error}`);
-  }
-}
-function resolveTargetRepo(rawInput, repoInfo) {
-  const patterns = [
-    /(?:在|从|within)\s+([a-zA-Z][a-zA-Z0-9_-]+\/[a-zA-Z][a-zA-Z0-9_-]+)/,
-    /([a-zA-Z][a-zA-Z0-9_-]+\/[a-zA-Z][a-zA-Z0-9_-]+)\s*(?:中|里|内|inside|in)/,
-    /(?:repo|repository):\s*([a-zA-Z][a-zA-Z0-9_-]+\/[a-zA-Z][a-zA-Z0-9_-]+)/i
-  ];
-  for (const pattern of patterns) {
-    const match = rawInput.match(pattern);
-    if (match) {
-      return match[1];
-    }
-  }
-  if (repoInfo?.name) {
-    return repoInfo.name;
-  }
-  if (repoInfo?.path) {
-    const pathParts = repoInfo.path.split("/");
-    for (let i = 0; i < pathParts.length - 1; i++) {
-      const potentialRepo = `${pathParts[i]}/${pathParts[i + 1]}`;
-      if (/^[a-z]+\/[a-z_]+$/.test(potentialRepo)) {
-        return potentialRepo;
-      }
-    }
-  }
-  return repoInfo?.name || "unknown";
-}
-async function analyzeQueries(proposal, repoInfo, targetRepo, rawInput) {
-  const queries = [];
-  if (rawInput) {
-    const cleanInput = rawInput.replace(/(?:在|从)\s+[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+\s*(?:中|里|内)/g, "").replace(/(?:中|里|内|查找|搜索|找到|实现|代码)/g, "").trim();
-    if (cleanInput) {
-      queries.push({
-        type: "code",
-        query: cleanInput,
-        priority: "high"
-      });
-    }
-  }
-  const descPattern = /-\s*\*\*描述\*\*:\s*([^\n]+?)(?=\n-?\s*\*|\n\n|$)/gs;
-  let match;
-  while ((match = descPattern.exec(proposal)) !== null) {
-    const desc = match[1].trim();
-    if (desc.length > 5 && !desc.startsWith("- **")) {
-      queries.push({
-        type: "code",
-        query: desc,
-        priority: "high"
-      });
-    }
-  }
-  const techTerms = extractTechTerms(proposal);
-  for (const term of techTerms) {
-    queries.push({
-      type: "code",
-      query: `\u641C\u7D22 ${term} \u76F8\u5173\u7684\u5B9E\u73B0\u4EE3\u7801`,
-      priority: "medium"
-    });
-  }
-  if (queries.length === 0) {
-    queries.push({
-      type: "code",
-      query: "\u641C\u7D22\u6838\u5FC3\u4E1A\u52A1\u903B\u8F91\u4EE3\u7801",
-      priority: "high"
-    });
-  }
-  return queries;
-}
-function extractTechTerms(proposal) {
-  const terms = [];
-  const patterns = [
-    // 服务名、PSM
-    /[A-Z][a-z]+(?:\.[a-z]+)+/g,
-    // 数据库表名 (t_xxx)
-    /t_[a-z_]+/g,
-    // RPC 方法
-    /[A-Z][a-z]*Service\.[a-z][a-zA-Z]+/g,
-    // 配置项
-    /[a-z][a-z_]*\.[a-z_]+/g,
-    // 接口路径
-    /\/api\/v[0-9]+\/[a-z\/]+/g
-  ];
-  for (const pattern of patterns) {
-    const matches = proposal.match(pattern);
-    if (matches) {
-      terms.push(...matches);
-    }
-  }
-  return [...new Set(terms)].slice(0, 10);
-}
-async function executeQueries(client, queries, repoName) {
-  const results = [];
-  const highPriority = queries.filter((q) => q.priority === "high");
-  const mediumPriority = queries.filter((q) => q.priority === "medium");
-  const lowPriority = queries.filter((q) => q.priority === "low");
-  for (const query of [...highPriority, ...mediumPriority, ...lowPriority]) {
-    try {
-      const result = await executeSingleQuery(client, query, repoName);
-      results.push(result);
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      results.push({
-        query: query.query,
-        type: query.type,
-        status: "error",
-        message: err.message,
-        evidence: []
-      });
-    }
-  }
-  return results;
-}
-async function executeSingleQuery(client, query, repoName) {
-  switch (query.type) {
-    case "code":
-      return await executeCodeSearch(client, query.query, repoName);
-    case "repo":
-      return await executeRepoQuery(client, query.query, repoName);
-    default:
-      return {
-        query: query.query,
-        type: query.type,
-        status: "pending",
-        message: `\u4E0D\u652F\u6301\u7684\u67E5\u8BE2\u7C7B\u578B: ${query.type}`,
-        evidence: []
-      };
-  }
-}
-async function executeCodeSearch(client, question, repoName) {
-  const log2 = getLogger();
-  try {
-    log2.info("repotalk", `\u8C03\u7528 searchNodes, question="${question}", repoNames=[${repoName}]`);
-    const searchResult = await client.searchNodes(question, [repoName]);
-    log2.info("repotalk", `searchNodes \u8FD4\u56DE: matches=${searchResult.matches?.length || 0}`);
-    if (!searchResult.matches || searchResult.matches.length === 0) {
-      return {
-        query: question,
-        type: "code",
-        status: "success",
-        message: "\u672A\u627E\u5230\u76F8\u5173\u4EE3\u7801",
-        evidence: []
-      };
-    }
-    const topMatches = searchResult.matches.slice(0, 3);
-    const nodeIds = topMatches.map((m) => m.node_id);
-    log2.info("repotalk", `\u8C03\u7528 getNodesDetail, repoName=${repoName}, nodeIds=[${nodeIds.join(", ")}]`);
-    const nodesDetail = await client.getNodesDetail(repoName, nodeIds, true);
-    log2.info("repotalk", `getNodesDetail \u8FD4\u56DE: count=${nodesDetail.length}`);
-    const evidence = [];
-    for (const node of nodesDetail) {
-      if (node.file_path && node.code) {
-        evidence.push({
-          file: node.file_path,
-          line: node.line || 0,
-          snippet: node.code,
-          description: `${node.node_type}: ${node.name}`
-        });
-      }
-    }
-    return {
-      query: question,
-      type: "code",
-      status: "success",
-      message: `\u627E\u5230 ${searchResult.matches.length} \u4E2A\u5339\u914D\uFF0C\u83B7\u53D6 ${nodesDetail.length} \u4E2A\u8282\u70B9\u8BE6\u60C5`,
-      evidence
-    };
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    return {
-      query: question,
-      type: "code",
-      status: "error",
-      message: err.message,
-      evidence: []
-    };
-  }
-}
-async function executeRepoQuery(client, question, repoName) {
-  try {
-    const reposDetail = await client.getReposDetail([repoName]);
-    if (!reposDetail || reposDetail.length === 0) {
-      return {
-        query: question,
-        type: "repo",
-        status: "error",
-        message: `\u672A\u627E\u5230\u4ED3\u5E93: ${repoName}`,
-        evidence: []
-      };
-    }
-    const repo = reposDetail[0];
-    return {
-      query: question,
-      type: "repo",
-      status: "success",
-      message: `\u4ED3\u5E93\u6982\u8FF0: ${repo.overview || "\u65E0"}`,
-      evidence: []
-    };
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    return {
-      query: question,
-      type: "repo",
-      status: "error",
-      message: err.message,
-      evidence: []
-    };
-  }
-}
-async function saveRepotalkResult(outputDir, results, proposal) {
-  const repotalkPath = import_path5.default.join(outputDir, "repotalk.md");
-  const content = generateRepotalkContent(proposal, results);
-  import_fs5.default.writeFileSync(repotalkPath, content, "utf-8");
-  return repotalkPath;
-}
-function generateRepotalkContent(proposal, results) {
-  const lines = [];
-  lines.push("# Repotalk \u53D6\u8BC1\u7ED3\u679C");
-  lines.push("");
-  lines.push("> \u672C\u6587\u6863\u7531 Repotalk MCP \u81EA\u52A8\u751F\u6210\uFF0C\u5305\u542B\u4EE3\u7801\u5E93\u4E2D\u7684\u76F8\u5173\u8BC1\u636E");
-  lines.push("");
-  lines.push("---");
-  lines.push("");
-  lines.push("## \u67E5\u8BE2\u6458\u8981");
-  lines.push("");
-  lines.push(`- **\u67E5\u8BE2\u6570\u91CF**: ${results.length}`);
-  lines.push(`- **\u6210\u529F**: ${results.filter((r) => r.status === "success").length}`);
-  lines.push(`- **\u5F85\u5904\u7406**: ${results.filter((r) => r.status === "pending").length}`);
-  lines.push(`- **\u5931\u8D25**: ${results.filter((r) => r.status === "error").length}`);
-  lines.push("");
-  lines.push("## \u67E5\u8BE2\u8BE6\u60C5");
-  lines.push("");
-  for (let i = 0; i < results.length; i++) {
-    const result = results[i];
-    lines.push(`### \u67E5\u8BE2 ${i + 1}: ${result.query}`);
-    lines.push("");
-    lines.push(`- **\u7C7B\u578B**: ${result.type}`);
-    lines.push(`- **\u72B6\u6001**: ${result.status}`);
-    lines.push("");
-    if (result.message) {
-      lines.push("**\u7ED3\u679C**:");
-      lines.push("");
-      lines.push(result.message);
-      lines.push("");
-    }
-    if (result.evidence.length > 0) {
-      lines.push("**\u8BC1\u636E**:");
-      lines.push("");
-      for (const evidence of result.evidence) {
-        lines.push(`#### ${evidence.file}:${evidence.line}`);
-        if (evidence.description) {
-          lines.push(`*${evidence.description}*`);
-        }
-        lines.push("");
-        lines.push("```");
-        lines.push(evidence.snippet);
-        lines.push("```");
-        lines.push("");
-      }
-    }
-  }
-  const allEvidence = results.flatMap((r) => r.evidence);
-  if (allEvidence.length > 0) {
-    lines.push("---");
-    lines.push("");
-    lines.push("## \u8BC1\u636E\u6C47\u603B");
-    lines.push("");
-    lines.push("| \u6587\u4EF6 | \u884C\u53F7 | \u63CF\u8FF0 |");
-    lines.push("|------|------|------|");
-    for (const evidence of allEvidence) {
-      const desc = evidence.description || "-";
-      lines.push(`| ${evidence.file} | ${evidence.line} | ${desc} |`);
-    }
-    lines.push("");
-  }
-  return lines.join("\n");
-}
-
-// src/utils/claude/tasker-v2.ts
-var import_fs7 = __toESM(require("fs"), 1);
-var import_path6 = __toESM(require("path"), 1);
+// src/utils/planner/planner.ts
 async function generateDesign(options) {
-  console.log("\u{1F3A8} \u6B65\u9AA45: \u51C6\u5907\u751F\u6210\u8BBE\u8BA1\u548C\u4EFB\u52A1\u6E05\u5355...\n");
+  console.log("\u{1F3A8} \u6B65\u9AA43: \u51C6\u5907\u751F\u6210\u8BBE\u8BA1\u548C\u4EFB\u52A1\u63D0\u793A...\n");
   const log2 = getLogger();
   try {
     await validateInputs(options);
     log2.info("tasker", "\u8F93\u5165\u6587\u4EF6\u9A8C\u8BC1\u901A\u8FC7");
-    const proposalContent = import_fs7.default.readFileSync(options.proposalPath, "utf-8");
-    const repotalkContent = import_fs7.default.readFileSync(options.repotalkPath, "utf-8");
-    const taskPrompt = buildTaskPrompt(options, proposalContent, repotalkContent);
-    const taskPromptPath = import_path6.default.join(options.outputDir, "task-prompt.md");
-    import_fs7.default.writeFileSync(taskPromptPath, taskPrompt, "utf-8");
+    const proposalContent = import_fs4.default.readFileSync(options.proposalPath, "utf-8");
+    const taskPrompt = buildTaskPrompt(options, proposalContent);
+    const taskPromptPath = import_path4.default.join(options.outputDir, "task-prompt.md");
+    import_fs4.default.writeFileSync(taskPromptPath, taskPrompt, "utf-8");
     log2.info("tasker", `\u4FDD\u5B58\u4EFB\u52A1\u63D0\u793A: ${taskPromptPath}`);
     console.log("\u2705 \u8BBE\u8BA1\u548C\u4EFB\u52A1\u51C6\u5907\u5B8C\u6210!\n");
     console.log("\u{1F4CB} \u4E0B\u4E00\u6B65\uFF1A\u8BA9\u5F53\u524D Claude Code \u4F1A\u8BDD\u7EE7\u7EED\u6267\u884C\n");
@@ -4821,8 +3775,8 @@ async function generateDesign(options) {
 `);
     return {
       success: true,
-      designPath: import_path6.default.join(options.outputDir, "design.md"),
-      tasksPath: import_path6.default.join(options.outputDir, "tasks.md"),
+      designPath: import_path4.default.join(options.outputDir, "design.md"),
+      tasksPath: import_path4.default.join(options.outputDir, "tasks.md"),
       taskPrompt
     };
   } catch (error) {
@@ -4834,37 +3788,29 @@ async function generateDesign(options) {
   }
 }
 async function validateInputs(options) {
-  const { proposalPath, repotalkPath, outputDir } = options;
-  if (!import_fs7.default.existsSync(proposalPath)) {
+  const { proposalPath, outputDir } = options;
+  if (!import_fs4.default.existsSync(proposalPath)) {
     throw new Error(`proposal.md \u4E0D\u5B58\u5728: ${proposalPath}`);
   }
-  if (!import_fs7.default.existsSync(repotalkPath)) {
-    throw new Error(`repotalk.md \u4E0D\u5B58\u5728: ${repotalkPath}`);
-  }
-  if (!import_fs7.default.existsSync(outputDir)) {
-    import_fs7.default.mkdirSync(outputDir, { recursive: true });
+  if (!import_fs4.default.existsSync(outputDir)) {
+    import_fs4.default.mkdirSync(outputDir, { recursive: true });
   }
 }
-function buildTaskPrompt(options, _proposalContent, _repotalkContent) {
-  const repoName = import_path6.default.basename(options.repoPath);
-  const proposalRel = import_path6.default.relative(options.repoPath, options.proposalPath);
-  const repotalkRel = import_path6.default.relative(options.repoPath, options.repotalkPath);
-  const outputRel = import_path6.default.relative(options.repoPath, options.outputDir);
+function buildTaskPrompt(options, _proposalContent) {
+  const repoName = import_path4.default.basename(options.repoPath);
+  const proposalRel = import_path4.default.relative(options.repoPath, options.proposalPath);
+  const outputRel = import_path4.default.relative(options.repoPath, options.outputDir);
   return `\u8BF7\u5E2E\u6211\u751F\u6210\u6280\u672F\u8BBE\u8BA1\u548C\u4EFB\u52A1\u6E05\u5355\u3002
 
 ## \u4E0A\u4E0B\u6587
 
-\u6211\u6B63\u5728\u4E3A\u4ED3\u5E93 **${repoName}** \u5F00\u53D1\u65B0\u529F\u80FD\uFF0C\u5DF2\u7ECF\u5B8C\u6210\u4E86\u9700\u6C42\u5206\u6790\u548C\u4EE3\u7801\u53D6\u8BC1\u3002
+\u6211\u6B63\u5728\u4E3A\u4ED3\u5E93 **${repoName}** \u5F00\u53D1\u65B0\u529F\u80FD\uFF0C\u5DF2\u7ECF\u5B8C\u6210\u4E86\u9700\u6C42\u5206\u6790\u3002
 
 ## \u8F93\u5165\u6587\u6863
 
-### 1. \u9700\u6C42\u6587\u6863
+### \u9700\u6C42\u6587\u6863
 
 \u8DEF\u5F84: \`${proposalRel}\`
-
-### 2. \u4EE3\u7801\u53D6\u8BC1\u7ED3\u679C
-
-\u8DEF\u5F84: \`${repotalkRel}\`
 
 ## \u8F93\u51FA\u8981\u6C42
 
@@ -4928,13 +3874,11 @@ tasks.md \u6587\u4EF6\u683C\u5F0F\uFF1A
 
 // src/commands/repo-plan.ts
 var program2 = new Command();
-program2.name("repo-plan").description("\u57FA\u4E8E\u9700\u6C42\u751F\u6210\u6267\u884C\u8BA1\u5212").argument("<requirement>", "\u9700\u6C42\u63CF\u8FF0\uFF08\u652F\u6301\u81EA\u7136\u8BED\u8A00\uFF09").option("-d, --detail-level <level>", "\u8BE6\u7EC6\u7A0B\u5EA6: simple | standard | detailed", "standard").option("-o, --output <path>", "\u8F93\u51FA\u76EE\u5F55").option("--no-llm", "\u8DF3\u8FC7 LLM \u91CD\u7EC4").option("--no-repotalk", "\u8DF3\u8FC7 Repotalk \u53D6\u8BC1").option("--no-claude", "\u8DF3\u8FC7 Claude \u751F\u6210\u8BBE\u8BA1").action(async (requirement, options) => {
+program2.name("repo-plan").description("\u57FA\u4E8E\u9700\u6C42\u751F\u6210\u6267\u884C\u8BA1\u5212").argument("<requirement>", "\u9700\u6C42\u63CF\u8FF0\uFF08\u652F\u6301\u81EA\u7136\u8BED\u8A00\uFF09").option("-o, --output <path>", "\u8F93\u51FA\u76EE\u5F55").option("--no-claude", "\u8DF3\u8FC7 Claude \u751F\u6210\u8BBE\u8BA1").action(async (requirement, options) => {
   try {
     const startTime = Date.now();
     console.log("\u{1F680} \u5F00\u59CB\u751F\u6210\u8BA1\u5212...\n");
     console.log(`\u{1F4DD} \u9700\u6C42: ${requirement}
-`);
-    console.log(`\u2699\uFE0F  \u914D\u7F6E: \u8BE6\u7EC6\u7A0B\u5EA6=${options.detailLevel}
 `);
     const repoInfo = await locateRepo();
     if (!repoInfo) {
@@ -4946,45 +3890,18 @@ program2.name("repo-plan").description("\u57FA\u4E8E\u9700\u6C42\u751F\u6210\u62
     initLogger(logFile, planId);
     log.info("main", `\u5F00\u59CB\u8BA1\u5212\u751F\u6210: ${requirement}`);
     log.info("main", `\u4ED3\u5E93\u4FE1\u606F: ${JSON.stringify(repoInfo)}`);
-    if (!options.noLlm) {
-      const refineResult = await refineRequirement({
-        repoInfo,
-        rawInput: requirement,
-        outputDir: planDir,
-        detailLevel: options.detailLevel
-      });
-      if (!refineResult.success) {
-        log.error("main", "LLM \u91CD\u7EC4\u5931\u8D25", refineResult.error);
-        console.error("\u274C LLM \u91CD\u7EC4\u5931\u8D25\uFF0C\u7EE7\u7EED\u4F7F\u7528\u539F\u59CB\u9700\u6C42");
-      }
-    } else {
-      console.log("\u23ED\uFE0F  \u8DF3\u8FC7 LLM \u91CD\u7EC4\n");
-      log.info("main", "\u8DF3\u8FC7 LLM \u91CD\u7EC4");
-    }
-    let repotalkPath = "";
-    if (!options.noRepotalk) {
-      const investigateResult = await investigate({
-        repoInfo,
-        proposalPath: `${planDir}/proposal.md`,
-        outputDir: planDir,
-        rawInput: requirement
-      });
-      if (!investigateResult.success) {
-        log.error("main", "Repotalk \u53D6\u8BC1\u5931\u8D25", investigateResult.error);
-        console.error("\u274C Repotalk \u53D6\u8BC1\u5931\u8D25\uFF0C\u7EE7\u7EED\u4F7F\u7528\u73B0\u6709\u4FE1\u606F");
-      } else {
-        repotalkPath = investigateResult.repotalkPath || "";
-      }
-    } else {
-      console.log("\u23ED\uFE0F  \u8DF3\u8FC7 Repotalk \u53D6\u8BC1\n");
-      log.info("main", "\u8DF3\u8FC7 Repotalk \u53D6\u8BC1");
-    }
+    const proposalPath = import_path5.default.join(planDir, "proposal.md");
+    const proposalContent = generateSimpleProposal(requirement, repoInfo);
+    import_fs5.default.writeFileSync(proposalPath, proposalContent, "utf-8");
+    console.log("\u2705 \u9700\u6C42\u6587\u6863\u5DF2\u751F\u6210\n");
+    log.info("main", `\u4FDD\u5B58 proposal.md: ${proposalPath}`);
     if (!options.noClaude) {
       const designResult = await generateDesign({
-        proposalPath: `${planDir}/proposal.md`,
-        repotalkPath: repotalkPath || `${planDir}/repotalk.md`,
+        proposalPath,
+        repotalkPath: "",
+        // 不再使用 repotalk
         outputDir: planDir,
-        repoPath: repoInfo.path || process.cwd()
+        repoPath
       });
       if (!designResult.success) {
         log.error("main", "Claude \u751F\u6210\u8BBE\u8BA1\u5931\u8D25", designResult.error);
@@ -4996,23 +3913,67 @@ program2.name("repo-plan").description("\u57FA\u4E8E\u9700\u6C42\u751F\u6210\u62
       log.info("main", "\u8DF3\u8FC7 Claude \u751F\u6210\u8BBE\u8BA1");
     }
     const duration = Date.now() - startTime;
-    console.log("\u2705 \u8BA1\u5212\u751F\u6210\u5B8C\u6210!\n");
+    console.log("\u2705 \u8BA1\u5212\u51C6\u5907\u5B8C\u6210!\n");
     console.log(`\u{1F4CA} \u603B\u8017\u65F6: ${(duration / 1e3).toFixed(2)}s
 `);
     console.log(`\u{1F4C1} \u8F93\u51FA\u76EE\u5F55: ${planDir}
 `);
-    console.log("\u{1F4C4} \u751F\u6210\u7684\u6587\u4EF6:");
-    console.log(`   - proposal.md   \u9700\u6C42\u6587\u6863`);
-    console.log(`   - repotalk.md   \u53D6\u8BC1\u7ED3\u679C${options.noRepotalk ? " (\u8DF3\u8FC7)" : ""}`);
-    console.log(`   - design.md     \u6280\u672F\u8BBE\u8BA1${options.noClaude ? " (\u8DF3\u8FC7)" : ""}`);
-    console.log(`   - tasks.md      \u4EFB\u52A1\u6E05\u5355${options.noClaude ? " (\u8DF3\u8FC7)" : ""}`);
-    console.log(`   - log           \u6267\u884C\u65E5\u5FD7
+    console.log("\u{1F4C4} \u5DF2\u751F\u6210\u7684\u6587\u4EF6:");
+    console.log(`   \u2713 proposal.md   \u9700\u6C42\u6587\u6863`);
+    console.log(`   \u2713 task-prompt.md \u4EFB\u52A1\u63D0\u793A${options.noClaude ? " (\u8DF3\u8FC7)" : ""}`);
+    console.log(`   \u2713 log           \u6267\u884C\u65E5\u5FD7
 `);
-    log.stepComplete(0, "\u8BA1\u5212\u751F\u6210\u5B8C\u6210", duration);
-    log.info("main", `\u8BA1\u5212\u751F\u6210\u6210\u529F\uFF0C\u76EE\u5F55: ${planDir}`);
+    if (!options.noClaude) {
+      console.log("\u23F3 \u5F85\u751F\u6210\u7684\u6587\u4EF6:");
+      console.log(`   \u23F8  design.md     \u6280\u672F\u8BBE\u8BA1`);
+      console.log(`   \u23F8  tasks.md      \u4EFB\u52A1\u6E05\u5355
+`);
+      console.log("\u{1F4A1} \u4E0B\u4E00\u6B65\uFF1A\u8BA9 Claude \u8BFB\u53D6 task-prompt.md \u7EE7\u7EED\u751F\u6210\u8BBE\u8BA1\u548C\u4EFB\u52A1\u3002\n");
+    } else {
+      console.log("\u2139\uFE0F  design.md \u548C tasks.md \u5DF2\u8DF3\u8FC7\u751F\u6210\n");
+    }
+    log.stepComplete(0, "\u8BA1\u5212\u51C6\u5907\u5B8C\u6210", duration);
+    log.info("main", `\u8BA1\u5212\u51C6\u5907\u6210\u529F\uFF0C\u76EE\u5F55: ${planDir}`);
   } catch (error) {
     console.error("\u274C \u53D1\u751F\u9519\u8BEF:", error);
     process.exit(1);
   }
 });
 program2.parse();
+function generateSimpleProposal(requirement, repoInfo) {
+  const date = (/* @__PURE__ */ new Date()).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", hour12: false });
+  let repoInfoStr = "";
+  if (repoInfo.name) repoInfoStr += `
+- **\u4ED3\u5E93\u540D\u79F0**: ${repoInfo.name}`;
+  if (repoInfo.path) repoInfoStr += `
+- **\u672C\u5730\u8DEF\u5F84**: ${repoInfo.path}`;
+  if (repoInfo.type === "git") {
+    repoInfoStr += `
+- **\u7C7B\u578B**: Git \u4ED3\u5E93`;
+    if (repoInfo.branch) repoInfoStr += `
+- **\u5F53\u524D\u5206\u652F**: ${repoInfo.branch}`;
+    if (repoInfo.commit) repoInfoStr += `
+- **\u5F53\u524D\u63D0\u4EA4**: ${repoInfo.commit.substring(0, 8)}`;
+  }
+  return `# \u9700\u6C42\u6587\u6863
+
+> \u751F\u6210\u65F6\u95F4: ${date}
+
+## \u539F\u59CB\u9700\u6C42
+
+\`\`\`
+${requirement}
+\`\`\`
+
+## \u4ED3\u5E93\u4FE1\u606F
+
+${repoInfoStr || "- **\u8DEF\u5F84**: " + (repoInfo.path || process.cwd())}
+
+## \u8BF4\u660E
+
+\u672C\u6587\u6863\u7531 \`repo-plan\` \u547D\u4EE4\u81EA\u52A8\u751F\u6210\uFF0C\u4FDD\u5B58\u4E86\u7528\u6237\u7684\u539F\u59CB\u9700\u6C42\u3002
+
+\u540E\u7EED\u6B65\u9AA4\uFF1A
+**Claude \u751F\u6210\u8BBE\u8BA1**: \u57FA\u4E8E\u9700\u6C42\u6587\u6863\uFF0C\u751F\u6210\u6280\u672F\u8BBE\u8BA1\u548C\u4EFB\u52A1\u6E05\u5355
+`;
+}

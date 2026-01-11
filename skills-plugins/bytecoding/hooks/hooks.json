@@ -3,24 +3,41 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup|clear|compact",
+        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/session-start-hook.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/repotalk-service-hook.cjs\"",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/session-start-hook.cjs\"",
             "timeout": 10
           }
         ]
       }
     ],
-    "SubagentStop": [
+    "UserPromptSubmit": [
       {
-        "matcher": "Task",
+        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/design-generator-hook.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/repotalk-service-hook.cjs\"",
             "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/context-monitor-hook.cjs\"",
+            "timeout": 5
           }
         ]
       }
