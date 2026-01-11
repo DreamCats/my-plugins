@@ -88,10 +88,6 @@ async function startService(serviceScriptPath, pidFilePath) {
     if (!fs.existsSync(serviceScriptPath)) {
       return { success: false, error: `Script not found: ${serviceScriptPath}` };
     }
-    const nodeModulesPath = path.join(serviceDir, "node_modules", "@modelcontextprotocol", "sdk");
-    if (!fs.existsSync(nodeModulesPath)) {
-      return { success: false, error: `MCP SDK not found at: ${nodeModulesPath}` };
-    }
     const child = spawn(process.execPath, [serviceScriptPath], {
       cwd: serviceDir,
       // 设置工作目录

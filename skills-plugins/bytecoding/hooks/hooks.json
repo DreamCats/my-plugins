@@ -8,7 +8,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/repotalk-service-hook.cjs\"",
-            "timeout": 30
+            "timeout": 2
           },
           {
             "type": "command",
@@ -25,7 +25,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/repotalk-service-hook.cjs\"",
-            "timeout": 15
+            "timeout": 2
           }
         ]
       }
