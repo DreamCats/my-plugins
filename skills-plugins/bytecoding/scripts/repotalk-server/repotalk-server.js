@@ -1,37 +1,71 @@
 /**
  * RepoTalk MCP Server
- * 零依赖实现，基于原生 HTTP 和自实现的 MCP 协议
+ * 完全零依赖实现，仅使用 Node.js 原生 http 模块
  */
-import express from 'express';
-import { createMcpEndpoint } from './mcp-protocol.js';
+import http from 'http';
 import { TokenManager } from './token-manager.js';
 import { RepoTalkClient } from './repotalk-client.js';
 export class RepoTalkMCPServer {
-    app;
     httpServer = null;
     // 每个 sessionId 对应一个 TokenManager 和 RepoTalkClient
     sessions = new Map();
     constructor() {
-        this.app = express();
-        // 中间件：解析 JSON body
-        this.app.use(express.json());
-        // 中间件：提取 CAS_SESSION header
-        this.app.use((req, res, next) => {
-            const casSession = req.headers['x-cas-session'];
-            if (casSession) {
-                req.casSession = casSession;
-            }
-            next();
-        });
-        // 设置 MCP 端点
-        this.setupMcpEndpoint();
+        // 无需初始化
     }
     /**
-     * 设置 MCP 端点
+     * 解析 HTTP 请求
      */
-    setupMcpEndpoint() {
-        // MCP 工具定义
-        const tools = [
+    async parseRequest(req) {
+        return new Promise((resolve, reject) => {
+            let body = '';
+            req.on('data', (chunk) => {
+                body += chunk.toString();
+            });
+            req.on('end', () => {
+                const ctx = {
+                    method: req.method || 'GET',
+                    url: req.url || '/',
+                    headers: req.headers,
+                };
+                // 尝试解析 JSON body
+                if (body && req.headers['content-type']?.includes('application/json')) {
+                    try {
+                        ctx.body = JSON.parse(body);
+                    }
+                    catch {
+                        ctx.body = body;
+                    }
+                }
+                // 提取 CAS_SESSION
+                const casSession = req.headers['x-cas-session'];
+                if (casSession) {
+                    ctx.casSession = casSession;
+                }
+                resolve(ctx);
+            });
+            req.on('error', reject);
+        });
+    }
+    /**
+     * 获取或创建 session
+     */
+    async getOrCreateSession(casSession) {
+        const sessionKey = 'default';
+        let session = this.sessions.get(sessionKey);
+        if (!session) {
+            const tokenManager = new TokenManager(casSession);
+            await tokenManager.initialize();
+            const client = new RepoTalkClient(() => tokenManager.getMcpHeaders());
+            session = { tokenManager, client };
+            this.sessions.set(sessionKey, session);
+        }
+        return session;
+    }
+    /**
+     * MCP 工具定义
+     */
+    getTools() {
+        return [
             {
                 name: 'get_repos_detail',
                 description: '获取指定仓库的详细信息，包括仓库概览、包列表、服务 API 列表',
@@ -214,122 +248,160 @@ export class RepoTalkMCPServer {
                 },
             },
         ];
-        // 获取或创建 session（从请求上下文）
-        const getSession = (req) => {
-            // 这里需要从某个地方获取 sessionId 和 CAS_SESSION
-            // 暂时用默认值
-            const sessionId = 'default';
-            const casSession = req.casSession || process.env.CAS_SESSION;
-            if (!casSession) {
-                throw new Error('CAS_SESSION not found. Please send X-CAS-Session header.');
-            }
-            let session = this.sessions.get(sessionId);
-            if (!session) {
-                const tokenManager = new TokenManager(casSession);
-                // 初始化是异步的，但我们需要同步返回
-                // 实际初始化会在第一次使用时完成
-                tokenManager.initialize().catch(err => {
-                    console.error('[Server] TokenManager init failed:', err);
-                });
-                const client = new RepoTalkClient(() => tokenManager.getMcpHeaders());
-                session = { tokenManager, client };
-                this.sessions.set(sessionId, session);
-            }
-            return session;
-        };
-        // 创建 MCP 端点处理器
-        const mcpHandler = createMcpEndpoint({
-            // 初始化
-            initialize: (_params) => {
-                return {
-                    protocolVersion: '2024-11-05',
-                    capabilities: { tools: {} },
-                    serverInfo: { name: 'repotalk-mcp-server', version: '1.0.0' }
+    }
+    /**
+     * HTTP 请求处理器
+     */
+    async handleRequest(req, res) {
+        // 设置 CORS 头
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-CAS-Session');
+        if (req.method === 'OPTIONS') {
+            res.statusCode = 204;
+            res.end();
+            return;
+        }
+        // 只处理 /mcp 路径
+        const url = new URL(req.url || '', `http://${req.headers.host}`);
+        if (url.pathname !== '/mcp') {
+            res.statusCode = 404;
+            res.end('Not Found');
+            return;
+        }
+        // 解析请求
+        const requestCtx = await this.parseRequest(req);
+        const sessionId = url.searchParams.get('sessionId') || 'default';
+        // GET 请求：SSE 初始化
+        if (requestCtx.method === 'GET') {
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
+            res.flushHeaders();
+            // 发送初始化完成消息
+            res.write(`data: ${JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'notifications/initialized'
+            })}\n\n`);
+            return;
+        }
+        // POST 请求：JSON-RPC 调用
+        if (requestCtx.method === 'POST') {
+            try {
+                const rpcRequest = requestCtx.body;
+                if (!rpcRequest || !rpcRequest.method) {
+                    res.statusCode = 400;
+                    res.end('Invalid JSON-RPC request');
+                    return;
+                }
+                console.log(`[MCP] ${rpcRequest.method} from session ${sessionId}`);
+                let result;
+                let isError = false;
+                switch (rpcRequest.method) {
+                    case 'initialize':
+                        result = {
+                            protocolVersion: '2024-11-05',
+                            capabilities: { tools: {} },
+                            serverInfo: { name: 'repotalk-mcp-server', version: '1.0.0' }
+                        };
+                        break;
+                    case 'tools/list':
+                        result = { tools: this.getTools() };
+                        break;
+                    case 'tools/call': {
+                        const params = rpcRequest.params;
+                        const { name, arguments: args } = params;
+                        // 从环境变量获取 CAS_SESSION
+                        const casSession = requestCtx.casSession || process.env.CAS_SESSION;
+                        if (!casSession) {
+                            isError = true;
+                            result = {
+                                content: [{
+                                        type: 'text',
+                                        text: 'Error: CAS_SESSION not found. Please send X-CAS-Session header.'
+                                    }],
+                                isError: true
+                            };
+                            break;
+                        }
+                        // 获取或创建 session
+                        const session = await this.getOrCreateSession(casSession);
+                        // 特殊处理：token_status
+                        if (name === 'token_status') {
+                            const status = session.tokenManager.getStatus();
+                            result = {
+                                content: [{
+                                        type: 'text',
+                                        text: JSON.stringify(status, null, 2)
+                                    }]
+                            };
+                            break;
+                        }
+                        // 调用 RepoTalk API
+                        const apiResult = await session.client.callTool({ name, arguments: args });
+                        result = {
+                            content: apiResult.content || [],
+                            isError: apiResult.isError,
+                        };
+                        if (apiResult.isError) {
+                            isError = true;
+                        }
+                        break;
+                    }
+                    default:
+                        isError = true;
+                        result = {
+                            code: -32601,
+                            message: `Method not found: ${rpcRequest.method}`
+                        };
+                }
+                // 构建响应
+                const response = {
+                    jsonrpc: '2.0',
+                    id: rpcRequest.id,
+                    ...(isError && !result.content ? { error: result } : { result })
                 };
-            },
-            // 列出工具
-            listTools: () => {
-                return { tools };
-            },
-            // 调用工具
-            callTool: async (params, _sessionId) => {
-                const { name, arguments: args } = params;
-                try {
-                    // 特殊处理：token_status
-                    if (name === 'token_status') {
-                        // 需要从请求中获取 session，但这里无法访问
-                        // 暂时返回错误提示
-                        return {
-                            content: [{
-                                    type: 'text',
-                                    text: 'token_status requires active session with CAS_SESSION'
-                                }],
-                            isError: false
-                        };
-                    }
-                    // 从环境变量或请求获取 CAS_SESSION
-                    const casSession = process.env.CAS_SESSION;
-                    if (!casSession) {
-                        return {
-                            content: [{
-                                    type: 'text',
-                                    text: 'Error: CAS_SESSION not found. Please configure the client to send X-CAS-Session header.'
-                                }],
-                            isError: true
-                        };
-                    }
-                    // 获取或创建 session
-                    const sessionKey = 'default'; // 简化处理
-                    let session = this.sessions.get(sessionKey);
-                    if (!session) {
-                        const tokenManager = new TokenManager(casSession);
-                        await tokenManager.initialize();
-                        const client = new RepoTalkClient(() => tokenManager.getMcpHeaders());
-                        session = { tokenManager, client };
-                        this.sessions.set(sessionKey, session);
-                    }
-                    // 特殊处理：token_status
-                    if (name === 'token_status') {
-                        const status = session.tokenManager.getStatus();
-                        return {
-                            content: [{
-                                    type: 'text',
-                                    text: JSON.stringify(status, null, 2)
-                                }]
-                        };
-                    }
-                    // 调用 RepoTalk API
-                    const result = await session.client.callTool({
-                        name,
-                        arguments: args,
-                    });
-                    return {
-                        content: result.content || [],
-                        isError: result.isError,
-                    };
-                }
-                catch (error) {
-                    return {
-                        content: [{
-                                type: 'text',
-                                text: `Error calling tool ${name}: ${error instanceof Error ? error.message : String(error)}`
-                            }],
-                        isError: true
-                    };
-                }
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(response));
             }
-        });
-        // 注册路由
-        this.app.use('/mcp', mcpHandler);
+            catch (error) {
+                console.error('[MCP] Request handling error:', error);
+                const errorResponse = {
+                    jsonrpc: '2.0',
+                    id: 'error',
+                    error: {
+                        code: -32603,
+                        message: error instanceof Error ? error.message : 'Unknown error'
+                    }
+                };
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(errorResponse));
+            }
+            return;
+        }
+        res.statusCode = 405;
+        res.end('Method Not Allowed');
     }
     /**
      * 启动服务器
      */
     async start(port = 3005) {
         return new Promise((resolve, reject) => {
-            this.httpServer = this.app.listen(port, '127.0.0.1', () => {
+            this.httpServer = http.createServer(async (req, res) => {
+                try {
+                    await this.handleRequest(req, res);
+                }
+                catch (error) {
+                    console.error('[Server] Request error:', error);
+                    if (!res.headersSent) {
+                        res.statusCode = 500;
+                        res.end('Internal Server Error');
+                    }
+                }
+            });
+            this.httpServer.listen(port, '127.0.0.1', () => {
                 console.log(`[RepoTalkMCPServer] Server started on http://localhost:${port}/mcp`);
-                console.log(`[RepoTalkMCPServer] Zero-dependency MCP implementation`);
+                console.log(`[RepoTalkMCPServer] Fully zero-dependency (no Express, no MCP SDK)`);
                 console.log(`[RepoTalkMCPServer] Clients should send X-CAS-Session header`);
                 resolve();
             });

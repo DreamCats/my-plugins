@@ -21,7 +21,8 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/hooks/repotalk-service-hook.ts
 var repotalk_service_hook_exports = {};
 __export(repotalk_service_hook_exports, {
-  handleSessionStart: () => handleSessionStart
+  handleSessionStart: () => handleSessionStart,
+  handleUserPromptSubmit: () => handleUserPromptSubmit
 });
 module.exports = __toCommonJS(repotalk_service_hook_exports);
 var CONFIG = {
@@ -156,7 +157,7 @@ async function isPortInUse(port) {
     server.listen(port, "127.0.0.1");
   });
 }
-async function handleSessionStart(_input) {
+async function ensureServiceRunning(input) {
   const fs = require("fs");
   const path = require("path");
   const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT || process.cwd();
@@ -164,10 +165,8 @@ async function handleSessionStart(_input) {
   const pidFilePath = path.join(pluginRoot, CONFIG.PID_FILE);
   if (!fs.existsSync(serviceScriptPath)) {
     return {
-      hookSpecificOutput: {
-        hookEventName: "SessionStart",
-        additionalContext: `[RepoTalk] Service script not found: ${serviceScriptPath}`
-      }
+      success: false,
+      message: `[RepoTalk] Service script not found: ${serviceScriptPath}`
     };
   }
   let message = "";
@@ -177,21 +176,17 @@ async function handleSessionStart(_input) {
       message = `[RepoTalk] Service already running on port ${CONFIG.PORT} \u2713`;
       message += "\n[RepoTalk] Reusing existing service (no need to start)";
       return {
-        systemMessage: `\u{1F50C} [RepoTalk] \u670D\u52A1\u5DF2\u5728\u8FD0\u884C (\u7AEF\u53E3 ${CONFIG.PORT})`,
-        hookSpecificOutput: {
-          hookEventName: "SessionStart",
-          additionalContext: message
-        }
+        success: true,
+        message,
+        systemMessage: `\u{1F50C} [RepoTalk] \u670D\u52A1\u5DF2\u5728\u8FD0\u884C (\u7AEF\u53E3 ${CONFIG.PORT})`
       };
     } else {
       message = `[RepoTalk] Port ${CONFIG.PORT} is in use but service not responding`;
       message += "\n[RepoTalk] Please check if another service is using this port";
       return {
-        systemMessage: `\u26A0\uFE0F [RepoTalk] \u7AEF\u53E3 ${CONFIG.PORT} \u88AB\u5360\u7528\u4F46\u670D\u52A1\u672A\u54CD\u5E94`,
-        hookSpecificOutput: {
-          hookEventName: "SessionStart",
-          additionalContext: message
-        }
+        success: false,
+        message,
+        systemMessage: `\u26A0\uFE0F [RepoTalk] \u7AEF\u53E3 ${CONFIG.PORT} \u88AB\u5360\u7528\u4F46\u670D\u52A1\u672A\u54CD\u5E94`
       };
     }
   }
@@ -207,11 +202,9 @@ async function handleSessionStart(_input) {
     message += `
 [RepoTalk] Check logs at: ${path.join(pluginRoot, "scripts/repotalk-server/repotalk-server.log")}`;
     return {
-      systemMessage: `\u274C [RepoTalk] \u670D\u52A1\u542F\u52A8\u5931\u8D25`,
-      hookSpecificOutput: {
-        hookEventName: "SessionStart",
-        additionalContext: message
-      }
+      success: false,
+      message,
+      systemMessage: `\u274C [RepoTalk] \u670D\u52A1\u542F\u52A8\u5931\u8D25`
     };
   }
   const newPid = getServicePid(pidFilePath);
@@ -223,23 +216,46 @@ async function handleSessionStart(_input) {
     message += `
 [RepoTalk] Listening on http://localhost:${CONFIG.PORT}/mcp`;
     return {
-      systemMessage: `\u2705 [RepoTalk] \u670D\u52A1\u5DF2\u542F\u52A8 (PID: ${newPid}, \u7AEF\u53E3 ${CONFIG.PORT})`,
-      hookSpecificOutput: {
-        hookEventName: "SessionStart",
-        additionalContext: message
-      }
+      success: true,
+      message,
+      systemMessage: `\u2705 [RepoTalk] \u670D\u52A1\u5DF2\u542F\u52A8 (PID: ${newPid}, \u7AEF\u53E3 ${CONFIG.PORT})`
     };
   } else {
     message += "\n[RepoTalk] Warning: Service started but health check timed out";
     message += "\n[RepoTalk] The service may still be initializing...";
     return {
-      systemMessage: `\u23F3 [RepoTalk] \u670D\u52A1\u542F\u52A8\u4E2D\uFF0C\u5065\u5EB7\u68C0\u67E5\u8D85\u65F6 (PID: ${newPid})`,
+      success: true,
+      message,
+      systemMessage: `\u23F3 [RepoTalk] \u670D\u52A1\u542F\u52A8\u4E2D\uFF0C\u5065\u5EB7\u68C0\u67E5\u8D85\u65F6 (PID: ${newPid})`
+    };
+  }
+}
+async function handleSessionStart(input) {
+  const result = await ensureServiceRunning(input);
+  return {
+    systemMessage: result.systemMessage,
+    hookSpecificOutput: {
+      hookEventName: "SessionStart",
+      additionalContext: result.message
+    }
+  };
+}
+async function handleUserPromptSubmit(input) {
+  const result = await ensureServiceRunning(input);
+  if (!result.success) {
+    return {
+      systemMessage: result.systemMessage,
       hookSpecificOutput: {
-        hookEventName: "SessionStart",
-        additionalContext: message
+        hookEventName: "UserPromptSubmit",
+        additionalContext: result.message
       }
     };
   }
+  return {
+    hookSpecificOutput: {
+      hookEventName: "UserPromptSubmit"
+    }
+  };
 }
 if (true) {
   (async () => {
@@ -264,11 +280,13 @@ if (true) {
       }
     } catch (error) {
     }
-    const output = await handleSessionStart(inputData);
+    const eventName = inputData.hook_event_name || "SessionStart";
+    const output = eventName === "UserPromptSubmit" ? await handleUserPromptSubmit(inputData) : await handleSessionStart(inputData);
     console.log(JSON.stringify(output));
   })();
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  handleSessionStart
+  handleSessionStart,
+  handleUserPromptSubmit
 });

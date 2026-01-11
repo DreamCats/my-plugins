@@ -1,16 +1,27 @@
 /**
  * RepoTalk MCP Server
- * 零依赖实现，基于原生 HTTP 和自实现的 MCP 协议
+ * 完全零依赖实现，仅使用 Node.js 原生 http 模块
  */
 export declare class RepoTalkMCPServer {
-    private app;
     private httpServer;
     private sessions;
     constructor();
     /**
-     * 设置 MCP 端点
+     * 解析 HTTP 请求
      */
-    private setupMcpEndpoint;
+    private parseRequest;
+    /**
+     * 获取或创建 session
+     */
+    private getOrCreateSession;
+    /**
+     * MCP 工具定义
+     */
+    private getTools;
+    /**
+     * HTTP 请求处理器
+     */
+    private handleRequest;
     /**
      * 启动服务器
      */
