@@ -1,68 +1,119 @@
 ---
-description: 从需求生成可执行计划（包含 PlanSpec 和任务）
-allowed-tools: Bash(node:*)
+description: 生成方案与 PlanSpec（触发 brainstorming + writing-plans 技能）
+argument-hint: [变更描述]
+allowed-tools: Bash(mkdir*), Bash(git*), Bash(pwd*), Read, Write, Edit, Glob, Grep
 ---
 
-# /repo-plan
+# /repo-plan 命令
 
-从自然语言需求生成可执行计划，产出 PlanSpec、tasks.md 和变更预览。
+本命令引导你完成规划阶段，通过触发 **brainstorming** 和 **writing-plans** 技能来生成完整的变更提案和任务列表。
 
-执行计划生成脚本：
+## 步骤 1: 创建变更目录
+
+首先，为这次变更创建一个唯一的工作目录（项目级）：
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/repo-plan.js $ARGUMENTS
+# 获取当前项目根目录
+PROJECT_ROOT=$(pwd)
+
+# 生成变更 ID（基于当前时间戳）
+CHANGE_ID="change-$(date +%Y%m%d-%H%M)"
+
+# 创建项目级变更目录
+mkdir -p "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID"
+
+echo "变更 ID: $CHANGE_ID"
+echo "项目目录: $PROJECT_ROOT"
+echo "工作目录: $PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID"
 ```
 
-## 用法
+## 步骤 2: 使用 brainstorming 技能
+
+现在使用 **bytecoding:brainstorming** 技能开始需求精化和方案设计。
+
+**如果用户提供了变更描述**，使用：
+> 请使用 **bytecoding:brainstorming** 技能来讨论以下变更需求：
+> ```
+> $ARGUMENTS
+> ```
+
+**如果用户没有提供描述**，询问：
+> 请描述你想要实现的变更需求，我将使用 **bytecoding:brainstorming** 技能帮助你进行需求精化和方案设计。
+
+**brainstorming 技能将引导你**：
+1. **理解需求** - 苏格拉底式提问澄清需求
+2. **多源搜索** - 本地搜索（Glob/Grep）+ Repotalk MCP 搜索
+3. **综合分析** - 结合搜索结果识别最佳实践
+4. **方案设计** - 提出 2-3 种方案供选择
+5. **分节呈现** - 逐步确认，避免信息过载
+
+**产出文件**（保存到 `$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/`）：
+- `proposal.md` - 变更提案
+- `design.md` - 设计文档
+
+## 步骤 3: 使用 writing-plans 技能
+
+在完成 `design.md` 后，使用 **bytecoding:writing-plans** 技能将设计文档转化为可执行任务列表。
+
+> 请使用 **bytecoding:writing-plans** 技能来分析设计文档并生成任务列表。
+
+**writing-plans 技能将引导你**：
+1. **分析设计文档** - 理解架构和组件
+2. **细粒度任务拆分** - 2-5 分钟/任务
+3. **本地参考搜索** - 为每个任务找到本地参考
+4. **Repotalk 参考搜索** - 为每个任务找到内部参考
+5. **生成任务列表** - 包含依赖关系和验证标准
+
+**产出文件**（保存到 `~/.bytecoding/changes/$CHANGE_ID/`）：
+- `tasks.md` - 可执行任务列表
+
+## 步骤 4: 创建 PlanSpec
+
+在完成上述步骤后，创建 PlanSpec 文件：
+
+```bash
+cat > "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/planspec.yaml" << 'EOF'
+# PlanSpec for $CHANGE_ID
+
+change_id: $CHANGE_ID
+description: $ARGUMENTS
+created_at: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+status: pending
+
+# 产出文件
+proposal: proposal.md
+design: design.md
+tasks: tasks.md
+
+spec_deltas: []
+EOF
+```
+
+## 完成标志
+
+当以下条件满足时，本命令完成：
+
+- [x] 项目级变更目录已创建 `.bytecoding/changes/$CHANGE_ID/`
+- [x] brainstorming 技能已完成，产出 `proposal.md` 和 `design.md`
+- [x] writing-plans 技能已完成，产出 `tasks.md`
+- [x] PlanSpec 文件已创建
+
+## 下一步
+
+使用 `/repo-apply $CHANGE_ID` 命令来执行这个变更。
+
+## 目录结构
 
 ```
-/repo-plan <需求描述> [选项]
+项目根目录/
+├── .bytecoding/
+│   └── changes/
+│       ├── change-xxx/
+│       │   ├── planspec.yaml
+│       │   ├── proposal.md
+│       │   ├── design.md
+│       │   └── tasks.md
+│       └── archive/          # 已归档的变更
+│           └── change-yyy/
+└── ...
 ```
-
-## 参数
-
-- `<需求描述>` - 用自然语言描述需要完成的任务
-
-## 选项
-
-- `--output <目录>` - 覆盖默认输出目录
-- `--prefer-local` - 强制优先本地分析（默认：启用）
-- `--no-repotalk` - 禁用 repotalk MCP 查询
-- `--interactive` - 允许通过 AskUserQuestion 进行澄清
-- `--verify-mode <off|smart|full>` - 验证策略（默认：smart）
-- `--format <md|json|both>` - 输出格式（默认：both）
-
-## 功能说明
-
-1. **输入解析** - 解析自然语言需求
-2. **任务分解** - 生成初始任务结构
-3. **本地分析** - 扫描仓库中的相关文件和符号
-4. **Repotalk 查询**（可选）- 从 MCP 获取候选位置
-5. **证据链构建** - 合并本地和远程证据链
-6. **计划生成** - 创建 PlanSpec.json 和 tasks.md
-7. **变更预览** - 生成变更预览
-
-## 输出文件
-
-生成在 `~/.bytecoding/plans/<plan_id>/`：
-- `PlanSpec.json` - 机器可读的计划规范
-- `tasks.md` - 人工可编辑的任务清单
-- `delta.md` - 变更预览和影响摘要
-- `history.json` - 计划元数据和血缘
-- `summary.json` - 快速概览
-
-## 交互模式
-
-当启用 `--interactive` 时，系统可能会提出 1-3 个澄清问题，如果：
-- 目标模块不明确
-- 关键接口未知
-- 验证方法缺失
-- 变更范围过大
-
-## 示例
-
-```
-/repo-plan "添加基于 JWT 的用户认证" --interactive
-```
-
-这将分析你的代码库，在需要时提出澄清问题，并生成完整的实施计划。
