@@ -1,47 +1,207 @@
 ---
 name: writing-plans
-description: Use when converting design documents into executable task lists. This skill analyzes design docs, breaks down work into fine-grained tasks (2-5 minutes each), and includes local + Repotalk MCP reference search for each task.
+description: Use when converting design documents into executable task lists. This skill enforces a mandatory workflow: analyze design → local reference search → Repotalk MCP reference search → generate fine-grained tasks (2-5 minutes each) with comprehensive reference documentation.
 ---
 
 # Writing Plans 技能
 
-## 目标
+通过强制工作流和双源参考搜索，将设计方案转化为可执行的任务列表。
 
-将设计方案转化为可执行的任务列表，每个任务足够细粒度（2-5 分钟完成）。
+## 工作流程检查清单（强制执行）
 
-**输出**：`tasks.md`
+**复制以下检查清单并跟踪进度：**
 
----
+```
+Writing Plans Progress:
+- [ ] 步骤 1: 分析设计文档 - 完全理解 design.md 内容
+- [ ] 步骤 2: 本地参考搜索 - 为每个任务找到本地参考实现
+- [ ] 步骤 3: Repotalk MCP 搜索 - 查找字节内部参考实现
+- [ ] 步骤 4: 综合参考分析 - 结合本地和 Repotalk 参考
+- [ ] 步骤 5: 细粒度任务拆分 - 2-5 分钟/任务
+- [ ] 步骤 6: 生成任务列表 - 创建 tasks.md
+- [ ] 步骤 7: 验证完成 - 确认任务列表完整
+```
 
-## 工作流程
-
-### 阶段 1: 分析设计文档
-
-**目标**：完全理解设计文档的内容
-
-**步骤**：
-1. 仔细阅读 `design.md`
-2. 识别核心组件和模块
-3. 确定依赖关系
-4. 识别潜在风险点
-
-**分析检查清单**：
-- [ ] 理解架构设计
-- [ ] 识别所有新增/修改的文件
-- [ ] 确定数据模型变更
-- [ ] 识别 API 端点变更
-- [ ] 确认测试策略
+**重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
 
 ---
 
-### 阶段 2: 细粒度任务拆分
+## 步骤 1: 分析设计文档（必须完全理解）
 
-**目标**：将设计拆分为 2-5 分钟可完成的任务
+**目标**：完全理解设计文档的内容。
 
-**粒度原则**：
+### 1.1 读取设计文档
 
-#### ✅ 正确的粒度（2-5 分钟）
+```bash
+# 读取设计文档
+Read: .bytecoding/changes/$CHANGE_ID/design.md
+```
 
+### 1.2 分析检查清单
+
+**必须理解以下内容**：
+- [ ] 架构设计和组件划分
+- [ ] 数据模型变更
+- [ ] API 端点变更
+- [ ] 安全考虑事项
+- [ ] 测试策略
+
+**在继续下一步之前，确认已完全理解设计文档。**
+
+---
+
+## 步骤 2: 本地参考搜索（必须执行）
+
+**目标**：为每个任务找到本地参考实现。
+
+### 2.1 搜索策略
+
+**查找类似模型**：
+```bash
+# 查找现有模型
+Glob: "**/models/*.ts"
+Glob: "**/entities/*.ts"
+
+# 读取类似模型
+Read: src/models/User.ts
+```
+
+**查找类似服务**：
+```bash
+# 查找现有服务
+Glob: "**/services/*.ts"
+
+# 搜索服务方法
+Grep: "class.*Service"
+Grep: "async.*generate"
+Grep: "async.*verify"
+```
+
+**查找测试模式**：
+```bash
+# 查找测试文件
+Glob: "**/*.test.ts"
+Glob: "**/*.spec.ts"
+
+# 搜索测试模式
+Grep: "describe.*Service"
+Grep: "it.*should.*"
+```
+
+**完成标志**：
+- [ ] 为每个模型找到参考模型
+- [ ] 为每个服务找到参考服务
+- [ ] 为每个测试找到参考测试
+- [ ] 记录参考文件的路径
+
+---
+
+## 步骤 3: Repotalk MCP 搜索（必须优先执行）
+
+**目标**：查找字节内部参考实现。
+
+### 3.1 检查 Cookie 配置
+
+```bash
+# 检查 CAS Session Cookie 是否已配置
+cat ~/.bytecoding/config.json
+```
+
+如果 Cookie 未配置或过期，在输出中明确标注，但仍继续执行本地搜索。
+
+### 3.2 Repotalk MCP 搜索策略
+
+**搜索类似实现**：
+```javascript
+// 搜索令牌生成
+repotalk.search_nodes({
+  repo_names: ["org/repo"],
+  question: "token generation 6 digit verification"
+})
+
+// 搜索哈希存储
+repotalk.search_nodes({
+  repo_names: ["org/repo"],
+  question: "bcrypt hash token storage"
+})
+
+// 搜索验证逻辑
+repotalk.search_nodes({
+  repo_names: ["org/repo"],
+  question: "verify token email validation"
+})
+
+// 搜索数据库设计
+repotalk.search_nodes({
+  repo_names: ["org/repo"],
+  question: "verification token table migration"
+})
+```
+
+**搜索技巧**：
+- 使用具体的技术术语（TypeScript, TypeORM, bcrypt）
+- 搜索"最佳实践"或"设计模式"
+- 查找字节内部类似项目
+- 优先搜索同一语言/框架的实现
+
+**完成标志**：
+- 找到 1-2 个参考实现
+- 记录参考项目路径
+- 识别可复用的代码片段
+- 注意安全和性能考虑
+
+**如果 Repotalk 无结果**：
+1. 检查 `repo_names` 格式是否正确（必须是 `org/repo`）
+2. 检查 Cookie 是否过期
+3. 尝试不同的搜索关键词
+4. 在输出中明确标注"Repotalk 搜索无结果"
+
+---
+
+## 步骤 4: 综合参考分析
+
+**目标**：结合本地和 Repotalk 搜索结果，为每个任务提供完整参考。
+
+**输出格式**：参考对照表
+
+```markdown
+## 参考分析结果
+
+### 本地参考
+| 任务类型 | 本地参考 | 参考说明 |
+|---------|---------|---------|
+| 模型创建 | `src/models/User.ts` | TypeORM 模型模式 |
+| 服务方法 | `src/services/EmailService.ts` | 异步方法实现 |
+| 测试编写 | `src/services/UserService.test.ts` | Jest 测试模式 |
+
+### Repotalk 参考（字节内部）
+| 任务类型 | 项目路径 | 参考说明 |
+|---------|---------|---------|
+| 令牌生成 | `project-a/auth/token.go` | 使用 crypto/rand 生成 |
+| 哈希存储 | `project-b/auth/hash.go` | bcrypt cost=10 |
+| 验证逻辑 | `project-c/api/verify.go` | 包含过期检查 |
+
+### 综合建议
+1. **模型设计**：采用本地 TypeORM 模式（参考 User.ts）
+2. **令牌生成**：采纳 Repotalk 的 crypto/rand 方案
+3. **测试策略**：复用本地 Jest 模式，增加边界测试
+```
+
+**分析要点**：
+- 对比本地和 Repotalk 参考
+- 识别最佳实践
+- 评估每种方案的适用性
+- 推荐最合适的参考（带理由）
+
+---
+
+## 步骤 5: 细粒度任务拆分
+
+**目标**：将设计拆分为 2-5 分钟可完成的任务。
+
+### 5.1 粒度原则
+
+**✅ 正确的粒度（2-5 分钟）**
 ```markdown
 - [ ] 创建 `EmailVerificationToken` 模型类
 - [ ] 实现 `generateToken()` 方法（生成 6 位数字）
@@ -50,31 +210,31 @@ description: Use when converting design documents into executable task lists. Th
 - [ ] 为 `EmailVerificationToken` 编写单元测试
 ```
 
-#### ❌ 错误的粒度（太大）
-
+**❌ 错误的粒度（太大）**
 ```markdown
 - [ ] 实现 EmailVerificationService（包含所有方法）
 - [ ] 完成数据库迁移
 - [ ] 实现 API 端点
 ```
 
-#### ❌ 错误的粒度（太小）
-
+**❌ 错误的粒度（太小）**
 ```markdown
 - [ ] 定义类名
 - [ ] 添加 import 语句
 - [ ] 编写左括号
 ```
 
-**拆分技巧**：
+### 5.2 拆分技巧
 
-1. **按方法拆分**：每个公共方法是一个任务
-2. **按测试拆分**：每个测试场景是一个任务
-3. **按文件拆分**：每个文件创建是一个任务
-4. **按 TDD 循环拆分**：RED-GREEN-REFACTOR 各为一个任务
+**按方法拆分**：每个公共方法是一个任务
+
+**按测试拆分**：每个测试场景是一个任务
+
+**按文件拆分**：每个文件创建是一个任务
+
+**按 TDD 循环拆分**：RED-GREEN-REFACTOR 各为一个任务
 
 **TDD 任务拆分示例**：
-
 ```markdown
 ## EmailVerificationService
 
@@ -93,44 +253,78 @@ description: Use when converting design documents into executable task lists. Th
 
 ---
 
-### 阶段 3: 任务模板
+## 步骤 6: 生成任务列表（强制要求）
+
+**目标**：生成完整的任务列表文档。
+
+**必须生成 tasks.md 文件**
+
+### 6.1 任务模板
 
 **每个任务必须包含**：
-
 ```markdown
 ### [任务编号] [任务名称]
 
 **描述**：[一句话描述任务内容]
 
-**文件**：[精确的文件路径，如 `src/services/EmailVerificationService.ts`]
+**文件**：[精确的文件路径]
 
 **参考**：
-- 本地：`src/services/EmailService.ts`（类似实现）
-- Repotalk：`project-a/auth/verification.go`（参考方案）
+- 本地：`[本地参考路径]` - [参考说明]
+- Repotalk：`[Repotalk 路径]` - [参考说明]
 
 **输入**：[任务输入/依赖]
 **输出**：[任务产出]
 
+**代码框架**：
+```typescript
+// [代码框架]
+```
+
 **验证**：
-- [ ] 测试通过
-- [ ] 代码符合 ESLint 规范
-- [ ] 无 TypeScript 错误
+- [ ] [验证条件 1]
+- [ ] [验证条件 2]
 
 **预计时间**：2-5 分钟
 ```
 
-**任务示例**：
+### 6.2 tasks.md 结构
 
 ```markdown
-### 1.1 创建 EmailVerificationToken 模型
+# 任务列表：[变更名称]
 
-**描述**：定义邮箱验证令牌的数据模型
+**变更 ID**：[change-id]
+**创建时间**：[YYYY-MM-DD]
+**状态**：pending
 
-**文件**：`src/models/EmailVerificationToken.ts`
+---
+
+## 概览
+
+**总任务数**：X
+**预计总时间**：X-Y 分钟
+
+**任务分组**：
+- 阶段 1: 数据模型 (X 个任务)
+- 阶段 2: 服务层 (X 个任务)
+- 阶段 3: API 层 (X 个任务)
+- 阶段 4: 测试 (X 个任务)
+
+---
+
+## 阶段 1: [阶段名称]
+
+### [任务组名称]
+
+#### 1.1 [任务名称]
+
+**描述**：[任务描述]
+
+**文件**：[文件路径]
 
 **参考**：
-- 本地：`src/models/User.ts`（模型模式）
-- Repotalk：`project-b/models/verification_token.go`
+- 本地：`src/models/User.ts` - TypeORM 模型模式
+- Repotalk：`project-a/models/verification.go` - 验证令牌模型
 
 **输入**：设计文档中的数据模型定义
 **输出**：完整的 TypeORM 模型类
@@ -165,186 +359,19 @@ export class EmailVerificationToken {
 
 ---
 
-### 1.2 创建数据库迁移
+## 依赖关系图
 
-**描述**：创建 email_verification_tokens 表的迁移脚本
-
-**文件**：`migrations/20250112_create_email_verification_tokens.sql`
-
-**参考**：
-- 本地：`migrations/20250110_create_users.sql`（迁移格式）
-- Repotalk：`project-c/migrations/001_verification.up.sql`
-
-**输入**：EmailVerificationToken 模型定义
-**输出**：SQL 迁移脚本
-
-**代码框架**：
-```sql
-CREATE TABLE email_verification_tokens (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email VARCHAR(255) NOT NULL,
-  token_hash VARCHAR(255) NOT NULL,
-  expires_at TIMESTAMP NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW(),
-  INDEX idx_email (email),
-  INDEX idx_expires_at (expires_at)
-);
 ```
-
-**验证**：
-- [ ] SQL 语法正确
-- [ ] 包含索引（查询优化）
-- [ ] 迁移脚本可回滚
-
-**预计时间**：3 分钟
+1.1 (创建模型)
+  ↓
+1.2 (创建迁移)
+  ↓
+2.1 (生成令牌) ← 1.1, 1.2
+  ↓
+2.2 (验证令牌) ← 2.1
+  ↓
+3.1 (API 端点) ← 2.2
 ```
-
----
-
-### 阶段 4: 本地参考搜索
-
-**目标**：为每个任务找到本地参考实现
-
-**搜索策略**：
-
-#### 查找类似模型
-
-```bash
-# 查找现有模型
-Glob: "**/models/*.ts"
-Glob: "**/entities/*.ts"
-
-# 读取类似模型
-Read: src/models/User.ts
-```
-
-#### 查找类似服务
-
-```bash
-# 查找现有服务
-Glob: "**/services/*.ts"
-
-# 搜索服务方法
-Grep: "class.*Service"
-Grep: "async.*generate"
-Grep: "async.*verify"
-```
-
-#### 查找测试模式
-
-```bash
-# 查找测试文件
-Glob: "**/*.test.ts"
-Glob: "**/*.spec.ts"
-
-# 搜索测试模式
-Grep: "describe.*Service"
-Grep: "it.*should.*"
-```
-
-**本地参考检查清单**：
-- [ ] 为每个模型找到参考模型
-- [ ] 为每个服务找到参考服务
-- [ ] 为每个测试找到参考测试
-- [ ] 记录参考文件的路径
-
----
-
-### 阶段 5: Repotalk 参考搜索
-
-**目标**：为每个任务找到 Repotalk 参考实现
-
-**搜索策略**：
-
-#### 搜索类似实现
-
-```javascript
-// 搜索令牌生成
-repotalk.search_code("token generation 6 digit")
-repotalk.search_code("verification code generate")
-
-// 搜索哈希存储
-repotalk.search_code("hash token storage")
-repotalk.search_code("bcrypt token")
-
-// 搜索验证逻辑
-repotalk.search_code("verify token email")
-repotalk.search_code("email validation flow")
-
-// 搜索数据库设计
-repotalk.search_files("verification_token migration")
-repotalk.search("CREATE TABLE verification")
-```
-
-**搜索技巧**：
-- 使用具体的技术术语（TypeScript, TypeORM, bcrypt）
-- 搜索"best practices"或"pattern"
-- 查找字节内部类似项目
-- 优先搜索同一语言/框架的实现
-
-**Repotalk 参考检查清单**：
-- [ ] 找到 1-2 个参考实现
-- [ ] 记录参考项目路径
-- [ ] 识别可复用的代码片段
-- [ ] 注意安全和性能考虑
-
-**注意**：如果 Repotalk MCP 连接失败，在任务中标注 `Repotalk: (连接失败，仅使用本地参考)`
-
----
-
-## 输出格式
-
-### tasks.md 结构
-
-```markdown
-# 任务列表：[变更名称]
-
-**变更 ID**：[change-id]
-**创建时间**：[YYYY-MM-DD]
-**状态**：pending | in_progress | completed
-
----
-
-## 概览
-
-**总任务数**：X
-**预计总时间**：X-Y 分钟
-
-**任务分组**：
-- 阶段 1: 数据模型 (X 个任务)
-- 阶段 2: 服务层 (X 个任务)
-- 阶段 3: API 层 (X 个任务)
-- 阶段 4: 测试 (X 个任务)
-
----
-
-## 阶段 1: [阶段名称]
-
-### [任务组名称]
-
-#### 1.1 [任务名称]
-
-**描述**：[任务描述]
-
-**文件**：[文件路径]
-
-**参考**：
-- 本地：`[本地参考路径]` - [参考说明]
-- Repotalk：`[Repotalk 路径]` - [参考说明]
-
-**输入**：[任务输入]
-**输出**：[任务输出]
-
-**代码框架**：
-```typescript
-// [代码框架]
-```
-
-**验证**：
-- [ ] [验证条件 1]
-- [ ] [验证条件 2]
-
-**预计时间**：X 分钟
 
 ---
 
@@ -362,88 +389,150 @@ repotalk.search("CREATE TABLE verification")
 [任何额外说明、注意事项、依赖关系]
 ```
 
----
-
-## 任务依赖关系
-
-**使用任务编号表示依赖**：
-
-```markdown
-## 依赖关系图
-
-```
-1.1 (创建模型)
-  ↓
-1.2 (创建迁移)
-  ↓
-2.1 (生成令牌) ← 1.1, 1.2
-  ↓
-2.2 (验证令牌) ← 2.1
-  ↓
-3.1 (API 端点) ← 2.2
-```
-
-**依赖原则**：
-- 任务编号反映依赖关系（如 1.1 → 1.2 → 2.1）
-- 明确标注依赖任务
-- 避免循环依赖
-```
+**重要**：
+- 每个任务必须包含本地参考
+- 每个任务必须包含 Repotalk 参考（如果可用）
+- 任务粒度必须控制在 2-5 分钟
+- 必须明确标注依赖关系
 
 ---
 
-## MCP 工具使用清单
+## 步骤 7: 验证完成
 
-**本技能强制使用以下 MCP 工具**：
+**完成标志检查清单**：
 
-### 本地工具
-- [x] `Read` - 读取 `design.md`
-- [x] `Glob` - 查找参考文件
-- [x] `Grep` - 搜索代码模式
+```
+✓ 完整分析 design.md
+✓ 完成本地参考搜索（为每个任务找到参考）
+✓ 完成 Repotalk MCP 搜索（找到 1-2 个参考实现）
+✓ 产出综合参考分析表
+✓ 任务粒度合适（2-5 分钟/任务）
+✓ 每个任务包含本地参考
+✓ 每个任务包含 Repotalk 参考（如果可用）
+✓ 依赖关系清晰
+✓ 验证标准明确
+✓ 生成 tasks.md
+```
 
-### Repotalk MCP（如果已配置）
-- [x] `repotalk.search_code()` - 搜索实现参考
-- [x] `repotalk.search_files()` - 查找文件参考
-- [x] `repotalk.search()` - 组合搜索
+**当且仅当所有上述条件满足时，本技能完成。**
 
 ---
 
 ## 禁止行为
 
-- ❌ 任务粒度过大（> 5 分钟）
-- ❌ 任务粒度过小（< 2 分钟）
-- ❌ 跳过本地参考搜索
-- ❌ 跳过 Repotalk 参考搜索
-- ❌ 不包含验证标准
-- ❌ 不标注依赖关系
+- ❌ **跳过本地参考搜索** - 必须为每个任务找到本地参考
+- ❌ **跳过 Repotalk MCP 搜索** - 必须查找字节内部参考
+- ❌ **repo_names 格式错误** - 必须使用 `org/repo` 格式
+- ❌ **跳过综合分析** - 必须结合本地和 Repotalk 参考
+- ❌ **任务粒度过大** - 超过 5 分钟的任务需要拆分
+- ❌ **任务粒度过小** - 小于 2 分钟的任务需要合并
+- ❌ **不包含验证标准** - 每个任务必须有明确的验证条件
+- ❌ **不标注依赖关系** - 必须明确标注任务依赖
 
 ---
 
-## 完成标志
+## MCP 工具使用
 
-当以下条件满足时，本技能完成：
+**本技能强制按顺序使用以下 MCP 工具**：
 
-- [x] 完整分析 `design.md`
-- [x] 任务粒度合适（2-5 分钟/任务）
-- [x] 每个任务包含本地参考
-- [x] 每个任务包含 Repotalk 参考（如果可用）
-- [x] 依赖关系清晰
-- [x] 验证标准明确
-- [x] 生成 `tasks.md`
-- [x] 用户确认任务列表
+### 优先执行：Repotalk MCP
+
+```javascript
+// search_nodes - 语义化代码搜索
+repotalk.search_nodes({
+  repo_names: ["org/repo"],
+  question: "搜索问题"
+})
+
+// get_repos_detail - 获取仓库详情
+repotalk.get_repos_detail({
+  repo_names: ["org/repo"]
+})
+
+// get_packages_detail - 获取包详情
+repotalk.get_packages_detail({
+  repo_name: "org/repo",
+  package_ids: ["package_id"]
+})
+
+// get_nodes_detail - 获取节点详情
+repotalk.get_nodes_detail({
+  repo_name: "org/repo",
+  node_ids: ["node_id"]
+})
+
+// get_files_detail - 获取文件详情
+repotalk.get_files_detail({
+  repo_name: "org/repo",
+  file_path: "path/to/file"
+})
+```
+
+**重要**：使用正确的 `repo_names` 格式（`org/repo`）
+
+### 后续执行：本地工具
+
+- `Read` - 读取 design.md
+- `Glob` - 查找参考文件
+- `Grep` - 搜索代码模式
 
 ---
 
-## 与其他技能的集成
+## 输出格式
 
-**前置技能**：`bytecoding:brainstorming`
-- 依赖 `brainstorming` 产出的 `design.md`
+**技能完成时的输出应包括**：
 
-**后置技能**：`bytecoding:subagent-driven-development`
-- 产出的 `tasks.md` 将由 `subagent-driven-development` 执行
+1. **工作流程检查清单**（所有项目已勾选）
+2. **设计文档分析摘要**
+3. **参考搜索结果摘要**（本地 + Repotalk）
+4. **综合参考分析表**
+5. **任务拆分摘要**
+6. **生成的文档路径**：`tasks.md`
 
-**集成流程**：
+**示例输出**：
+
+```markdown
+## Writing Plans 技能完成
+
+### 工作流程
+✓ 所有 7 个步骤已完成
+
+### 设计文档分析
+- 架构：服务层 + 数据层 + API 层
+- 数据模型：EmailVerificationToken
+- API 端点：POST /api/auth/verify-email
+
+### 参考搜索结果
+- 本地：找到 5 个参考文件（模型、服务、测试）
+- Repotalk：找到 2 个参考实现（令牌生成、哈希存储）
+
+### 任务拆分
+- 总任务数：18
+- 预计时间：45-60 分钟
+- 任务分组：数据模型(4) + 服务层(6) + API 层(4) + 测试(4)
+
+### 生成的文档
+- tasks.md: .bytecoding/changes/change-email-verification/tasks.md
+
+下一步：使用 subagent-driven-development 技能执行任务
 ```
-brainstorming → writing-plans → subagent-driven-development
-     ↓                ↓                      ↓
-design.md       tasks.md           执行任务
-```
+
+---
+
+## 参考资源
+
+- [Repotalk MCP 工具使用说明](../../scripts/session-start-hook.js) - 在 SessionStart Hook 的 additionalContext 中
+- [Bytecoding 技术设计文档](../../BYTECODING_TECHNICAL_DESIGN.md) - 完整架构说明
+- [brainstorming 技能](../brainstorming/SKILL.md) - 前置技能，生成 design.md
+
+---
+
+## 技能元数据
+
+- **技能类型**：规划类技能
+- **强制流程**：是（7 步工作流）
+- **必需输出**：tasks.md
+- **工具限制**：Repotalk MCP 必须优先于本地工具
+- **用户交互**：必须在步骤 1 确认理解设计文档
+- **完成标志**：所有检查清单项目已完成
+- **核心铁律**：每个任务必须有本地和 Repotalk 参考

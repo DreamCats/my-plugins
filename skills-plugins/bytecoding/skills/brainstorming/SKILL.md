@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Use when discussing requirements, exploring implementation approaches, or designing solutions that require code analysis. This skill enforces a mandatory workflow: Repotalk MCP search → local search → comprehensive analysis → generate 4 documents (proposal.md, design.md, tasks.md, planspec.yaml) BEFORE any code modification.
+description: Use when discussing requirements, exploring implementation approaches, or designing solutions that require code analysis. This skill enforces a mandatory workflow: Repotalk MCP search → local search → comprehensive analysis → generate 2 documents (proposal.md, design.md) BEFORE any code modification.
 ---
 
 # Brainstorming 技能
@@ -18,7 +18,7 @@ Brainstorming Progress:
 - [ ] 步骤 3: 本地搜索分析 - 使用 Glob/Grep 查找相关文件
 - [ ] 步骤 4: 综合分析 - 结合 Repotalk 和本地搜索结果
 - [ ] 步骤 5: 方案设计 - 提出 2-3 种方案，分节呈现并等待确认
-- [ ] 步骤 6: 生成文档 - 必须生成所有 4 个文件
+- [ ] 步骤 6: 生成文档 - 必须生成 proposal.md 和 design.md
 - [ ] 步骤 7: 验证完成 - 确认所有文档已生成
 ```
 
@@ -320,49 +320,10 @@ Grep: "type.*Config"
 - 安全考虑 2
 ```
 
-### 6.3 tasks.md（任务列表）
-
-```markdown
-# 任务列表：[功能名称]
-
-## 任务分组
-
-### 组 1: 基础设施（预计 X 分钟）
-- [ ] 任务 1
-- [ ] 任务 2
-
-### 组 2: 核心服务（预计 Y 分钟）
-- [ ] 任务 1
-- [ ] 任务 2
-
-### 组 3: 测试（预计 Z 分钟）
-- [ ] 任务 1
-- [ ] 任务 2
-
-## 总计
-- 任务数：N
-- 预计时间：T 分钟
-```
-
-### 6.4 planspec.yaml（规格说明）
-
-```yaml
-# PlanSpec for [功能名称]
-
-change_id: change-[功能名]-[YYYYMMDD]
-description: [功能描述]
-created_at: [ISO 8601 时间戳]
-status: pending
-
-# 产出文件
-proposal: proposal.md
-design: design.md
-tasks: tasks.md
-
-spec_deltas: []
-```
-
-**重要**：所有 4 个文件必须生成，技能才算完成。
+**重要**：
+- 本技能只负责生成 `proposal.md` 和 `design.md`
+- `tasks.md` 由 `writing-plans` 技能负责生成
+- `planspec.yaml` 由 `repo-plan` 命令负责生成
 
 ---
 
@@ -379,8 +340,6 @@ spec_deltas: []
 ✓ 用户确认采纳某个方案
 ✓ 生成 proposal.md
 ✓ 生成 design.md
-✓ 生成 tasks.md
-✓ 生成 planspec.yaml
 ```
 
 **当且仅当所有上述条件满足时，本技能完成。**
@@ -393,7 +352,9 @@ spec_deltas: []
 - ❌ **repo_names 格式错误** - 必须使用 `org/repo` 格式
 - ❌ **跳过本地搜索** - 必须在 Repotalk 搜索后执行
 - ❌ **跳过综合分析** - 必须结合两者结果
-- ❌ **跳过文档生成** - 必须生成所有 4 个文件
+- ❌ **跳过文档生成** - 必须生成 proposal.md 和 design.md
+- ❌ **生成 tasks.md** - 应由 writing-plans 技能负责
+- ❌ **生成 planspec.yaml** - 应由 repo-plan 命令负责
 - ❌ **一次性输出所有内容** - 必须分节呈现并等待确认
 - ❌ **不提问就假设理解需求** - 必须通过提问澄清
 - ❌ **方案没有基于搜索结果** - 必须基于 Repotalk 和本地搜索
@@ -460,8 +421,6 @@ repotalk.get_files_detail({
 6. **生成的文档列表**：
    - `proposal.md` - [文件路径]
    - `design.md` - [文件路径]
-   - `tasks.md` - [文件路径]
-   - `planspec.yaml` - [文件路径]
 
 **示例输出**：
 
@@ -486,10 +445,8 @@ repotalk.get_files_detail({
 ### 生成的文档
 - proposal.md: ~/.bytecoding/changes/change-email-verification/proposal.md
 - design.md: ~/.bytecoding/changes/change-email-verification/design.md
-- tasks.md: ~/.bytecoding/changes/change-email-verification/tasks.md
-- planspec.yaml: ~/.bytecoding/changes/change-email-verification/planspec.yaml
 
-下一步：使用 /repo-apply <change-id> 开始执行
+下一步：使用 writing-plans 技能生成 tasks.md
 ```
 
 ---
@@ -506,7 +463,7 @@ repotalk.get_files_detail({
 
 - **技能类型**：规划类技能
 - **强制流程**：是（7 步工作流）
-- **必需输出**：4 个文档文件
+- **必需输出**：2 个文档文件（proposal.md, design.md）
 - **工具限制**：Repotalk MCP 必须优先于本地工具
 - **用户交互**：必须等待用户确认（步骤 1、5、7）
 - **完成标志**：所有检查清单项目已完成

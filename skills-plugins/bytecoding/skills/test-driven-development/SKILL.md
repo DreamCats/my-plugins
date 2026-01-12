@@ -1,169 +1,57 @@
 ---
 name: test-driven-development
-description: Use when implementing new features or fixing bugs. This skill enforces the RED-GREEN-REFACTOR TDD cycle, ensuring test coverage and high code quality.
+description: Use when implementing new features or fixing bugs. This skill enforces a mandatory RED-GREEN-REFACTOR cycle with verification checkpoints: RED (write failing test → verify failure) → GREEN (write minimal code → verify passing) → REFACTOR (improve code → verify still passing).
 ---
 
 # Test-Driven Development 技能
 
-## 目标
+通过强制 RED-GREEN-REFACTOR 循环和验证检查点，确保测试覆盖和代码质量。
 
-强制执行 TDD 流程，通过 RED-GREEN-REFACTOR 循环确保代码质量。
+## 工作流程检查清单（强制执行）
+
+**复制以下检查清单并跟踪进度：**
+
+```
+TDD Cycle Progress:
+- [ ] RED: 写失败测试
+- [ ] RED Verify: 确认测试失败（看到正确的错误）
+- [ ] GREEN: 写最少代码
+- [ ] GREEN Verify: 确认测试通过
+- [ ] REFACTOR: 重构代码
+- [ ] REFACTOR Verify: 确认测试仍然通过
+```
+
+**重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
 
 **核心铁律**：没有失败的测试，就没有生产代码。
 
 ---
 
-## TDD 循环
+## 步骤 1: RED - 写失败测试
 
-### RED → GREEN → REFACTOR
+**目标**：先写测试，确保测试失败并确认失败原因正确。
 
-```
-┌─────────┐    ┌─────────┐    ┌─────────────┐
-│   RED   │ →  │  GREEN  │ →  │  REFACTOR   │
-│ 写失败测试 │    │ 写最少代码 │    │    重构    │
-└─────────┘    └─────────┘    └─────────────┘
-     ↑                              │
-     └──────────────────────────────┘
-```
+### 1.1 理解需求
 
-**每个循环**：
-1. **RED**：写一个失败的测试
-2. **Verify**：确认测试失败（看到正确的错误）
-3. **GREEN**：写最少的代码让测试通过
-4. **Verify**：确认测试通过
-5. **REFACTOR**：重构代码（保持测试通过）
-6. **Verify**：确认测试仍然通过
+**必须理解以下内容**：
+- 阅读任务描述
+- 确定输入和输出
+- 识别边界条件
 
----
+### 1.2 编写测试
 
-## 铁律
-
-### 1. 没有失败的测试，就没有生产代码
-
-**永远先写测试**。
-
-❌ **错误**：
-```typescript
-// 先写代码
-function generateToken() {
-  return '123456';
-}
-
-// 后写测试
-test('generateToken', () => {
-  expect(generateToken()).toBe('123456');
-});
-```
-
-✅ **正确**：
-```typescript
-// 先写测试
-test('generateToken should return 6-digit string', () => {
-  const token = generateToken();
-  expect(token).toMatch(/^\d{6}$/);
-});
-
-// 后写代码
-function generateToken() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-```
-
-### 2. 必须看到正确的失败
-
-**测试失败后，必须确认失败原因是正确的**。
-
-❌ **错误**：
-```typescript
-// 测试失败，但直接写代码
-test('generateToken', () => {
-  expect(generateToken()).toBe('123456');
-  // 失败：Expected '123456', received 'undefined'
-  // 立即写代码，不分析失败原因
-});
-
-function generateToken() {
-  return '123456';  // 直接返回固定值通过测试
-}
-```
-
-✅ **正确**：
-```typescript
-// 测试失败
-test('generateToken', () => {
-  const token = generateToken();
-  expect(token).toMatch(/^\d{6}$/);  // 失败：token 是 undefined
-});
-
-// 分析失败原因：函数未实现
-// 写最少的代码让测试通过
-function generateToken() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-```
-
-### 3. 不要保留"参考代码"
-
-**测试通过后，删除所有参考代码/注释**。
-
-❌ **错误**：
-```typescript
-function generateToken() {
-  // TODO: 使用更安全的随机数生成
-  // 参考：https://example.com/secure-random
-  return Math.random().toString().slice(2, 8);
-}
-```
-
-✅ **正确**：
-```typescript
-function generateToken() {
-  return crypto.randomInt(100000, 999999).toString();
-}
-```
-
-### 4. 测试后编写是绝对禁止的
-
-**即使是"显而易见"的代码，也要先写测试**。
-
----
-
-## RED 阶段：写失败测试
-
-### 步骤
-
-1. **理解需求**
-   - 阅读任务描述
-   - 确定输入和输出
-   - 识别边界条件
-
-2. **编写测试**
-   - 使用清晰的测试名称
-   - 测试单个行为
-   - 包含边界条件
-
-3. **运行测试**
-   - 确认测试失败
-   - 确认失败原因正确
-
-### 测试命名
-
-**好的测试名称**：
+**测试命名规则**：
 ```
 ✅ "should return 6-digit string"
 ✅ "should throw error when email is invalid"
 ✅ "should hash token with bcrypt"
-```
 
-**不好的测试名称**：
-```
 ❌ "test1"
 ❌ "generateToken"
 ❌ "it works"
 ```
 
-### 测试结构（AAA 模式）
-
+**测试结构（AAA 模式）**：
 ```typescript
 test('should return 6-digit string', () => {
   // Arrange（准备）
@@ -178,45 +66,84 @@ test('should return 6-digit string', () => {
 });
 ```
 
-### RED 阶段检查清单
+### 1.3 运行测试并验证失败
 
-- [ ] 测试名称清晰
-- [ ] 测试单个行为
-- [ ] 包含边界条件
-- [ ] 测试运行失败
-- [ ] 失败原因正确
-- [ ] 记录失败信息
+**必须验证以下内容**：
+- 测试运行失败
+- 失败原因正确
+- 记录失败信息
+
+**在继续下一步之前，确认测试失败且失败原因正确。**
 
 ---
 
-## GREEN 阶段：写最少代码
+## 步骤 2: RED Verify - 确认失败
 
-### 步骤
+**目标**：必须看到正确的失败，不能跳过此步骤。
 
-1. **分析失败原因**
-   - 为什么测试失败？
-   - 缺少什么代码？
+### 2.1 验证失败原因
 
-2. **写最少的代码**
-   - 只写让测试通过的代码
-   - 不考虑通用性
-   - 不考虑优化
-
-3. **运行测试**
-   - 确认测试通过
-
-### 代码示例
-
-**测试**：
+**❌ 错误示例**：
 ```typescript
+// 测试失败，但直接写代码
+test('generateToken', () => {
+  expect(generateToken()).toBe('123456');
+  // 失败：Expected '123456', received 'undefined'
+  // 立即写代码，不分析失败原因
+});
+
+function generateToken() {
+  return '123456';  // 直接返回固定值通过测试
+}
+```
+
+**✅ 正确示例**：
+```typescript
+// 测试失败
+test('generateToken', () => {
+  const token = generateToken();
+  expect(token).toMatch(/^\d{6}$/);  // 失败：token 是 undefined
+});
+
+// 分析失败原因：函数未实现
+// 写最少的代码让测试通过
+function generateToken() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+```
+
+### 2.2 失败验证检查清单
+
+- [ ] 测试失败
+- [ ] 失败原因正确（不是测试本身的问题）
+- [ ] 理解为什么失败
+- [ ] 记录失败信息
+
+**当且仅当失败验证通过后，继续 GREEN 阶段。**
+
+---
+
+## 步骤 3: GREEN - 写最少代码
+
+**目标**：写最少的代码让测试通过，不考虑通用性和优化。
+
+### 3.1 分析失败原因
+
+**关键问题**：
+- 为什么测试失败？
+- 缺少什么代码？
+
+### 3.2 写最少的代码
+
+**最少的代码示例**：
+```typescript
+// 测试
 test('should return 6-digit string', () => {
   const token = generateToken();
   expect(token).toMatch(/^\d{6}$/);
 });
-```
 
-**最少的代码（GREEN）**：
-```typescript
+// 最少的代码（GREEN）
 function generateToken() {
   return '123456';  // 最少代码，让测试通过
 }
@@ -226,49 +153,47 @@ function generateToken() {
 - 先让测试通过
 - 下一个测试会强制改进
 
-**下一个测试**：
-```typescript
-test('should return different values', () => {
-  const token1 = generateToken();
-  const token2 = generateToken();
-  expect(token1).not.toBe(token2);
-});
-```
+### 3.3 运行测试
 
-**改进代码**：
-```typescript
-function generateToken() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-```
+**必须验证**：
+- 测试通过
+- 没有引入额外功能
+- 代码可运行
 
-### GREEN 阶段检查清单
+**在继续下一步之前，确认测试通过。**
 
+---
+
+## 步骤 4: GREEN Verify - 确认通过
+
+**目标**：确认测试通过，不引入额外功能。
+
+### 4.1 验证通过
+
+**GREEN Verify 检查清单**：
 - [ ] 只写必要的代码
 - [ ] 测试通过
 - [ ] 没有引入额外功能
 - [ ] 代码可运行
 
+**当且仅当测试通过后，继续 REFACTOR 阶段。**
+
 ---
 
-## REFACTOR 阶段：重构
+## 步骤 5: REFACTOR - 重构
 
-### 步骤
+**目标**：改进代码质量，保持测试通过。
 
-1. **识别改进点**
-   - 重复代码
-   - 命名不清
-   - 复杂逻辑
+### 5.1 识别改进点
 
-2. **重构代码**
-   - 提取函数
-   - 改进命名
-   - 简化逻辑
+**常见改进点**：
+- 重复代码
+- 命名不清
+- 复杂逻辑
 
-3. **运行测试**
-   - 确认测试仍然通过
+### 5.2 重构代码
 
-### 重构示例
+**重构示例**：
 
 **重构前**：
 ```typescript
@@ -298,13 +223,33 @@ function generateOTP(): string {
 }
 ```
 
-### REFACTOR 阶段检查清单
+### 5.3 运行测试
 
+**必须验证**：
+- 代码更清晰
+- 消除重复
+- 命名改进
+- 测试仍然通过
+- 没有改变行为
+
+**在完成前，确认测试仍然通过。**
+
+---
+
+## 步骤 6: REFACTOR Verify - 确认仍然通过
+
+**目标**：确认重构后测试仍然通过，行为未改变。
+
+### 6.1 验证重构
+
+**REFACTOR Verify 检查清单**：
 - [ ] 代码更清晰
 - [ ] 消除重复
 - [ ] 命名改进
 - [ ] 测试仍然通过
 - [ ] 没有改变行为
+
+**当且仅当所有条件满足时，本循环完成。**
 
 ---
 
@@ -376,7 +321,7 @@ describe('EmailVerificationService', () => {
 });
 ```
 
-### 实现文件（逐步完成）
+### 逐步实现
 
 #### 循环 1: generateToken
 
@@ -389,6 +334,9 @@ it('should generate 6-digit string', () => {
 ```
 运行：❌ 失败（方法不存在）
 
+**RED Verify**：
+- 失败原因：generateToken 方法未实现 ✅
+
 **GREEN**：
 ```typescript
 generateToken(): string {
@@ -397,6 +345,10 @@ generateToken(): string {
 ```
 运行：✅ 通过
 
+**GREEN Verify**：
+- 测试通过 ✅
+- 代码最少 ✅
+
 **REFACTOR**：
 ```typescript
 generateToken(): string {
@@ -404,6 +356,10 @@ generateToken(): string {
 }
 ```
 运行：✅ 通过
+
+**REFACTOR Verify**：
+- 测试仍然通过 ✅
+- 代码改进 ✅
 
 #### 循环 2: hashToken
 
@@ -416,6 +372,9 @@ it('should hash token with bcrypt', async () => {
 ```
 运行：❌ 失败
 
+**RED Verify**：
+- 失败原因：hashToken 方法未实现 ✅
+
 **GREEN**：
 ```typescript
 async hashToken(token: string): Promise<string> {
@@ -423,6 +382,9 @@ async hashToken(token: string): Promise<string> {
 }
 ```
 运行：✅ 通过
+
+**GREEN Verify**：
+- 测试通过 ✅
 
 **REFACTOR**：
 ```typescript
@@ -433,46 +395,23 @@ async hashToken(token: string): Promise<string> {
 ```
 运行：✅ 通过
 
+**REFACTOR Verify**：
+- 测试仍然通过 ✅
+- 命名改进 ✅
+
 ---
 
-## 与任务执行集成
+## 禁止行为
 
-### 在 subagent-driven-development 中使用 TDD
-
-**派发子代理时**：
-```javascript
-Task({
-  subagent_type: "general-purpose",
-  description: "实现邮箱验证令牌生成（TDD）",
-  prompt: `请使用 TDD 实现 generateToken() 方法。
-
-## TDD 要求
-
-1. RED：先写测试（包含 3 个测试用例）
-2. Verify：确认测试失败
-3. GREEN：写最少代码让测试通过
-4. Verify：确认测试通过
-5. REFACTOR：重构代码
-6. Verify：确认测试仍然通过
-
-## 测试要求
-- 生成 6 位数字
-- 每次生成不同值
-- 在有效范围内（100000-999999）
-
-请严格遵循 TDD 流程，不要跳过任何阶段。
-`
-})
-```
-
-### 审查 TDD 合规性
-
-**审查项**：
-- [ ] 测试文件存在
-- [ ] 测试先于代码编写
-- [ ] 测试覆盖核心逻辑
-- [ ] 测试全部通过
-- [ ] 代码有测试保护
+- ❌ **跳过 RED 阶段** - 直接写代码
+- ❌ **跳过 RED Verify** - 不确认失败原因
+- ❌ **跳过 GREEN** - 一次写完所有功能
+- ❌ **跳过 GREEN Verify** - 不确认测试通过
+- ❌ **跳过 REFACTOR** - 不改进代码质量
+- ❌ **跳过 REFACTOR Verify** - 不确认测试仍然通过
+- ❌ **测试后编写** - 先写代码后写测试
+- ❌ **保留"参考代码"** - TODO 注释或参考链接
+- ❌ **一次性编写多个测试** - 违反 TDD 循环原则
 
 ---
 
@@ -480,60 +419,84 @@ Task({
 
 **本技能使用的 MCP 工具**：
 
-### 测试阶段
-- [x] `Write` - 编写测试文件
-- [x] `Bash` - 运行测试（`npm test`）
-- [x] `Read` - 阅读测试输出
+### RED 阶段
+- `Write` - 编写测试文件
+- `Bash` - 运行测试（`npm test`）
+- `Read` - 阅读测试输出
 
-### 实现阶段
-- [x] `Write`/`Edit` - 编写生产代码
-- [x] `Bash` - 运行测试验证
-- [x] `Read` - 阅读代码
+### GREEN 阶段
+- `Write`/`Edit` - 编写生产代码
+- `Bash` - 运行测试验证
+- `Read` - 阅读代码
 
-### 重构阶段
-- [x] `Edit` - 重构代码
-- [x] `Bash` - 运行测试验证
-- [x] `Grep` - 查找重复代码
-
----
-
-## 禁止行为
-
-- ❌ 跳过 RED 阶段（直接写代码）
-- ❌ 跳过 Verify（不确认失败/通过）
-- ❌ 跳过 GREEN（一次写完所有功能）
-- ❌ 跳过 REFACTOR（不改进代码质量）
-- ❌ 测试后编写
-- ❌ 保留"参考代码"
-- ❌ 一次性编写多个测试
+### REFACTOR 阶段
+- `Edit` - 重构代码
+- `Bash` - 运行测试验证
+- `Grep` - 查找重复代码
 
 ---
 
-## 完成标志
+## 输出格式
 
-当以下条件满足时，本技能完成：
+**技能完成时的输出应包括**：
 
-- [x] 所有测试已编写（RED）
-- [x] 所有失败已验证（Verify RED）
-- [x] 所有代码已实现（GREEN）
-- [x] 所有测试已通过（Verify GREEN）
-- [x] 代码已重构（REFACTOR）
-- [x] 测试仍然通过（Verify REFACTOR）
-- [x] 测试覆盖率 ≥ 80%
+1. **TDD 循环检查清单**（所有项目已勾选）
+2. **测试文件摘要**
+3. **实现代码摘要**
+4. **测试结果**
 
----
+**示例输出**：
 
-## 与其他技能的集成
+```markdown
+## TDD 技能完成
 
-**前置技能**：
-- `bytecoding:subagent-driven-development` - 任务派发
+### TDD 循环
+✓ 所有 6 个步骤已完成
 
-**并行技能**：
-- `bytecoding:verification-before-completion` - 最终验证
+### 测试覆盖
+- generateToken: 3 个测试
+- hashToken: 2 个测试
+- verifyToken: 2 个测试
 
-**集成流程**：
+### 测试结果
 ```
-subagent-driven-development → test-driven-development → verification-before-completion
-        ↓                           ↓                          ↓
-    派发任务                  TDD 实施代码                 最终验证
+PASS  src/services/EmailVerificationService.test.ts
+  EmailVerificationService
+    generateToken
+      ✓ should generate 6-digit string (5 ms)
+      ✓ should generate different tokens (2 ms)
+      ✓ should generate tokens within valid range (3 ms)
+    hashToken
+      ✓ should hash token with bcrypt (15 ms)
+      ✓ should generate different hashes for same token (12 ms)
+    verifyToken
+      ✓ should verify correct token (10 ms)
+      ✓ should reject incorrect token (8 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       7 passed, 7 total
 ```
+
+### 代码质量
+- 测试覆盖率：95%
+- 代码行数：45 行
+- 重构次数：2 次
+```
+
+---
+
+## 参考资源
+
+- [Bytecoding 技术设计文档](../../BYTECODING_TECHNICAL_DESIGN.md) - 完整架构说明
+- [subagent-driven-development 技能](../subagent-driven-development/SKILL.md) - 任务派发
+
+---
+
+## 技能元数据
+
+- **技能类型**：开发类技能
+- **强制流程**：是（6 步 TDD 循环）
+- **核心铁律**：没有失败的测试，就没有生产代码
+- **用户交互**：每个 Verify 步骤必须确认
+- **完成标志**：所有检查清单项目已完成
+- **测试覆盖率要求**：≥ 80%
