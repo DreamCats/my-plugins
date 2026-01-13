@@ -19,6 +19,7 @@ Subagent Progress:
 - [ ] 步骤 4: 规范符合性审查 - 验证按计划实现
 - [ ] 步骤 5: 代码质量审查 - 验证实现质量
 - [ ] 步骤 6: 结果处理 - 通过或要求重做
+- [ ] 路径约束 - 确认使用 Worktree 根目录
 ```
 
 **重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
@@ -46,6 +47,19 @@ Read: .bytecoding/changes/$CHANGE_ID/tasks.md
 
 **在继续下一步之前，确认任务定义清晰。**
 
+### 1.3 确定 Worktree 根目录（必须）
+
+```bash
+# 确保在 worktree 内，并记录根目录
+WORKTREE_ROOT=$(git rev-parse --show-toplevel)
+echo "Worktree root: $WORKTREE_ROOT"
+```
+
+**规则**：
+- 后续所有文件路径必须基于 `WORKTREE_ROOT`
+- 派发给子代理的路径必须明确为 worktree 绝对路径
+- 禁止使用主仓库绝对路径
+
 ---
 
 ## 步骤 2: 派发子代理（必须使用 Task 工具）
@@ -62,7 +76,8 @@ Task({
 
 ## 任务：实现 EmailVerificationToken.generateToken()
 
-**文件**：src/services/EmailVerificationService.ts
+**工作目录**：$WORKTREE_ROOT
+**文件**：$WORKTREE_ROOT/src/services/EmailVerificationService.ts
 
 **要求**：
 - 生成 6 位数字验证码
@@ -78,11 +93,16 @@ Task({
 - [ ] 编译/构建通过（测试可选）
 - [ ] 代码符合 ESLint 规范
 
-请直接实现代码，不要询问确认。
+请直接实现代码，不要询问确认。禁止修改 $WORKTREE_ROOT 之外的文件。
 `,
   model: "sonnet"  // 可选：指定模型
 })
 ```
+
+**派发规则**：
+- 若任务文件路径为相对路径，必须先拼接 `WORKTREE_ROOT`
+- Task prompt 必须包含 `工作目录` 和 worktree 绝对路径
+- 发现路径不在 `WORKTREE_ROOT` 下，立即纠正并重派
 
 ### 2.2 子代理类型
 
@@ -142,10 +162,10 @@ TaskOutput({
 
 ```bash
 # 读取实现的代码
-Read: src/services/EmailVerificationService.ts
+Read: $WORKTREE_ROOT/src/services/EmailVerificationService.ts
 
-# 运行编译/构建
-npm run build  # 或 go build ./...
+# 运行编译/构建（确保在 worktree 中执行）
+cd $WORKTREE_ROOT && npm run build  # 或 go build ./...
 
 # 可选：运行 Lint
 npm run lint
@@ -198,7 +218,7 @@ npm run build  # 或 go build ./...
 # npm test
 
 # 代码审查
-Read: src/services/EmailVerificationService.ts
+Read: $WORKTREE_ROOT/src/services/EmailVerificationService.ts
 ```
 
 **当且仅当代码质量审查通过后，标记任务完成。**
@@ -341,6 +361,8 @@ BUILD SUCCESS
 - ❌ **跳过规范符合性审查** - 直接审查代码质量
 - ❌ **跳过代码质量审查** - 只检查规范符合性
 - ❌ **超过 3 次修复** - 应人工介入
+- ❌ **未指定 Worktree 根目录** - 子代理可能会修改主仓库
+- ❌ **使用主仓库路径** - 必须在 worktree 内修改
 
 ---
 
