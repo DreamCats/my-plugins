@@ -1,7 +1,7 @@
 ---
-description: 执行落地（触发 git-worktrees + subagent-dev + TDD + verification 技能）
+description: 执行落地（触发 git-worktrees + subagent-dev + 编译验证驱动）
 argument-hint: [change-id]
-allowed-tools: Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash(pnpm*), Bash(bun*), Read, Write, Edit, Glob, Grep, Task, TaskOutput
+allowed-tools: Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash(pnpm*), Bash(bun*), Bash(go*), Read, Write, Edit, Glob, Grep, Task, TaskOutput
 ---
 
 # /repo-apply 命令
@@ -148,45 +148,22 @@ Read: "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 **审查结果**：✅ **通过**
 ```
 
-## 步骤 5: 使用 test-driven-development 技能
+## 步骤 5: 使用 test-driven-development 技能（简化版）
 
-对于需要编写代码的任务，使用 **bytecoding:test-driven-development** 技能确保 TDD 流程。
+对于需要编写代码的任务，使用 **bytecoding:test-driven-development** 技能执行**编译验证驱动**流程。
 
-> 对于涉及代码实现的任务，请遵循 **bytecoding:test-driven-development** 技能的 RED-GREEN-REFACTOR 循环。
+> 当前阶段不要求编写单测，默认以“编译/构建通过”作为最低质量门。
 
-**test-driven-development 技能强制要求**：
-1. **RED** - 先写失败测试
-2. **GREEN** - 写最少代码使测试通过
-3. **REFACTOR** - 重构代码质量
+**test-driven-development（简化版）技能要求**：
+1. **实现最小改动**
+2. **编译/构建通过**
+3. **记录编译结果**
 
 **铁律**：
-- ❌ 禁止跳过 RED 阶段
-- ❌ 禁止一次写完所有代码再写测试
-- ❌ 禁止在 GREEN 阶段写"完美代码"
+- ❌ 禁止跳过编译验证
+- ❌ 禁止未编译就标记完成
 
-## 步骤 6: 使用 verification-before-completion 技能
-
-所有任务完成后，使用 **bytecoding:verification-before-completion** 技能进行最终验证。
-
-> 请使用 **bytecoding:verification-before-completion** 技能对已完成的变更进行全面验证。
-
-**verification-before-completion 技能执行六维度验证**：
-
-1. **功能验证** - 所有测试通过，手动测试通过
-2. **质量验证** - 0 Lint 错误，0 TS 错误
-3. **规范验证** - 100% 任务完成，符合设计
-4. **集成验证** - 0 回归失败，0 漏洞
-5. **文档验证** - 所有公共 API 有文档
-6. **部署验证** - 构建成功，配置正确
-
-**质量门标准**：
-```
-🟢 绿色（通过）：所有验证通过 → 可以标记完成
-🟡 黄色（警告）：非关键验证未通过 → 需要评估风险
-🔴 红色（失败）：关键验证未通过 → 不能标记完成
-```
-
-## 步骤 7: 提交变更
+## 步骤 6: 提交变更
 
 验证通过后，提交变更：
 
@@ -213,8 +190,7 @@ git push -u origin feature/$CHANGE_ID
 - [x] PlanSpec 验证通过
 - [x] Git Worktree 已创建（可选但推荐）
 - [x] 所有任务已通过两阶段审查
-- [x] TDD 流程已遵循
-- [x] 六维度验证已通过
+- [x] 编译验证已通过
 - [x] 变更已提交到 Git
 
 ## 下一步

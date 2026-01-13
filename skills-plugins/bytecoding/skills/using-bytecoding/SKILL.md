@@ -22,7 +22,7 @@ Commands 是批量触发技能的顶层命令，用于完整工作流：
 | Command | 触发的技能链 | 用途 |
 |---------|-------------|------|
 | `/repo-plan` | `brainstorming` + `writing-plans` | 生成方案与 PlanSpec |
-| `/repo-apply` | `using-git-worktrees` → `subagent-driven-development` → `test-driven-development` → `verification-before-completion` | 执行落地 |
+| `/repo-apply` | `using-git-worktrees` → `subagent-driven-development` → `test-driven-development` | 执行落地 |
 | `/repo-archive` | - | 归档已完成的变更 |
 
 ### Skills（可独立调用）
@@ -34,10 +34,9 @@ Skills 可以独立调用或通过 Commands 自动触发：
 | `bytecoding:brainstorming` | 需求讨论、设计方案探索 | 理解需求 → 多源搜索 → 综合分析 → 方案设计 → 分节呈现 |
 | `bytecoding:writing-plans` | 设计文档转任务列表 | 分析设计 → 细粒度拆分（2-5分钟/任务）→ 任务模板 |
 | `bytecoding:systematic-debugging` | 调试代码问题 | 根因调查 → 模式分析 → 假设验证 → 根因修复 |
-| `bytecoding:test-driven-development` | 编写新功能代码 | RED-GREEN-REFACTOR 循环 |
+| `bytecoding:test-driven-development` | 编写代码 | 编译验证驱动（不强制单测） |
 | `bytecoding:using-git-worktrees` | 需要隔离的工作环境 | 创建工作树 → 验证环境 |
 | `bytecoding:subagent-driven-development` | 执行复杂任务 | 派发子代理 → 两阶段评审 |
-| `bytecoding:verification-before-completion` | 任务完成前 | 执行验证清单 → 收集证据 |
 
 ---
 
@@ -63,8 +62,7 @@ Skills 可以独立调用或通过 Commands 自动触发：
 **自动触发技能链**：
 1. `using-git-worktrees` - 创建隔离工作环境
 2. `subagent-driven-development` - 子代理执行任务
-3. `test-driven-development` - TDD 实施代码
-4. `verification-before-completion` - 完成前验证
+3. `test-driven-development` - 编译验证驱动实现
 
 ### 4. 调试问题 → `bytecoding:systematic-debugging`
 
@@ -77,8 +75,8 @@ Skills 可以独立调用或通过 Commands 自动触发：
 
 **触发条件**：
 - 实现新功能
-- 修复 bug（需先写失败测试）
-- 重构代码
+- 修复 bug
+- 重构代码或结构调整
 
 ---
 
@@ -179,11 +177,10 @@ repotalk.search("user registration flow")
 
 必须**双源搜索 + 综合分析**。
 
-### ❌ 禁止绕过验证
+### ❌ 禁止绕过编译验证
 
-- `verification-before-completion` 是强制的
 - 不能因为"看起来没问题"就跳过
-- 必须收集验证证据
+- 至少完成一次编译/构建验证并记录结果
 
 ---
 

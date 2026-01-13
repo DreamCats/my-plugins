@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Use when discussing requirements, exploring implementation approaches, or designing solutions that require code analysis. This skill enforces a mandatory workflow: Repotalk MCP search → local search → comprehensive analysis → generate 2 documents (proposal.md, design.md) BEFORE any code modification.
+description: Use when discussing requirements, exploring implementation approaches, or designing solutions that require code analysis. This skill enforces a mandatory workflow: Repotalk MCP search (to narrow scope) → local targeted search → comprehensive analysis → generate 2 documents (proposal.md, design.md) BEFORE any code modification.
 ---
 
 # Brainstorming 技能
@@ -14,8 +14,8 @@ description: Use when discussing requirements, exploring implementation approach
 ```
 Brainstorming Progress:
 - [ ] 步骤 1: 理解需求 - 提出澄清问题并等待用户确认
-- [ ] 步骤 2: Repotalk MCP 搜索 - 使用正确的 repo_names 格式 (org/repo)
-- [ ] 步骤 3: 本地搜索分析 - 使用 Glob/Grep 查找相关文件
+- [ ] 步骤 2: Repotalk MCP 搜索 - 先收敛候选路径/术语（repo_names=org/repo）
+- [ ] 步骤 3: 本地定向搜索 - 基于候选路径/术语验证与补充
 - [ ] 步骤 4: 综合分析 - 结合 Repotalk 和本地搜索结果
 - [ ] 步骤 5: 方案设计 - 提出 2-3 种方案，分节呈现并等待确认
 - [ ] 步骤 6: 生成文档 - 必须生成 proposal.md 和 design.md
@@ -47,7 +47,7 @@ Brainstorming Progress:
 
 ## 步骤 2: Repotalk MCP 搜索（必须优先执行）
 
-**目标**：优先搜索字节内部代码库，查找参考实现和最佳实践。
+**目标**：优先搜索字节内部代码库，**收敛候选路径与术语**，减少本地“盲搜”成本。
 
 ### 2.1 检查 Cookie 配置
 
@@ -99,6 +99,7 @@ repotalk.search_nodes({
 
 **完成标志**：
 - 找到 2-3 个参考实现
+- 产出候选路径/模块名/函数名
 - 识别常用模式和规范
 - 记录潜在的安全/性能考虑
 
@@ -110,39 +111,39 @@ repotalk.search_nodes({
 
 ---
 
-## 步骤 3: 本地搜索分析
+## 步骤 3: 本地定向搜索分析
 
-**目标**：了解项目现有代码结构和实现。
+**目标**：基于 Repotalk 产出的候选路径/术语做**定向验证**，避免全仓库关键词搜索。
 
 ### 3.1 本地搜索策略
 
-**使用 Glob 工具**：查找相关文件
+**先收敛范围**（优先使用候选路径/模块名）：
 
 ```bash
-# 查找相关类型/接口
-Glob: "**/*User*.ts"
-Glob: "**/*auth*.ts"
-
-# 查找测试文件
-Glob: "**/*.test.ts"
-Glob: "**/*.spec.ts"
+# 在候选目录内列出 handler 文件
+Glob: "path/to/candidate/dir/**/*handler*.go"
 ```
 
-**使用 Grep 工具**：搜索代码模式
+**再做定向搜索**（只在候选范围内）：
 
 ```bash
-# 搜索函数/类定义
-Grep: "class.*AuthService"
-Grep: "function validateEmail"
+# 在候选范围内搜索方法或路由
+Grep: "Update.*Promotion" path/to/candidate/dir
+Grep: "Handle.*Seckill" path/to/candidate/dir
 
-# 搜索接口/类型
-Grep: "interface.*User"
-Grep: "type.*Config"
+# 定位路由/注册点（入口更稳定）
+Grep: "Register.*Handler" path/to/candidate/dir
+Grep: "router.*Handle" path/to/candidate/dir
 ```
+
+**如果 Repotalk 无结果或 Cookie 失效**：
+1. 先做轻量级文件名收敛（例如 `*handler*.go`、`*route*.go`）
+2. 再进行小范围关键词搜索
+3. 在输出中标注“已降级为本地搜索”
 
 **完成标志**：
-- 找到 3-10 个相关文件
-- 理解现有数据模型
+- 基于候选范围定位到具体文件
+- 理解现有实现与调用链
 - 识别相关服务和模块
 - 发现潜在依赖关系
 
@@ -333,8 +334,8 @@ Grep: "type.*Config"
 
 ```
 ✓ 用户确认需求理解正确
-✓ 完成 Repotalk MCP 搜索（找到 2-3 个参考实现）
-✓ 完成本地搜索（找到 3-10 个相关文件）
+✓ 完成 Repotalk MCP 搜索（产出候选路径/术语）
+✓ 完成本地定向搜索（基于候选范围验证）
 ✓ 产出综合分析表（结合两者结果）
 ✓ 提出 2-3 种方案并详细说明
 ✓ 用户确认采纳某个方案
@@ -350,7 +351,8 @@ Grep: "type.*Config"
 
 - ❌ **跳过 Repotalk MCP 搜索** - 必须优先执行
 - ❌ **repo_names 格式错误** - 必须使用 `org/repo` 格式
-- ❌ **跳过本地搜索** - 必须在 Repotalk 搜索后执行
+- ❌ **盲目全仓库关键词搜索** - 必须先收敛范围
+- ❌ **跳过本地定向搜索** - 必须在 Repotalk 搜索后执行
 - ❌ **跳过综合分析** - 必须结合两者结果
 - ❌ **跳过文档生成** - 必须生成 proposal.md 和 design.md
 - ❌ **生成 tasks.md** - 应由 writing-plans 技能负责
@@ -401,7 +403,7 @@ repotalk.get_files_detail({
 
 **重要**：使用正确的 `repo_names` 格式（`org/repo`）
 
-### 后续执行：本地工具
+### 后续执行：本地工具（基于候选范围）
 
 - `Glob` - 查找相关文件
 - `Grep` - 搜索代码模式

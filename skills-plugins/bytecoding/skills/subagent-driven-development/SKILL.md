@@ -75,7 +75,7 @@ Task({
 
 **验收标准**：
 - [ ] 代码编译通过
-- [ ] 单元测试通过
+- [ ] 编译/构建通过（测试可选）
 - [ ] 代码符合 ESLint 规范
 
 请直接实现代码，不要询问确认。
@@ -136,7 +136,7 @@ TaskOutput({
 - [ ] 使用了指定的文件路径
 - [ ] 遵循了设计文档
 - [ ] 参考了推荐的实现
-- [ ] 符合验收标准
+- [ ] 符合验收标准（包含编译/构建通过）
 
 ### 4.2 审查方法
 
@@ -144,10 +144,10 @@ TaskOutput({
 # 读取实现的代码
 Read: src/services/EmailVerificationService.ts
 
-# 运行测试
-npm test
+# 运行编译/构建
+npm run build  # 或 go build ./...
 
-# 运行 Lint
+# 可选：运行 Lint
 npm run lint
 ```
 
@@ -185,16 +185,17 @@ npm run lint
 
 **错误处理**：所有异常情况都处理
 
-**测试覆盖**：核心逻辑有测试
+**编译验证**：构建通过
 
 ### 5.3 审查方法
 
 ```bash
-# 运行类型检查
-npm run type-check
+# 运行编译/构建
+npm run build  # 或 go build ./...
 
-# 运行测试
-npm test
+# 可选：运行类型检查或测试（如有）
+# npm run type-check
+# npm test
 
 # 代码审查
 Read: src/services/EmailVerificationService.ts
@@ -215,7 +216,7 @@ Read: src/services/EmailVerificationService.ts
 ### 1.1 ✅ 已完成
 
 **实现**：src/services/EmailVerificationService.ts
-**测试**：通过
+**编译**：通过
 **Lint**：通过
 **审查人**：主代理
 **审查时间**：YYYY-MM-DD HH:MM
@@ -320,16 +321,11 @@ Task({
 - src/index.ts（导出新服务）
 
 **新增测试**：
-- src/services/__tests__/EmailVerificationService.test.ts
+- 无（当前阶段不强制）
 
-**测试结果**：
+**编译结果**：
 ```
-PASS  src/services/__tests__/EmailVerificationService.test.ts
-  EmailVerificationService
-    generateToken()
-      ✓ should generate 6-digit token (5ms)
-      ✓ should hash token with bcrypt (12ms)
-      ✓ should throw on error (3ms)
+BUILD SUCCESS
 ```
 ```
 
@@ -356,13 +352,13 @@ PASS  src/services/__tests__/EmailVerificationService.test.ts
 - `Task` - 派发子代理
 - `TaskOutput` - 获取子代理产出
 - `Read` - 审查代码
-- `Bash` - 运行测试/Lint
+- `Bash` - 运行编译/构建、Lint
 
 ### 子代理使用
 - `Read` - 读取参考实现
 - `Glob`/`Grep` - 搜索代码
 - `Write`/`Edit` - 编写代码
-- `Bash` - 运行测试
+- `Bash` - 运行编译/构建
 
 ---
 
@@ -396,13 +392,9 @@ PASS  src/services/__tests__/EmailVerificationService.test.ts
 ### 子代理产出
 **新增文件**：3 个
 **修改文件**：2 个
-**新增测试**：15 个
-
-**测试结果**：
+**编译结果**：
 ```
-PASS  所有测试通过
-Test Suites: 3 passed, 3 total
-Tests:       15 passed, 15 total
+BUILD SUCCESS
 ```
 ```
 
@@ -412,7 +404,7 @@ Tests:       15 passed, 15 total
 
 - [Bytecoding 技术设计文档](../../BYTECODING_TECHNICAL_DESIGN.md) - 完整架构说明
 - [writing-plans 技能](../writing-plans/SKILL.md) - 前置技能，生成 tasks.md
-- [test-driven-development 技能](../test-driven-development/SKILL.md) - TDD 实施
+- [test-driven-development 技能](../test-driven-development/SKILL.md) - 编译验证驱动
 
 ---
 

@@ -213,13 +213,13 @@ brainstorming → writing-plans
 
 ## 技能测试方法
 
-### TDD 应用于文档
+### 编译验证驱动应用于文档
 
-**测试驱动文档**：
+**验证驱动文档**：
 
-1. **RED**：识别技能应该解决的问题
-2. **GREEN**：编写技能文档解决问题
-3. **REFACTOR**：改进技能文档
+1. **Draft**：写出可运行的初稿
+2. **Verify**：自检结构、术语与流程一致性
+3. **Refine**：基于反馈修订文档
 
 ### 测试场景
 
@@ -239,11 +239,11 @@ brainstorming → writing-plans
 验证：技能是否收集错误信息？
 ```
 
-**场景 3：完成验证**
+**场景 3：编译验证**
 ```
 用户："我写完了"
-触发技能：verification-before-completion
-验证：技能是否执行验证清单？
+触发技能：test-driven-development
+验证：技能是否要求编译通过？
 ```
 
 ### 子代理测试
@@ -279,7 +279,7 @@ Task({
 ```
 using-git-worktrees      # 使用 Git Worktrees
 writing-plans            # 编写计划
-test-driven-development  # 测试驱动开发
+test-driven-development  # 编译验证驱动
 ```
 
 **名词结构**（特殊情况）：
@@ -313,11 +313,10 @@ bytecoding:systematic-debugging
 **执行技能**：
 - `using-git-worktrees` - 环境隔离
 - `subagent-driven-development` - 子代理执行
-- `test-driven-development` - TDD 实施
+- `test-driven-development` - 编译验证驱动
 
 **质量保证技能**：
 - `systematic-debugging` - 调试
-- `verification-before-completion` - 完成验证
 
 **元技能**：
 - `writing-skills` - 编写技能
@@ -335,7 +334,6 @@ bytecoding:systematic-debugging
 
 **辅助技能**：
 - `using-git-worktrees`
-- `verification-before-completion`
 
 ---
 

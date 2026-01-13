@@ -7,6 +7,8 @@ description: Use before completing any task or change. This skill enforces a com
 
 ## 目标
 
+> 当前阶段该技能暂不启用，默认不在 `/repo-apply` 流程中执行。
+
 在标记任务完成前，强制执行全面的验证清单，确保质量、完整性和正确性。
 
 **核心铁律**：没有验证，不算完成。
@@ -507,16 +509,14 @@ npm run build
 
 ## 与其他技能的集成
 
-**后置技能**：所有执行技能的最终验证
+**后置技能**：当前阶段默认不启用，需要时手动调用
 
-**集成流程**：
+**集成流程（可选）**：
 ```
 任何执行技能 → verification-before-completion → 标记完成
      ↓                     ↓                      ↓
   完成工作              全面验证                质量保证
 ```
 
-**强制触发**：
-- `/repo-apply` 命令执行完毕
-- `subagent-driven-development` 完成所有任务
-- `test-driven-development` 完成功能实现
+**触发方式**：
+- 手动调用（用户明确要求完整验证时）

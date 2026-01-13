@@ -199,10 +199,9 @@ const CORE_SKILLS = [
   { name: 'brainstorming', description: '需求精化 + 多源代码分析（本地 + repotalk MCP）' },
   { name: 'writing-plans', description: '设计方案 → 可执行任务列表' },
   { name: 'systematic-debugging', description: '四阶段系统化调试（含多源搜索）' },
-  { name: 'test-driven-development', description: 'TDD: RED-GREEN-REFACTOR 循环' },
+  { name: 'test-driven-development', description: '编译验证驱动（不强制单测）' },
   { name: 'using-git-worktrees', description: '创建隔离的 Git 工作区' },
   { name: 'subagent-driven-development', description: '子代理驱动开发 + 两阶段评审' },
-  { name: 'verification-before-completion', description: '完成前验证清单' },
 ];
 
 /**
@@ -282,7 +281,7 @@ function discoverAvailableSkills() {
 function getAvailableCommands() {
   return [
     { name: '/repo-plan', description: '生成方案与 PlanSpec（触发 brainstorming + writing-plans）' },
-    { name: '/repo-apply', description: '执行落地（触发 git-worktrees + subagent-dev + TDD）' },
+    { name: '/repo-apply', description: '执行落地（触发 git-worktrees + subagent-dev + 编译验证驱动）' },
     { name: '/repo-archive', description: '归档已完成的变更' },
   ];
 }
