@@ -1,7 +1,7 @@
 ---
 description: 生成方案与 PlanSpec（触发 brainstorming + writing-plans 技能）
 argument-hint: [变更描述]
-allowed-tools: Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Bash(python3*), Read, Write, Edit, Glob, Grep
 ---
 
 # /repo-plan 命令
@@ -92,7 +92,23 @@ spec_deltas: []
 EOF
 ```
 
-## 步骤 5: 发送飞书摘要（使用 lark-send-msg）
+## 步骤 5: 转换 Markdown 文档（使用 lark-md-to-doc）
+
+当摘要包含 Markdown 文档时（本命令固定包含 `proposal.md`/`design.md`/`tasks.md`），先用 **lark-md-to-doc** 将文档转为飞书文档，并记录返回的文档链接。
+
+**标题规范**：`[repo-plan] $CHANGE_ID <文档名>`（如 `proposal`/`design`/`tasks`）。
+
+**执行方式**：
+1. 通过 `Skill(lark-md-to-doc)` 确认调用方式。
+2. 使用脚本渲染（示例）：
+```bash
+python3 /Users/bytedance/.codex/skills/lark-md-to-doc/scripts/render_lark_doc.py \
+  --md "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/proposal.md" \
+  --title "[repo-plan] $CHANGE_ID proposal"
+```
+分别渲染 `design.md` 和 `tasks.md`，记录输出中的 `doc_id`/链接，用于飞书摘要。
+
+## 步骤 6: 发送飞书摘要（使用 lark-send-msg）
 
 在命令结束后，使用 **lark-send-msg** 技能**生成消息内容并执行发送**（通过 Skill 工具调用 + `lark-cli send-message`）。
 
@@ -102,6 +118,7 @@ EOF
 **摘要内容建议**：
 - 变更 ID
 - 规划产出（proposal/design/tasks）
+- 文档链接（由 `lark-md-to-doc` 生成）
 - 下一步建议（`/repo-apply $CHANGE_ID`）
 
 **执行方式**：
@@ -120,6 +137,7 @@ lark-cli send-message --receive-id-type email --msg-type text "$GIT_EMAIL" '{"te
 - [x] brainstorming 技能已完成，产出 `proposal.md` 和 `design.md`
 - [x] writing-plans 技能已完成，产出 `tasks.md`
 - [x] PlanSpec 文件已创建
+- [x] 已创建飞书文档（proposal/design/tasks）
 - [x] 已执行 `lark-cli send-message` 发送飞书摘要（如 git 邮箱可用）
 
 ## 下一步

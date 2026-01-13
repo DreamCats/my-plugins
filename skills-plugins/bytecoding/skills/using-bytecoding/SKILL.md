@@ -21,9 +21,9 @@ Commands 是批量触发技能的顶层命令，用于完整工作流：
 
 | Command | 触发的技能链 | 用途 |
 |---------|-------------|------|
-| `/repo-plan` | `brainstorming` + `writing-plans` | 生成方案与 PlanSpec |
-| `/repo-apply` | `using-git-worktrees` → `subagent-driven-development` → `test-driven-development` | 执行落地 |
-| `/repo-archive` | - | 归档已完成的变更 |
+| `/repo-plan` | `brainstorming` + `writing-plans` → `lark-md-to-doc` → `lark-send-msg` | 生成方案与 PlanSpec |
+| `/repo-apply` | `using-git-worktrees` → `subagent-driven-development` → `test-driven-development` → `lark-send-msg` | 执行落地 |
+| `/repo-archive` | `lark-send-msg` | 归档已完成的变更 |
 
 ### Skills（可独立调用）
 
@@ -38,6 +38,7 @@ Skills 可以独立调用或通过 Commands 自动触发：
 | `bytecoding:using-git-worktrees` | 需要隔离的工作环境 | 创建工作树 → 按需环境准备 |
 | `bytecoding:subagent-driven-development` | 执行复杂任务 | 派发子代理 → 两阶段评审 |
 | `lark-send-msg` | 发送飞书摘要/通知 | 构造消息 → 调用 lark-cli 发送 |
+| `lark-md-to-doc` | Markdown 转飞书文档 | 渲染 Markdown → 输出 doc_id/链接 |
 
 ---
 
@@ -84,6 +85,9 @@ Skills 可以独立调用或通过 Commands 自动触发：
 **触发条件**：
 - `/repo-plan`、`/repo-apply`、`/repo-archive` 结束后
 - 需要发送飞书摘要/通知
+
+**附加规则**：
+- 如摘要包含 Markdown 文档（proposal/design/tasks），先使用 `lark-md-to-doc` 转文档并拿到链接，再发送摘要
 
 ---
 
@@ -201,6 +205,7 @@ bytecoding:writing-plans
 bytecoding:systematic-debugging
 ...
 
+lark-md-to-doc
 lark-send-msg
 ```
 

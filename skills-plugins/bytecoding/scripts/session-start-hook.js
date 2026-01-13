@@ -311,6 +311,7 @@ const CORE_SKILLS = [
   { name: 'using-git-worktrees', description: '创建隔离的 Git 工作区' },
   { name: 'subagent-driven-development', description: '子代理驱动开发 + 两阶段评审' },
   { name: 'lark-send-msg', namespace: '', description: '发送飞书消息（摘要通知）' },
+  { name: 'lark-md-to-doc', namespace: '', description: 'Markdown 转飞书文档（生成链接）' },
 ];
 
 /**
