@@ -1,7 +1,7 @@
 ---
 description: 归档已完成的变更
 argument-hint: [change-id]
-allowed-tools: Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Bash(lark-cli*), Bash(python3*), Read, Glob, Grep
+allowed-tools: Bash(bash*), Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Bash(lark-cli*), Bash(python3*), Read, Glob, Grep
 ---
 
 # /repo-archive 命令
@@ -19,24 +19,19 @@ allowed-tools: Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Bash(lark-cli*), Ba
 ```bash
 CHANGE_ID="${1:-$ARGUMENTS}"
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
-if [ -z "$PLUGIN_ROOT" ]; then
-  echo "错误：CLAUDE_PLUGIN_ROOT 未设置，请指向插件目录"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"
+SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
+# Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
+if [ -x "$PLUGIN_ROOT/repo-archive.sh" ]; then
+  SCRIPT_DIR="$PLUGIN_ROOT"
+fi
+if [ ! -x "$SCRIPT_DIR/repo-archive.sh" ]; then
+  echo "错误：找不到插件脚本，请确认插件路径"
   exit 1
 fi
-"$PLUGIN_ROOT/scripts/bytecoding/repo-archive.sh" --change-id "$CHANGE_ID"
-```
-
-如需忽略 `status != completed` 的校验，可加 `--force`：
-
-```bash
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
-if [ -z "$PLUGIN_ROOT" ]; then
-  echo "错误：CLAUDE_PLUGIN_ROOT 未设置，请指向插件目录"
-  exit 1
-fi
-"$PLUGIN_ROOT/scripts/bytecoding/repo-archive.sh" --change-id "$CHANGE_ID" --force
+# 如需忽略 status 校验，设置 FORCE_FLAG="--force"
+FORCE_FLAG=""
+bash "$SCRIPT_DIR/repo-archive.sh" --change-id "$CHANGE_ID" $FORCE_FLAG
 ```
 
 **手动备用**（仅当脚本不可用时）：
@@ -178,8 +173,10 @@ echo "=========================================="
 **如摘要包含 Markdown 文档**（例如引用归档后的 `proposal.md`/`design.md`/`tasks.md`），先用 **lark-md-to-doc** 转换并拿到文档链接，再发送摘要。
 
 **转换方式**：
+
 1. 通过 `Skill(lark-md-to-doc)` 确认调用方式。
 2. 使用脚本渲染（示例）：
+
 ```bash
 python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
   --md "$PROJECT_ROOT/.bytecoding/changes/archive/$CHANGE_ID/proposal.md" \
@@ -187,6 +184,7 @@ python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
 ```
 
 **摘要内容建议**：
+
 - 变更 ID
 - 归档时间
 - 归档位置
@@ -194,11 +192,14 @@ python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
 - 文档链接（如有）
 
 **执行方式**：
+
 1. 通过 `Skill(lark-send-msg)` 选择 `msg_type` 并生成单行 `content` JSON。
 2. 执行发送（示例）：
+
 ```bash
 lark-cli send-message --receive-id-type email --msg-type text "$GIT_EMAIL" '{"text":"变更 ID: ...\n归档时间: ...\n归档位置: ...\n清理: worktree/分支已处理"}'
 ```
+
 如需富文本排版，请使用 `msg_type=post` 并按 `lark-send-msg` 的结构生成 JSON。
 
 ## 完成标志

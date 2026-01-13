@@ -1,7 +1,7 @@
 ---
 description: 执行落地（触发 git-worktrees + subagent-dev + 编译验证驱动）
 argument-hint: [change-id]
-allowed-tools: Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash(pnpm*), Bash(bun*), Bash(go*), Bash(lark-cli*), Bash(python3*), Read, Write, Edit, Glob, Grep, Task, TaskOutput
+allowed-tools: Bash(bash*), Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash(pnpm*), Bash(bun*), Bash(go*), Bash(lark-cli*), Bash(python3*), Read, Write, Edit, Glob, Grep, Task, TaskOutput
 ---
 
 # /repo-apply 命令
@@ -19,12 +19,17 @@ allowed-tools: Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash
 ```bash
 CHANGE_ID="${1:-$ARGUMENTS}"
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
-if [ -z "$PLUGIN_ROOT" ]; then
-  echo "错误：CLAUDE_PLUGIN_ROOT 未设置，请指向插件目录"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"
+SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
+# Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
+if [ -x "$PLUGIN_ROOT/repo-apply.sh" ]; then
+  SCRIPT_DIR="$PLUGIN_ROOT"
+fi
+if [ ! -x "$SCRIPT_DIR/repo-apply.sh" ]; then
+  echo "错误：找不到插件脚本，请确认插件路径"
   exit 1
 fi
-"$PLUGIN_ROOT/scripts/bytecoding/repo-apply.sh" --change-id "$CHANGE_ID"
+bash "$SCRIPT_DIR/repo-apply.sh" --change-id "$CHANGE_ID"
 ```
 
 记录输出的 `worktree` 与 `branch`，后续步骤使用该工作区。
@@ -70,6 +75,7 @@ cat "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 ```
 
 **关键信息**：
+
 - 总任务数
 - 任务分组
 - 依赖关系
@@ -80,6 +86,7 @@ cat "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 若未通过脚本创建 worktree，可按以下步骤手动创建。
 
 **检查当前 Git 状态**：
+
 ```bash
 # 检查当前分支
 git rev-parse --abbrev-ref HEAD
@@ -89,28 +96,33 @@ git status --short
 ```
 
 **如果当前在主分支（main/master）**，询问用户：
+
 > 检测到你在主分支上执行变更。建议创建 Git Worktree 以保持主工作区整洁。
 
 **使用 **bytecoding:using-git-worktrees** 技能创建 Worktree**：
+
 > 请使用 **bytecoding:using-git-worktrees** 技能为变更 `$CHANGE_ID` 创建隔离的工作区。
 
 **using-git-worktrees 技能将引导你**：
+
 1. 检查当前 Git 状态
 2. 创建 Worktree 目录
 3. 创建功能分支
 4. 进入 Worktree 目录
 
 **完成标志**：
+
 - [x] Worktree 已创建
 - [x] 在正确分支上
 - [x] 已进入 Worktree 目录
-> 注：依赖安装与编译验证放到后续任务阶段按需执行。
+  > 注：依赖安装与编译验证放到后续任务阶段按需执行。
 
 ## 步骤 4: 使用 subagent-driven-development 技能
 
 在 Worktree 中，使用 **bytecoding:subagent-driven-development** 技能执行任务列表。
 
 **切换到 Worktree 并设置工作根目录**：
+
 ```bash
 # 进入 worktree 目录（示例）
 cd ../feature-$CHANGE_ID
@@ -119,6 +131,7 @@ echo "Worktree: $WORKTREE_ROOT"
 ```
 
 **路径约束**：
+
 - tasks.md 中的文件路径必须是**仓库相对路径**
 - 在 Worktree 中执行 Read/Write/Edit/Glob/Grep，确保修改落在 worktree
 - 如发现绝对路径，先改为相对路径再执行任务
@@ -126,12 +139,14 @@ echo "Worktree: $WORKTREE_ROOT"
 > 请使用 **bytecoding:subagent-driven-development** 技能来执行任务列表。
 
 **读取任务列表**：
+
 ```bash
 # 确保 tasks.md 已读取
 Read: "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 ```
 
 **subagent-driven-development 技能将引导你**：
+
 1. **任务准备** - 读取任务定义，明确验收标准
 2. **派发子代理** - 使用 Task 工具派发子代理执行任务
 3. **等待完成** - 监控子代理执行状态
@@ -141,6 +156,7 @@ Read: "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 5. **审查结果处理** - 通过或要求修复
 
 **审查记录格式**：
+
 ```markdown
 ## 审查记录：[任务名称]
 
@@ -150,28 +166,31 @@ Read: "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 **审查人**：主代理
 
 ### 阶段 1: 规范符合性审查
-| 审查项 | 状态 | 说明 |
-|--------|------|------|
-| 实现了所有功能 | ✅ | 所有要求都已实现 |
-| 使用指定文件路径 | ✅ | 文件路径正确 |
-| 遵循设计文档 | ✅ | 与设计一致 |
-| 参考推荐实现 | ✅ | 参考了本地实现 |
+
+| 审查项           | 状态 | 说明             |
+| ---------------- | ---- | ---------------- |
+| 实现了所有功能   | ✅   | 所有要求都已实现 |
+| 使用指定文件路径 | ✅   | 文件路径正确     |
+| 遵循设计文档     | ✅   | 与设计一致       |
+| 参考推荐实现     | ✅   | 参考了本地实现   |
 
 **结果**：✅ 通过
 
 ### 阶段 2: 代码质量审查
-| 审查项 | 状态 | 说明 |
-|--------|------|------|
-| 代码规范 | ✅ | ESLint 通过 |
-| 类型检查 | ✅ | 无 TypeScript 错误 |
-| 安全性 | ✅ | 安全 |
-| 性能 | ✅ | 合理 |
-| 错误处理 | ✅ | 完整 |
-| 命名清晰 | ✅ | 语义化 |
+
+| 审查项   | 状态 | 说明               |
+| -------- | ---- | ------------------ |
+| 代码规范 | ✅   | ESLint 通过        |
+| 类型检查 | ✅   | 无 TypeScript 错误 |
+| 安全性   | ✅   | 安全               |
+| 性能     | ✅   | 合理               |
+| 错误处理 | ✅   | 完整               |
+| 命名清晰 | ✅   | 语义化             |
 
 **结果**：✅ 通过
 
 ### 最终结论
+
 **审查结果**：✅ **通过**
 ```
 
@@ -182,11 +201,13 @@ Read: "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 > 当前阶段不要求编写单测，默认以“编译/构建通过”作为最低质量门。
 
 **test-driven-development（简化版）技能要求**：
+
 1. **实现最小改动**
 2. **编译/构建通过**
 3. **记录编译结果**
 
 **铁律**：
+
 - ❌ 禁止跳过编译验证
 - ❌ 禁止未编译就标记完成
 - ❌ 禁止执行 `go build ./...`（除非用户明确要求）
@@ -212,6 +233,7 @@ git push -u origin feature/$CHANGE_ID
 ```
 
 **推送链接处理**：
+
 - 如果 `git push` 输出中包含 merge request 创建链接（例如 `https://.../merge_requests/new?...`），需在最终摘要中展示该链接
 - 如果未输出链接，明确标注“未提供 MR 链接”
 
@@ -225,8 +247,10 @@ git push -u origin feature/$CHANGE_ID
 **如摘要包含 Markdown 文档**（例如引用 `proposal.md`/`design.md`/`tasks.md`），先用 **lark-md-to-doc** 转换并拿到文档链接，再发送摘要。
 
 **转换方式**：
+
 1. 通过 `Skill(lark-md-to-doc)` 确认调用方式。
 2. 使用脚本渲染（示例）：
+
 ```bash
 python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
   --md "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md" \
@@ -234,6 +258,7 @@ python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
 ```
 
 **摘要内容建议**：
+
 - 变更 ID / 任务目标
 - 关键变更文件
 - 编译验证结果（命令 + 通过/失败）
@@ -242,11 +267,14 @@ python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
 - 文档链接（如有）
 
 **执行方式**：
+
 1. 通过 `Skill(lark-send-msg)` 选择 `msg_type` 并生成单行 `content` JSON。
 2. 执行发送（示例）：
+
 ```bash
 lark-cli send-message --receive-id-type email --msg-type text "$GIT_EMAIL" '{"text":"变更 ID: ...\n关键文件: ...\n编译: go build ./handler/... 通过\n提交: <commit>\nMR: <link>"}'
 ```
+
 如需富文本排版，请使用 `msg_type=post` 并按 `lark-send-msg` 的结构生成 JSON。
 
 ## 完成标志
