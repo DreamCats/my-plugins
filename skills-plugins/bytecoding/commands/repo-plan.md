@@ -1,28 +1,28 @@
 ---
 description: 生成方案与 PlanSpec（触发 brainstorming + writing-plans 技能）
 argument-hint: [变更描述]
-allowed-tools: Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Bash(python3*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(bash*), Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Bash(python3*), Read, Write, Edit, Glob, Grep
 ---
 
 # /repo-plan 命令
 
 本命令引导你完成规划阶段，通过触发 **brainstorming** 和 **writing-plans** 技能来生成完整的变更提案和任务列表。
 
-## 步骤 1: 运行脚本初始化（推荐）
+## 步骤 1: 运行脚本初始化（必须）
 
 使用脚本完成变更目录与 PlanSpec 初始化：
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
-if [ -z "$PLUGIN_ROOT" ]; then
-  echo "错误：CLAUDE_PLUGIN_ROOT 未设置，请指向插件目录"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/bytecoding}"
+if [ ! -x "$PLUGIN_ROOT/scripts/bytecoding/repo-plan.sh" ]; then
+  echo "错误：找不到插件脚本，请确认插件路径"
   exit 1
 fi
-"$PLUGIN_ROOT/scripts/bytecoding/repo-plan.sh" --desc "$ARGUMENTS"
+bash "$PLUGIN_ROOT/scripts/bytecoding/repo-plan.sh" --desc "$ARGUMENTS"
 ```
 
-记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。
+**必须先执行完此脚本再进入下一步**。记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。若脚本失败，先排查报错原因，不要直接进入 brainstorming。
 
 **手动备用**（仅当脚本不可用时）：
 
