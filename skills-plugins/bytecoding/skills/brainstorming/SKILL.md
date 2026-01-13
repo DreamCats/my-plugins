@@ -13,7 +13,7 @@ description: Use when discussing requirements, exploring implementation approach
 
 ```
 Brainstorming Progress:
-- [ ] 步骤 1: 理解需求 - 提出澄清问题并等待用户确认
+- [ ] 步骤 1: 理解需求 - 使用 "use ask question" 提出澄清问题并等待用户确认
 - [ ] 步骤 2: Repotalk MCP 搜索 - 先收敛候选路径/术语（repo_names=org/repo）
 - [ ] 步骤 3: 本地定向搜索 - 基于候选路径/术语验证与补充
 - [ ] 步骤 4: 综合分析 - 结合 Repotalk 和本地搜索结果
@@ -29,6 +29,16 @@ Brainstorming Progress:
 ## 步骤 1: 理解需求（必须等待用户确认）
 
 在开始任何搜索之前，先通过提问确保完全理解需求。
+
+**必须显式使用 "use ask question" 方式发起提问**，不要直接进入搜索。
+
+**示例**：
+```
+Use: ask question
+Q1: ...
+Q2: ...
+Q3: ...
+```
 
 **提出的问题必须包括**：
 1. 具体的功能范围是什么？
@@ -114,6 +124,8 @@ repotalk.search_nodes({
 ## 步骤 3: 本地定向搜索分析
 
 **目标**：基于 Repotalk 产出的候选路径/术语做**定向验证**，避免全仓库关键词搜索。
+
+**硬性约束**：未完成步骤 2 的 Repotalk 搜索前，禁止使用本地搜索工具（Search/Glob/Grep/Read）。
 
 ### 3.1 本地搜索策略
 
@@ -359,6 +371,7 @@ Grep: "router.*Handle" path/to/candidate/dir
 - ❌ **生成 planspec.yaml** - 应由 repo-plan 命令负责
 - ❌ **一次性输出所有内容** - 必须分节呈现并等待确认
 - ❌ **不提问就假设理解需求** - 必须通过提问澄清
+- ❌ **未使用 "use ask question" 就进入搜索** - 必须显式使用
 - ❌ **方案没有基于搜索结果** - 必须基于 Repotalk 和本地搜索
 - ❌ **在生成文档前修改代码** - 文档必须先于代码修改
 
