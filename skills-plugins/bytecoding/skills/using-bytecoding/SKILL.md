@@ -22,7 +22,7 @@ Commands 是批量触发技能的顶层命令，用于完整工作流：
 | Command | 触发的技能链 | 用途 |
 |---------|-------------|------|
 | `/repo-plan` | `brainstorming` + `writing-plans` → `lark-md-to-doc` → `lark-send-msg` | 生成方案与 PlanSpec |
-| `/repo-apply` | `using-git-worktrees` → `subagent-driven-development` → `test-driven-development` → `lark-send-msg` | 执行落地 |
+| `/repo-apply` | `using-git-worktrees` → `dispatching-parallel-agents`（可并行时）→ `subagent-driven-development` → `test-driven-development` → `lark-send-msg` | 执行落地 |
 | `/repo-archive` | `lark-send-msg` | 归档已完成的变更 |
 
 ### Skills（可独立调用）
@@ -33,10 +33,10 @@ Skills 可以独立调用或通过 Commands 自动触发：
 |------|----------|----------|
 | `bytecoding:brainstorming` | 需求讨论、设计方案探索 | 理解需求 → 多源搜索 → 综合分析 → 方案设计 → 分节呈现 |
 | `bytecoding:writing-plans` | 设计文档转任务列表 | 分析设计 → 细粒度拆分（2-5分钟/任务）→ 任务模板 |
-| `bytecoding:systematic-debugging` | 调试代码问题 | 根因调查 → 模式分析 → 假设验证 → 根因修复 |
 | `bytecoding:test-driven-development` | 编写代码 | 编译验证驱动（不强制单测） |
 | `bytecoding:using-git-worktrees` | 需要隔离的工作环境 | 创建工作树 → 按需环境准备 |
 | `bytecoding:subagent-driven-development` | 执行复杂任务 | 派发子代理 → 两阶段评审 |
+| `bytecoding:dispatching-parallel-agents` | 多个任务可并行 | 识别独立任务域 → 并行派发 |
 | `lark-send-msg` | 发送飞书摘要/通知 | 构造消息 → 调用 lark-cli 发送 |
 | `lark-md-to-doc` | Markdown 转飞书文档 | 渲染 Markdown → 输出 doc_id/链接 |
 
@@ -63,24 +63,18 @@ Skills 可以独立调用或通过 Commands 自动触发：
 
 **自动触发技能链**：
 1. `using-git-worktrees` - 创建隔离工作环境
-2. `subagent-driven-development` - 子代理执行任务
-3. `test-driven-development` - 编译验证驱动实现
+2. `dispatching-parallel-agents` - 任务可并行时并行派发
+3. `subagent-driven-development` - 子代理执行任务与审查
+4. `test-driven-development` - 编译验证驱动实现
 
-### 4. 调试问题 → `bytecoding:systematic-debugging`
-
-**触发条件**：
-- 代码运行时错误
-- 测试失败
-- 行为不符合预期
-
-### 5. 编写代码 → `bytecoding:test-driven-development`
+### 4. 编写代码 → `bytecoding:test-driven-development`
 
 **触发条件**：
 - 实现新功能
 - 修复 bug
 - 重构代码或结构调整
 
-### 6. 发送摘要 → `lark-send-msg`
+### 5. 发送摘要 → `lark-send-msg`
 
 **触发条件**：
 - `/repo-plan`、`/repo-apply`、`/repo-archive` 结束后
@@ -88,6 +82,15 @@ Skills 可以独立调用或通过 Commands 自动触发：
 
 **附加规则**：
 - 如摘要包含 Markdown 文档（proposal/design/tasks），先使用 `lark-md-to-doc` 转文档并拿到链接，再发送摘要
+
+### 6. 并行派发 → `bytecoding:dispatching-parallel-agents`
+
+**触发条件**：
+- 任务数 >= 2
+- 任务之间无共享文件/顺序依赖
+- 可拆分为独立子域并行执行
+
+**输出**：并行子代理结果 + 两阶段审查记录
 
 ---
 
@@ -202,7 +205,8 @@ Bytecoding 核心技能使用 `bytecoding:` 命名空间；外部工具类技能
 ```
 bytecoding:brainstorming
 bytecoding:writing-plans
-bytecoding:systematic-debugging
+bytecoding:test-driven-development
+bytecoding:dispatching-parallel-agents
 ...
 
 lark-md-to-doc
@@ -215,7 +219,7 @@ lark-send-msg
 
 当多个技能适用时，按以下优先级：
 
-1. **强制技能**（如 `systematic-debugging`）- 最高优先级
+1. **强制技能**（由命令触发的技能链）- 最高优先级
 2. **用户明确指定的技能**
 3. **上下文最相关的技能**
 4. **通用技能**

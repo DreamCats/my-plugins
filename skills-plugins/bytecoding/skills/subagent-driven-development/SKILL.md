@@ -68,6 +68,10 @@ echo "Worktree root: $WORKTREE_ROOT"
 
 **目标**：使用 Task 工具派发子代理。
 
+**若已使用 `bytecoding:dispatching-parallel-agents` 并行派发**：
+- 本步骤视为已完成
+- 直接进入步骤 3 等待与审查
+
 ### 2.1 派发参数
 
 ```javascript

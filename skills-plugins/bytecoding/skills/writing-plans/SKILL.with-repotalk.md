@@ -1,11 +1,11 @@
 ---
 name: writing-plans
-description: Use when converting design documents into executable task lists. This skill enforces a mandatory workflow: analyze design → local reference search → generate fine-grained tasks (2-5 minutes each) with clear task documentation.
+description: Use when converting design documents into executable task lists. This skill enforces a mandatory workflow: analyze design → local reference search → Repotalk MCP reference search → generate fine-grained tasks (2-5 minutes each) with comprehensive reference documentation.
 ---
 
 # Writing Plans 技能
 
-通过强制工作流和本地参考搜索，将设计方案转化为可执行的任务列表。
+通过强制工作流和双源参考搜索，将设计方案转化为可执行的任务列表。
 
 ## 工作流程检查清单（强制执行）
 
@@ -15,9 +15,11 @@ description: Use when converting design documents into executable task lists. Th
 Writing Plans Progress:
 - [ ] 步骤 1: 分析设计文档 - 完全理解 design.md 内容
 - [ ] 步骤 2: 本地参考搜索 - 为每个任务找到本地参考实现
-- [ ] 步骤 3: 细粒度任务拆分 - 2-5 分钟/任务
-- [ ] 步骤 4: 生成任务列表 - 创建 tasks.md
-- [ ] 步骤 5: 验证完成 - 确认任务列表完整
+- [ ] 步骤 3: Repotalk MCP 搜索 - 查找字节内部参考实现
+- [ ] 步骤 4: 综合参考分析 - 结合本地和 Repotalk 参考
+- [ ] 步骤 5: 细粒度任务拆分 - 2-5 分钟/任务
+- [ ] 步骤 6: 生成任务列表 - 创建 tasks.md
+- [ ] 步骤 7: 验证完成 - 确认任务列表完整
 ```
 
 **重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
@@ -99,11 +101,118 @@ Grep: "it.*should.*"
 
 ---
 
-## 步骤 3: 细粒度任务拆分
+## 步骤 3: Repotalk MCP 搜索（必须优先执行）
+
+**目标**：查找字节内部参考实现。
+
+### 3.1 检查 Cookie 配置
+
+```bash
+# 检查 CAS Session Cookie 是否已配置
+cat ~/.bytecoding/config.json
+```
+
+如果 Cookie 未配置或过期，在输出中明确标注，但仍继续执行本地搜索。
+
+### 3.2 Repotalk MCP 搜索策略
+
+**搜索类似实现**：
+
+```javascript
+// 搜索令牌生成
+repotalk.search_nodes({
+  repo_names: ["org/repo"],
+  question: "token generation 6 digit verification",
+});
+
+// 搜索哈希存储
+repotalk.search_nodes({
+  repo_names: ["org/repo"],
+  question: "bcrypt hash token storage",
+});
+
+// 搜索验证逻辑
+repotalk.search_nodes({
+  repo_names: ["org/repo"],
+  question: "verify token email validation",
+});
+
+// 搜索数据库设计
+repotalk.search_nodes({
+  repo_names: ["org/repo"],
+  question: "verification token table migration",
+});
+```
+
+**搜索技巧**：
+
+- 使用具体的技术术语（TypeScript, TypeORM, bcrypt）
+- 搜索"最佳实践"或"设计模式"
+- 查找字节内部类似项目
+- 优先搜索同一语言/框架的实现
+
+**完成标志**：
+
+- 找到 1-2 个参考实现
+- 记录参考项目路径
+- 识别可复用的代码片段
+- 注意安全和性能考虑
+
+**如果 Repotalk 无结果**：
+
+1. 检查 `repo_names` 格式是否正确（必须是 `org/repo`）
+2. 检查 Cookie 是否过期
+3. 尝试不同的搜索关键词
+4. 在输出中明确标注"Repotalk 搜索无结果"
+
+---
+
+## 步骤 4: 综合参考分析
+
+**目标**：结合本地和 Repotalk 搜索结果，为每个任务提供完整参考。
+
+**输出格式**：参考对照表
+
+```markdown
+## 参考分析结果
+
+### 本地参考
+
+| 任务类型 | 本地参考                           | 参考说明         |
+| -------- | ---------------------------------- | ---------------- |
+| 模型创建 | `src/models/User.ts`               | TypeORM 模型模式 |
+| 服务方法 | `src/services/EmailService.ts`     | 异步方法实现     |
+| 测试编写 | `src/services/UserService.test.ts` | Jest 测试模式    |
+
+### Repotalk 参考（字节内部）
+
+| 任务类型 | 项目路径                  | 参考说明              |
+| -------- | ------------------------- | --------------------- |
+| 令牌生成 | `project-a/auth/token.go` | 使用 crypto/rand 生成 |
+| 哈希存储 | `project-b/auth/hash.go`  | bcrypt cost=10        |
+| 验证逻辑 | `project-c/api/verify.go` | 包含过期检查          |
+
+### 综合建议
+
+1. **模型设计**：采用本地 TypeORM 模式（参考 User.ts）
+2. **令牌生成**：采纳 Repotalk 的 crypto/rand 方案
+3. **测试策略**：复用本地 Jest 模式，增加边界测试
+```
+
+**分析要点**：
+
+- 对比本地和 Repotalk 参考
+- 识别最佳实践
+- 评估每种方案的适用性
+- 推荐最合适的参考（带理由）
+
+---
+
+## 步骤 5: 细粒度任务拆分
 
 **目标**：将设计拆分为 2-5 分钟可完成的任务。
 
-### 3.1 粒度原则
+### 5.1 粒度原则
 
 **✅ 正确的粒度（2-5 分钟）**
 
@@ -131,7 +240,7 @@ Grep: "it.*should.*"
 - [ ] 编写左括号
 ```
 
-### 3.2 拆分技巧
+### 5.2 拆分技巧
 
 **按方法拆分**：每个公共方法是一个任务
 
@@ -168,13 +277,13 @@ Grep: "it.*should.*"
 
 ---
 
-## 步骤 4: 生成任务列表（强制要求）
+## 步骤 6: 生成任务列表（强制要求）
 
 **目标**：生成完整的任务列表文档。
 
 **必须生成 tasks.md 文件**
 
-### 4.1 任务模板
+### 6.1 任务模板
 
 **每个任务必须包含**：
 
@@ -188,6 +297,7 @@ Grep: "it.*should.*"
 **参考**：
 
 - 本地：`[本地参考路径]` - [参考说明]
+- Repotalk：`[Repotalk 路径]` - [参考说明]
 
 **输入**：[任务输入/依赖]
 **输出**：[任务产出]
@@ -208,7 +318,7 @@ Grep: "it.*should.*"
 
 ````
 
-### 4.2 tasks.md 结构
+### 6.2 tasks.md 结构
 
 ```markdown
 # 任务列表：[变更名称]
@@ -244,6 +354,7 @@ Grep: "it.*should.*"
 
 **参考**：
 - 本地：`src/models/User.ts` - TypeORM 模型模式
+- Repotalk：`project-a/models/verification.go` - 验证令牌模型
 
 **输入**：设计文档中的数据模型定义
 **输出**：完整的 TypeORM 模型类
@@ -312,12 +423,13 @@ export class EmailVerificationToken {
 
 **重要**：
 - 每个任务必须包含本地参考
+- 每个任务必须包含 Repotalk 参考（如果可用）
 - 任务粒度必须控制在 2-5 分钟
 - 必须明确标注依赖关系
 
 ---
 
-## 步骤 5: 验证完成
+## 步骤 7: 验证完成
 
 **完成标志检查清单**：
 
@@ -325,8 +437,11 @@ export class EmailVerificationToken {
 
 ✓ 完整分析 design.md
 ✓ 完成本地参考搜索（为每个任务找到参考）
+✓ 完成 Repotalk MCP 搜索（找到 1-2 个参考实现）
+✓ 产出综合参考分析表
 ✓ 任务粒度合适（2-5 分钟/任务）
 ✓ 每个任务包含本地参考
+✓ 每个任务包含 Repotalk 参考（如果可用）
 ✓ 依赖关系清晰
 ✓ 验证标准明确
 ✓ 生成 tasks.md
@@ -340,6 +455,9 @@ export class EmailVerificationToken {
 ## 禁止行为
 
 - ❌ **跳过本地参考搜索** - 必须为每个任务找到本地参考
+- ❌ **跳过 Repotalk MCP 搜索** - 必须查找字节内部参考
+- ❌ **repo_names 格式错误** - 必须使用 `org/repo` 格式
+- ❌ **跳过综合分析** - 必须结合本地和 Repotalk 参考
 - ❌ **任务粒度过大** - 超过 5 分钟的任务需要拆分
 - ❌ **任务粒度过小** - 小于 2 分钟的任务需要合并
 - ❌ **不包含验证标准** - 每个任务必须有明确的验证条件
@@ -350,7 +468,44 @@ export class EmailVerificationToken {
 
 ## MCP 工具使用
 
-**本技能使用以下本地工具**：
+**本技能强制按顺序使用以下 MCP 工具**：
+
+### 优先执行：Repotalk MCP
+
+```javascript
+// search_nodes - 语义化代码搜索
+repotalk.search_nodes({
+  repo_names: ["org/repo"],
+  question: "搜索问题"
+})
+
+// get_repos_detail - 获取仓库详情
+repotalk.get_repos_detail({
+  repo_names: ["org/repo"]
+})
+
+// get_packages_detail - 获取包详情
+repotalk.get_packages_detail({
+  repo_name: "org/repo",
+  package_ids: ["package_id"]
+})
+
+// get_nodes_detail - 获取节点详情
+repotalk.get_nodes_detail({
+  repo_name: "org/repo",
+  node_ids: ["node_id"]
+})
+
+// get_files_detail - 获取文件详情
+repotalk.get_files_detail({
+  repo_name: "org/repo",
+  file_path: "path/to/file"
+})
+````
+
+**重要**：使用正确的 `repo_names` 格式（`org/repo`）
+
+### 后续执行：本地工具
 
 - `Read` - 读取 design.md
 - `Glob` - 查找参考文件
@@ -364,9 +519,10 @@ export class EmailVerificationToken {
 
 1. **工作流程检查清单**（所有项目已勾选）
 2. **设计文档分析摘要**
-3. **参考搜索结果摘要**（本地）
-4. **任务拆分摘要**
-5. **生成的文档路径**：`tasks.md`
+3. **参考搜索结果摘要**（本地 + Repotalk）
+4. **综合参考分析表**
+5. **任务拆分摘要**
+6. **生成的文档路径**：`tasks.md`
 
 **示例输出**：
 
@@ -375,7 +531,7 @@ export class EmailVerificationToken {
 
 ### 工作流程
 
-✓ 所有 5 个步骤已完成
+✓ 所有 7 个步骤已完成
 
 ### 设计文档分析
 
@@ -386,6 +542,7 @@ export class EmailVerificationToken {
 ### 参考搜索结果
 
 - 本地：找到 5 个参考文件（模型、服务、测试）
+- Repotalk：找到 2 个参考实现（令牌生成、哈希存储）
 
 ### 任务拆分
 
@@ -404,6 +561,7 @@ export class EmailVerificationToken {
 
 ## 参考资源
 
+- [Repotalk MCP 工具使用说明](../../scripts/session-start-hook.js) - 在 SessionStart Hook 的 additionalContext 中
 - [Bytecoding 技术设计文档](../../BYTECODING_TECHNICAL_DESIGN.md) - 完整架构说明
 - [brainstorming 技能](../brainstorming/SKILL.md) - 前置技能，生成 design.md
 
@@ -412,8 +570,9 @@ export class EmailVerificationToken {
 ## 技能元数据
 
 - **技能类型**：规划类技能
-- **强制流程**：是（5 步工作流）
+- **强制流程**：是（7 步工作流）
 - **必需输出**：tasks.md
+- **工具限制**：Repotalk MCP 必须优先于本地工具
 - **用户交互**：必须在步骤 1 确认理解设计文档
 - **完成标志**：所有检查清单项目已完成
-- **核心铁律**：每个任务必须有本地参考
+- **核心铁律**：每个任务必须有本地和 Repotalk 参考

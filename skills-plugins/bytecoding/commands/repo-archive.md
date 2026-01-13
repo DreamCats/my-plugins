@@ -53,26 +53,12 @@ bash "$SCRIPT_DIR/repo-archive.sh" --change-id "$CHANGE_ID" $FORCE_FLAG
 **接收人**：使用 SessionStart Hook 展示的 Git 用户邮箱（`user.email`）。  
 **如果未配置邮箱**：提示用户补充邮箱后再发送。
 
-**如摘要包含 Markdown 文档**（例如引用归档后的 `proposal.md`/`design.md`/`tasks.md`），先用 **lark-md-to-doc** 转换并拿到文档链接，再发送摘要。
-
-**转换方式**：
-
-1. 通过 `Skill(lark-md-to-doc)` 确认调用方式。
-2. 使用脚本渲染（示例）：
-
-```bash
-python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
-  --md "$PROJECT_ROOT/.bytecoding/changes/archive/$CHANGE_ID/proposal.md" \
-  --title "[repo-archive] $CHANGE_ID proposal"
-```
-
 **摘要内容建议**：
 
 - 变更 ID
 - 归档时间
 - 归档位置
 - 是否清理 Worktree/分支
-- 文档链接（如有）
 
 **执行方式**：
 

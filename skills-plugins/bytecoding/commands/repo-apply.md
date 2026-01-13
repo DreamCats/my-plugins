@@ -1,5 +1,5 @@
 ---
-description: 执行落地（触发 git-worktrees + subagent-dev + 编译验证驱动）
+description: 执行落地（触发 git-worktrees + dispatching-parallel-agents + subagent-dev + 编译验证驱动）
 argument-hint: [change-id]
 allowed-tools: Bash(bash*), Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash(pnpm*), Bash(bun*), Bash(go*), Bash(lark-cli*), Bash(python3*), Read, Write, Edit, Glob, Grep, Task, TaskOutput
 ---
@@ -16,11 +16,12 @@ allowed-tools: Bash(bash*), Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bas
 Repo-Apply Progress:
 - [ ] 步骤 1: 运行脚本验证与创建 Worktree
 - [ ] 步骤 2: 读取任务列表
-- [ ] 步骤 3: subagent-driven-development - 执行任务
-- [ ] 步骤 4: test-driven-development - 编译验证
-- [ ] 步骤 5: 标记 PlanSpec 状态为 completed
-- [ ] 步骤 6: 提交变更
-- [ ] 步骤 7: lark-send-msg - 发送飞书摘要
+- [ ] 步骤 3: dispatching-parallel-agents - 可并行任务派发
+- [ ] 步骤 4: subagent-driven-development - 执行任务
+- [ ] 步骤 5: test-driven-development - 编译验证
+- [ ] 步骤 6: 标记 PlanSpec 状态为 completed
+- [ ] 步骤 7: 提交变更
+- [ ] 步骤 8: lark-send-msg - 发送飞书摘要
 ```
 
 **重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
@@ -70,9 +71,49 @@ cat "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 - 依赖关系
 - 预计时间
 
-## 步骤 3: 使用 subagent-driven-development 技能
+## 步骤 3: 使用 dispatching-parallel-agents 技能（可选）
+
+当任务**彼此独立**且可并行时，先使用 **bytecoding:dispatching-parallel-agents** 并行派发子代理。
+
+**并行判断标准**：
+- 任务之间无顺序依赖
+- 不修改同一文件/同一函数
+- 不共享全局状态
+
+**执行流程**：
+1. 按文件/子系统分组任务
+2. 为每组编写 Task Prompt（包含 worktree 路径）
+3. 并行派发 Task
+
+**获取 Worktree 路径**：
+
+```bash
+WORKTREE_ROOT="$(cat "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/worktree.path")"
+echo "Worktree: $WORKTREE_ROOT"
+```
+
+**示例**：
+
+```javascript
+Task({
+  subagent_type: "general-purpose",
+  description: "任务 A",
+  prompt: "工作目录: $WORKTREE_ROOT ...",
+});
+
+Task({
+  subagent_type: "general-purpose",
+  description: "任务 B",
+  prompt: "工作目录: $WORKTREE_ROOT ...",
+});
+```
+
+如不满足独立性要求，**跳过本步骤**，进入步骤 4。
+
+## 步骤 4: 使用 subagent-driven-development 技能
 
 在 Worktree 中，使用 **bytecoding:subagent-driven-development** 技能执行任务列表。
+若步骤 3 已并行派发，本步骤以**等待 + 两阶段审查**为主，不重复派发。
 
 **切换到 Worktree 并设置工作根目录**：
 
@@ -147,7 +188,7 @@ Read: "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 **审查结果**：✅ **通过**
 ```
 
-## 步骤 4: 使用 test-driven-development 技能（简化版）
+## 步骤 5: 使用 test-driven-development 技能（简化版）
 
 对于需要编写代码的任务，使用 **bytecoding:test-driven-development** 技能执行**编译验证驱动**流程。
 
@@ -165,7 +206,7 @@ Read: "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 - ❌ 禁止未编译就标记完成
 - ❌ 禁止执行 `go build ./...`（除非用户明确要求）
 
-## 步骤 5: 标记 PlanSpec 状态为 completed
+## 步骤 6: 标记 PlanSpec 状态为 completed
 
 完成任务并通过验证后，更新 PlanSpec 状态：
 
@@ -185,7 +226,7 @@ fi
 bash "$SCRIPT_DIR/repo-apply.sh" --change-id "$CHANGE_ID" --mark-completed
 ```
 
-## 步骤 6: 提交变更
+## 步骤 7: 提交变更
 
 验证通过后，提交变更：
 
@@ -210,25 +251,12 @@ git push -u origin feature/$CHANGE_ID
 - 如果 `git push` 输出中包含 merge request 创建链接（例如 `https://.../merge_requests/new?...`），需在最终摘要中展示该链接
 - 如果未输出链接，明确标注“未提供 MR 链接”
 
-## 步骤 7: 发送飞书摘要（使用 lark-send-msg）
+## 步骤 8: 发送飞书摘要（使用 lark-send-msg）
 
 在命令结束后，使用 **lark-send-msg** 技能**生成消息内容并执行发送**（通过 Skill 工具调用 + `lark-cli send-message`）。
 
 **接收人**：使用 SessionStart Hook 展示的 Git 用户邮箱（`user.email`）。  
 **如果未配置邮箱**：提示用户补充邮箱后再发送。
-
-**如摘要包含 Markdown 文档**（例如引用 `proposal.md`/`design.md`/`tasks.md`），先用 **lark-md-to-doc** 转换并拿到文档链接，再发送摘要。
-
-**转换方式**：
-
-1. 通过 `Skill(lark-md-to-doc)` 确认调用方式。
-2. 使用脚本渲染（示例）：
-
-```bash
-python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
-  --md "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md" \
-  --title "[repo-apply] $CHANGE_ID tasks"
-```
 
 **摘要内容建议**：
 
@@ -237,7 +265,6 @@ python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
 - 编译验证结果（命令 + 通过/失败）
 - 提交信息（commit）
 - 推送链接（MR 链接，如有）
-- 文档链接（如有）
 
 **执行方式**：
 

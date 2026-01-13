@@ -9,7 +9,7 @@ description: Use when discussing requirements, exploring implementation approach
 
 ## 工作流程检查清单（强制执行）
 
-**复制或者使用 "TodoWrite"以下检查清单并跟踪进度：**
+**复制或者使用 "TodoWrite" 以下检查清单并跟踪进度：**
 
 ```
 Brainstorming Progress:

@@ -273,6 +273,7 @@ function ensureDefaultConfig() {
   return false;
 }
 
+
 function getPluginRootDir() {
   // Claude Code sets CLAUDE_PLUGIN_ROOT to the plugin directory
   // If not set (e.g., when testing directly), resolve from scripts/ to plugin/
@@ -306,10 +307,10 @@ function getMcpConfigPath() {
 const CORE_SKILLS = [
   { name: 'brainstorming', description: '需求精化 + 多源代码分析（本地 + repotalk MCP）' },
   { name: 'writing-plans', description: '设计方案 → 可执行任务列表' },
-  { name: 'systematic-debugging', description: '四阶段系统化调试（含多源搜索）' },
   { name: 'test-driven-development', description: '编译验证驱动（不强制单测）' },
   { name: 'using-git-worktrees', description: '创建隔离的 Git 工作区' },
   { name: 'subagent-driven-development', description: '子代理驱动开发 + 两阶段评审' },
+  { name: 'dispatching-parallel-agents', description: '独立任务并行派发' },
   { name: 'lark-send-msg', namespace: '', description: '发送飞书消息（摘要通知）' },
   { name: 'lark-md-to-doc', namespace: '', description: 'Markdown 转飞书文档（生成链接）' },
 ];
@@ -340,8 +341,7 @@ function loadUsingBytecodingSkill() {
 1. **需求讨论** → 使用 \`bytecoding:brainstorming\`
 2. **生成方案** → 使用 \`/repo-plan\` 命令（自动触发 brainstorming + writing-plans）
 3. **执行变更** → 使用 \`/repo-apply\` 命令（自动触发相关技能链）
-4. **调试问题** → 使用 \`bytecoding:systematic-debugging\`
-5. **编写代码** → 使用 \`bytecoding:test-driven-development\`
+4. **编写代码** → 使用 \`bytecoding:test-driven-development\`
 
 ### Commands vs Skills
 

@@ -186,7 +186,7 @@ description: A skill for debugging.
 
 当以下条件满足时，本技能完成：
 
-- [x] 根因已确认
+- [x] 需求已明确
 - [x] 修复已实施
 - [x] 测试已通过
 - [x] 报告已生成
@@ -232,11 +232,11 @@ brainstorming → writing-plans
 验证：技能是否引导用户澄清需求？
 ```
 
-**场景 2：调试错误**
+**场景 2：隔离环境**
 ```
-用户："代码报错了"
-触发技能：systematic-debugging
-验证：技能是否收集错误信息？
+用户："我要在独立环境里做改动"
+触发技能：using-git-worktrees
+验证：技能是否指导创建 worktree？
 ```
 
 **场景 3：编译验证**
@@ -285,7 +285,6 @@ test-driven-development  # 编译验证驱动
 **名词结构**（特殊情况）：
 ```
 brainstorming            # 头脑风暴
-systematic-debugging     # 系统化调试
 ```
 
 ### 命名空间
@@ -294,7 +293,7 @@ systematic-debugging     # 系统化调试
 ```
 bytecoding:brainstorming
 bytecoding:writing-plans
-bytecoding:systematic-debugging
+bytecoding:test-driven-development
 ```
 
 ---
@@ -312,11 +311,12 @@ bytecoding:systematic-debugging
 
 **执行技能**：
 - `using-git-worktrees` - 环境隔离
+- `dispatching-parallel-agents` - 并行派发
 - `subagent-driven-development` - 子代理执行
 - `test-driven-development` - 编译验证驱动
 
 **质量保证技能**：
-- `systematic-debugging` - 调试
+- `test-driven-development` - 编译验证驱动
 
 **元技能**：
 - `writing-skills` - 编写技能
@@ -325,11 +325,11 @@ bytecoding:systematic-debugging
 
 **核心技能**（强制 MCP 编排）：
 - `brainstorming`
-- `systematic-debugging`
+- `writing-plans`
 
 **重要技能**：
-- `writing-plans`
 - `subagent-driven-development`
+- `dispatching-parallel-agents`
 - `test-driven-development`
 
 **辅助技能**：
@@ -575,18 +575,18 @@ description: Use when you need help.
 
 **1. 具体明确**：
 ```yaml
-name: systematic-debugging
-description: Use when debugging code issues, errors, or unexpected behavior.
+name: writing-plans
+description: Use when converting design docs into task lists.
 ```
 
 **2. 流程详细**：
 ```markdown
 ## 工作流程
 
-### 阶段 1: 根因调查
-- 收集错误信息
-- 本地搜索分析
-- Repotalk MCP 搜索
+### 阶段 1: 分析设计
+- 提取核心需求
+- 明确输入输出
+- 识别依赖关系
 ```
 
 **3. 验证明确**：
@@ -594,8 +594,8 @@ description: Use when debugging code issues, errors, or unexpected behavior.
 ## 完成标志
 
 - [x] 根因已确认
-- [x] 修复已验证
-- [x] 报告已生成
+- [x] 任务已拆分
+- [x] 依赖已标注
 ```
 
 ---
@@ -604,7 +604,7 @@ description: Use when debugging code issues, errors, or unexpected behavior.
 
 **参考现有技能作为模板**：
 - `brainstorming` - MCP 编排示例
-- `systematic-debugging` - 四阶段流程示例
+- `writing-plans` - 任务拆分示例
 - `test-driven-development` - 铁律和禁止行为示例
 
 ---
