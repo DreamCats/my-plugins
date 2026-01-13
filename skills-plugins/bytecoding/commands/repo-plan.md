@@ -14,12 +14,17 @@ allowed-tools: Bash(bash*), Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/bytecoding}"
-if [ ! -x "$PLUGIN_ROOT/scripts/bytecoding/repo-plan.sh" ]; then
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"
+SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
+# Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
+if [ -x "$PLUGIN_ROOT/repo-plan.sh" ]; then
+  SCRIPT_DIR="$PLUGIN_ROOT"
+fi
+if [ ! -x "$SCRIPT_DIR/repo-plan.sh" ]; then
   echo "错误：找不到插件脚本，请确认插件路径"
   exit 1
 fi
-bash "$PLUGIN_ROOT/scripts/bytecoding/repo-plan.sh" --desc "$ARGUMENTS"
+bash "$SCRIPT_DIR/repo-plan.sh" --desc "$ARGUMENTS"
 ```
 
 **必须先执行完此脚本再进入下一步**。记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。若脚本失败，先排查报错原因，不要直接进入 brainstorming。
@@ -48,15 +53,19 @@ echo "工作目录: $PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID"
 **注意**：必须通过 **Skill 工具**调用（`/bytecoding:brainstorming` 或 `Skill(bytecoding:brainstorming)`），不要用子代理/agent 调用语法。
 
 **如果用户提供了变更描述**，使用：
+
 > 请使用 **bytecoding:brainstorming** 技能来讨论以下变更需求：
+>
 > ```
 > $ARGUMENTS
 > ```
 
 **如果用户没有提供描述**，询问：
+
 > 请描述你想要实现的变更需求，我将使用 **bytecoding:brainstorming** 技能帮助你进行需求精化和方案设计。
 
 **brainstorming 技能将引导你**：
+
 1. **理解需求** - 苏格拉底式提问澄清需求
 2. **多源搜索** - 本地搜索（Glob/Grep）+ Repotalk MCP 搜索
 3. **综合分析** - 结合搜索结果识别最佳实践
@@ -64,6 +73,7 @@ echo "工作目录: $PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID"
 5. **分节呈现** - 逐步确认，避免信息过载
 
 **产出文件**（保存到 `$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/`）：
+
 - `proposal.md` - 变更提案
 - `design.md` - 设计文档
 
@@ -76,12 +86,14 @@ echo "工作目录: $PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID"
 > 请使用 **bytecoding:writing-plans** 技能来分析设计文档并生成任务列表。
 
 **writing-plans 技能将引导你**：
+
 1. **分析设计文档** - 理解架构和组件
 2. **本地参考搜索** - 为每个任务找到本地参考
 3. **细粒度任务拆分** - 2-5 分钟/任务
 4. **生成任务列表** - 包含依赖关系和验证标准
 
 **产出文件**（保存到 `~/.bytecoding/changes/$CHANGE_ID/`）：
+
 - `tasks.md` - 可执行任务列表
 
 ## 步骤 4: 确认 PlanSpec
@@ -113,13 +125,16 @@ EOF
 **标题规范**：`[repo-plan] $CHANGE_ID <文档名>`（如 `proposal`/`design`/`tasks`）。
 
 **执行方式**：
+
 1. 通过 `Skill(lark-md-to-doc)` 确认调用方式。
 2. 使用脚本渲染（示例）：
+
 ```bash
 python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
   --md "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/proposal.md" \
   --title "[repo-plan] $CHANGE_ID proposal"
 ```
+
 分别渲染 `design.md` 和 `tasks.md`，记录输出中的 `doc_id`/链接，用于飞书摘要。
 
 ## 步骤 6: 发送飞书摘要（使用 lark-send-msg）
@@ -130,17 +145,21 @@ python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
 **如果未配置邮箱**：提示用户补充邮箱后再发送。
 
 **摘要内容建议**：
+
 - 变更 ID
 - 规划产出（proposal/design/tasks）
 - 文档链接（由 `lark-md-to-doc` 生成）
 - 下一步建议（`/repo-apply $CHANGE_ID`）
 
 **执行方式**：
+
 1. 通过 `Skill(lark-send-msg)` 选择 `msg_type` 并生成单行 `content` JSON。
 2. 执行发送（示例）：
+
 ```bash
 lark-cli send-message --receive-id-type email --msg-type text "$GIT_EMAIL" '{"text":"变更 ID: ...\n产出: proposal/design/tasks\n下一步: /repo-apply ..."}'
 ```
+
 如需富文本排版，请使用 `msg_type=post` 并按 `lark-send-msg` 的结构生成 JSON。
 
 ## 完成标志
