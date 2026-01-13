@@ -1,6 +1,6 @@
 ---
 name: test-driven-development
-description: Use when implementing code changes where unit tests are skipped. Enforce a lightweight implement -> build -> fix loop with compile evidence.
+description: Use when implementing code changes where unit tests are skipped. Enforce a lightweight implement -> targeted build -> fix loop with compile evidence.
 ---
 
 # Test-Driven Development（简化版：编译验证驱动）
@@ -17,7 +17,7 @@ description: Use when implementing code changes where unit tests are skipped. En
 Build Loop Progress:
 - [ ] 步骤 1: 明确变更范围与验收
 - [ ] 步骤 2: 最小实现改动
-- [ ] 步骤 3: 编译/构建验证
+- [ ] 步骤 3: 编译/构建验证（最小化优先）
 - [ ] 步骤 4: 修复编译错误并复验
 - [ ] 步骤 5: 记录验证结果
 ```
@@ -30,7 +30,7 @@ Build Loop Progress:
 
 **必须明确**：
 - 改动涉及的文件/模块
-- 编译目标（全量/子模块/指定入口）
+- 编译目标（优先子模块/指定入口，避免全量）
 - 验收标准（编译成功）
 
 如果范围不清晰，先回到 tasks.md 或设计说明补全。
@@ -43,16 +43,15 @@ Build Loop Progress:
 
 ---
 
-## 步骤 3: 编译/构建验证
+## 步骤 3: 编译/构建验证（最小化优先）
 
-**通用原则**：优先编译受影响的最小闭包；如果不确定范围，则全量编译。
+**通用原则**：优先编译受影响的最小闭包；只有当范围不确定或跨越多个顶层目录时，才考虑全量编译。
+
+**执行约束**：
+- 目标编译通过后，**不要**再无条件追加 `go build ./...`
+- 若确需全量编译，必须说明原因（例如：跨多个独立模块、依赖关系不清晰）
 
 ### Go 项目示例
-
-**全量编译**：
-```bash
-go build ./...
-```
 
 **仅编译入口**（如只改动服务启动代码）：
 ```bash
@@ -62,6 +61,17 @@ go build ./cmd/...
 **仅编译指定包**（如只改动某个模块）：
 ```bash
 go build ./path/to/pkg
+```
+
+**仅编译指定目录**（如只改动 handler 或 biz 子目录）：
+```bash
+go build ./handler/...
+go build ./biz/domain/operator/...
+```
+
+**仅当必要时的全量编译**：
+```bash
+go build ./...
 ```
 
 ### 其他语言项目
@@ -91,7 +101,7 @@ go build ./path/to/pkg
 ```markdown
 ## 编译验证
 
-- 命令：go build ./...
+- 命令：go build ./handler/...
 - 结果：✅ 通过
 ```
 
@@ -110,6 +120,7 @@ go build ./path/to/pkg
 - ❌ 跳过编译验证
 - ❌ 未编译就标记完成
 - ❌ 伪造或猜测编译结果
+- ❌ 目标编译通过后仍无必要执行全量编译
 
 ---
 

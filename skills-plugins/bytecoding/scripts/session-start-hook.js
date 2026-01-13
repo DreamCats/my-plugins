@@ -39,6 +39,69 @@ function getProjectBytecodingDir() {
   return path.join(process.cwd(), '.bytecoding');
 }
 
+function findGitRoot(startDir) {
+  let currentDir = startDir;
+
+  while (true) {
+    const gitPath = path.join(currentDir, '.git');
+    if (fs.existsSync(gitPath)) {
+      return currentDir;
+    }
+
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) {
+      return null;
+    }
+    currentDir = parentDir;
+  }
+}
+
+function ensureGitignoreHasBytecoding() {
+  const gitRoot = findGitRoot(process.cwd());
+  if (!gitRoot) {
+    return { status: 'no-git' };
+  }
+
+  const gitignorePath = path.join(gitRoot, '.gitignore');
+  const exists = fs.existsSync(gitignorePath);
+  let content = '';
+
+  if (exists) {
+    try {
+      content = fs.readFileSync(gitignorePath, 'utf-8');
+    } catch (error) {
+      return { status: 'read-failed', path: gitignorePath };
+    }
+  }
+
+  const lines = content.split(/\r?\n/);
+  const hasBytecoding = lines.some((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) {
+      return false;
+    }
+    return trimmed.includes('.bytecoding');
+  });
+
+  if (hasBytecoding) {
+    return { status: 'exists', path: gitignorePath };
+  }
+
+  let newContent = content;
+  if (newContent && !newContent.endsWith('\n')) {
+    newContent += '\n';
+  }
+  newContent += '.bytecoding\n';
+
+  try {
+    fs.writeFileSync(gitignorePath, newContent);
+  } catch (error) {
+    return { status: 'write-failed', path: gitignorePath };
+  }
+
+  return { status: exists ? 'added' : 'created', path: gitignorePath };
+}
+
 /**
  * Ensure Bytecoding directories exist
  * Creates them if they don't exist
@@ -450,6 +513,7 @@ function buildWelcomeMessage(skillsInfo) {
   // Ensure directories and config exist (auto-initialize)
   const dirsCreated = ensureBytecodingDirs();
   const configCreated = ensureDefaultConfig();
+  const gitignoreStatus = ensureGitignoreHasBytecoding();
 
   // Sync CAS_SESSION to .mcp.json
   const cookieSync = syncCasSessionToMcpConfig();
@@ -488,6 +552,9 @@ function buildWelcomeMessage(skillsInfo) {
   let initMessage = '';
   if (dirsCreated || configCreated) {
     initMessage = '\n✅ Bytecoding 目录结构已自动创建。';
+  }
+  if (gitignoreStatus.status === 'added' || gitignoreStatus.status === 'created') {
+    initMessage += '\n🧹 已更新 .gitignore（添加 .bytecoding，避免误提交）。';
   }
 
   // Build status section

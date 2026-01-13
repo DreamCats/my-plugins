@@ -195,6 +195,10 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 git push -u origin feature/$CHANGE_ID
 ```
 
+**推送链接处理**：
+- 如果 `git push` 输出中包含 merge request 创建链接（例如 `https://.../merge_requests/new?...`），需在最终摘要中展示该链接
+- 如果未输出链接，明确标注“未提供 MR 链接”
+
 ## 完成标志
 
 当以下条件满足时，本命令完成：
@@ -204,6 +208,7 @@ git push -u origin feature/$CHANGE_ID
 - [x] 所有任务已通过两阶段审查
 - [x] 编译验证已通过
 - [x] 变更已提交到 Git
+- [x] 推送链接已记录（如有）
 
 ## 下一步
 
