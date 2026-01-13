@@ -35,8 +35,9 @@ Skills 可以独立调用或通过 Commands 自动触发：
 | `bytecoding:writing-plans` | 设计文档转任务列表 | 分析设计 → 细粒度拆分（2-5分钟/任务）→ 任务模板 |
 | `bytecoding:systematic-debugging` | 调试代码问题 | 根因调查 → 模式分析 → 假设验证 → 根因修复 |
 | `bytecoding:test-driven-development` | 编写代码 | 编译验证驱动（不强制单测） |
-| `bytecoding:using-git-worktrees` | 需要隔离的工作环境 | 创建工作树 → 验证环境 |
+| `bytecoding:using-git-worktrees` | 需要隔离的工作环境 | 创建工作树 → 按需环境准备 |
 | `bytecoding:subagent-driven-development` | 执行复杂任务 | 派发子代理 → 两阶段评审 |
+| `lark-send-msg` | 发送飞书摘要/通知 | 构造消息 → 调用 lark-cli 发送 |
 
 ---
 
@@ -77,6 +78,12 @@ Skills 可以独立调用或通过 Commands 自动触发：
 - 实现新功能
 - 修复 bug
 - 重构代码或结构调整
+
+### 6. 发送摘要 → `lark-send-msg`
+
+**触发条件**：
+- `/repo-plan`、`/repo-apply`、`/repo-archive` 结束后
+- 需要发送飞书摘要/通知
 
 ---
 
@@ -186,13 +193,15 @@ repotalk.search("user registration flow")
 
 ## 命名空间
 
-所有技能使用 `bytecoding:` 命名空间：
+Bytecoding 核心技能使用 `bytecoding:` 命名空间；外部工具类技能按其自身命名：
 
 ```
 bytecoding:brainstorming
 bytecoding:writing-plans
 bytecoding:systematic-debugging
 ...
+
+lark-send-msg
 ```
 
 ---

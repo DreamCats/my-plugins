@@ -1,7 +1,7 @@
 ---
 description: 生成方案与 PlanSpec（触发 brainstorming + writing-plans 技能）
 argument-hint: [变更描述]
-allowed-tools: Bash(mkdir*), Bash(git*), Bash(pwd*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Read, Write, Edit, Glob, Grep
 ---
 
 # /repo-plan 命令
@@ -63,10 +63,9 @@ echo "工作目录: $PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID"
 
 **writing-plans 技能将引导你**：
 1. **分析设计文档** - 理解架构和组件
-2. **细粒度任务拆分** - 2-5 分钟/任务
-3. **本地参考搜索** - 为每个任务找到本地参考
-4. **Repotalk 参考搜索** - 为每个任务找到内部参考
-5. **生成任务列表** - 包含依赖关系和验证标准
+2. **本地参考搜索** - 为每个任务找到本地参考
+3. **细粒度任务拆分** - 2-5 分钟/任务
+4. **生成任务列表** - 包含依赖关系和验证标准
 
 **产出文件**（保存到 `~/.bytecoding/changes/$CHANGE_ID/`）：
 - `tasks.md` - 可执行任务列表
@@ -93,6 +92,18 @@ spec_deltas: []
 EOF
 ```
 
+## 步骤 5: 发送飞书摘要（使用 lark-send-msg）
+
+在命令结束后，使用 **lark-send-msg** 技能发送摘要消息（通过 Skill 工具调用）。
+
+**接收人**：使用 SessionStart Hook 展示的 Git 用户邮箱（`user.email`）。  
+**如果未配置邮箱**：提示用户补充邮箱后再发送。
+
+**摘要内容建议**：
+- 变更 ID
+- 规划产出（proposal/design/tasks）
+- 下一步建议（`/repo-apply $CHANGE_ID`）
+
 ## 完成标志
 
 当以下条件满足时，本命令完成：
@@ -101,6 +112,7 @@ EOF
 - [x] brainstorming 技能已完成，产出 `proposal.md` 和 `design.md`
 - [x] writing-plans 技能已完成，产出 `tasks.md`
 - [x] PlanSpec 文件已创建
+- [x] 飞书摘要已发送（如 git 邮箱可用）
 
 ## 下一步
 

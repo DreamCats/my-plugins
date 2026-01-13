@@ -1,7 +1,7 @@
 ---
 description: 归档已完成的变更
 argument-hint: [change-id]
-allowed-tools: Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Read, Glob, Grep
+allowed-tools: Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Bash(lark-cli*), Read, Glob, Grep
 ---
 
 # /repo-archive 命令
@@ -139,6 +139,19 @@ ls -1 "$PROJECT_ROOT/.bytecoding/changes/archive/$CHANGE_ID/"
 echo "=========================================="
 ```
 
+## 步骤 7: 发送飞书摘要（使用 lark-send-msg）
+
+在命令结束后，使用 **lark-send-msg** 技能发送归档摘要（通过 Skill 工具调用）。
+
+**接收人**：使用 SessionStart Hook 展示的 Git 用户邮箱（`user.email`）。  
+**如果未配置邮箱**：提示用户补充邮箱后再发送。
+
+**摘要内容建议**：
+- 变更 ID
+- 归档时间
+- 归档位置
+- 是否清理 Worktree/分支
+
 ## 完成标志
 
 当以下条件满足时，本命令完成：
@@ -147,6 +160,7 @@ echo "=========================================="
 - [x] PlanSpec 状态已更新为 archived
 - [x] Worktree 已清理（如果用户选择）
 - [x] 归档摘要已显示
+- [x] 飞书摘要已发送（如 git 邮箱可用）
 
 ## 归档目录结构
 

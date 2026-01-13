@@ -14,6 +14,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { execFileSync } = require('child_process');
 
 // ============================================================================
 // Path Utilities
@@ -37,6 +38,50 @@ function getUserConfigPath() {
 
 function getProjectBytecodingDir() {
   return path.join(process.cwd(), '.bytecoding');
+}
+
+function readGitConfig(args, cwd) {
+  try {
+    const output = execFileSync('git', ['config', ...args], {
+      cwd,
+      stdio: ['ignore', 'pipe', 'ignore']
+    }).toString().trim();
+    return output || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function getGitIdentity() {
+  const gitRoot = findGitRoot(process.cwd());
+  if (!gitRoot) {
+    return { status: 'no-git' };
+  }
+
+  const localEmail = readGitConfig(['user.email'], gitRoot);
+  const localName = readGitConfig(['user.name'], gitRoot);
+  if (localEmail || localName) {
+    return { status: 'local', name: localName, email: localEmail };
+  }
+
+  const globalEmail = readGitConfig(['--global', 'user.email'], gitRoot);
+  const globalName = readGitConfig(['--global', 'user.name'], gitRoot);
+  if (globalEmail || globalName) {
+    return { status: 'global', name: globalName, email: globalEmail };
+  }
+
+  return { status: 'missing' };
+}
+
+function formatGitIdentity(identity) {
+  const parts = [];
+  if (identity.name) {
+    parts.push(identity.name);
+  }
+  if (identity.email) {
+    parts.push(`<${identity.email}>`);
+  }
+  return parts.length ? parts.join(' ') : '未配置';
 }
 
 function findGitRoot(startDir) {
@@ -265,6 +310,7 @@ const CORE_SKILLS = [
   { name: 'test-driven-development', description: '编译验证驱动（不强制单测）' },
   { name: 'using-git-worktrees', description: '创建隔离的 Git 工作区' },
   { name: 'subagent-driven-development', description: '子代理驱动开发 + 两阶段评审' },
+  { name: 'lark-send-msg', namespace: '', description: '发送飞书消息（摘要通知）' },
 ];
 
 /**
@@ -478,7 +524,11 @@ function buildSkillsDisplay(skillsInfo) {
   }
 
   const skillsList = skillsInfo.core
-    .map(s => `  - \`bytecoding:${s.name}\` - ${s.description}`)
+    .map((s) => {
+      const namespace = s.namespace === undefined ? 'bytecoding' : s.namespace;
+      const displayName = namespace ? `${namespace}:${s.name}` : s.name;
+      return `  - \`${displayName}\` - ${s.description}`;
+    })
     .join('\n');
 
   return `
@@ -517,6 +567,7 @@ function buildWelcomeMessage(skillsInfo) {
 
   // Sync CAS_SESSION to .mcp.json
   const cookieSync = syncCasSessionToMcpConfig();
+  const gitIdentity = getGitIdentity();
 
   // Check configuration
   const configPath = getUserConfigPath();
@@ -543,6 +594,13 @@ function buildWelcomeMessage(skillsInfo) {
         statusInfo += `\n   💡 提示: 配置 Cookie 以启用字节内部代码库搜索`;
         statusInfo += `\n   📝 配置方法: 编辑 \`~/.bytecoding/config.json\``;
         statusInfo += `\n   🔗 获取 Cookie: 登录 https://cloud.bytedance.net`;
+      }
+
+      if (gitIdentity.status === 'local' || gitIdentity.status === 'global') {
+        const scopeLabel = gitIdentity.status === 'local' ? 'local' : 'global';
+        statusInfo += `\n👤 **Git 用户**: ${formatGitIdentity(gitIdentity)} (${scopeLabel})`;
+      } else if (gitIdentity.status === 'missing') {
+        statusInfo += `\n👤 **Git 用户**: ❌ 未配置`;
       }
     } catch (e) {
       // Ignore config parse errors

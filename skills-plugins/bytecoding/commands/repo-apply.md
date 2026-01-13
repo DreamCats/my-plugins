@@ -1,7 +1,7 @@
 ---
 description: 执行落地（触发 git-worktrees + subagent-dev + 编译验证驱动）
 argument-hint: [change-id]
-allowed-tools: Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash(pnpm*), Bash(bun*), Bash(go*), Read, Write, Edit, Glob, Grep, Task, TaskOutput
+allowed-tools: Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash(pnpm*), Bash(bun*), Bash(go*), Bash(lark-cli*), Read, Write, Edit, Glob, Grep, Task, TaskOutput
 ---
 
 # /repo-apply 命令
@@ -200,6 +200,20 @@ git push -u origin feature/$CHANGE_ID
 - 如果 `git push` 输出中包含 merge request 创建链接（例如 `https://.../merge_requests/new?...`），需在最终摘要中展示该链接
 - 如果未输出链接，明确标注“未提供 MR 链接”
 
+## 步骤 7: 发送飞书摘要（使用 lark-send-msg）
+
+在命令结束后，使用 **lark-send-msg** 技能发送摘要消息（通过 Skill 工具调用）。
+
+**接收人**：使用 SessionStart Hook 展示的 Git 用户邮箱（`user.email`）。  
+**如果未配置邮箱**：提示用户补充邮箱后再发送。
+
+**摘要内容建议**：
+- 变更 ID / 任务目标
+- 关键变更文件
+- 编译验证结果（命令 + 通过/失败）
+- 提交信息（commit）
+- 推送链接（MR 链接，如有）
+
 ## 完成标志
 
 当以下条件满足时，本命令完成：
@@ -210,6 +224,7 @@ git push -u origin feature/$CHANGE_ID
 - [x] 编译验证已通过
 - [x] 变更已提交到 Git
 - [x] 推送链接已记录（如有）
+- [x] 飞书摘要已发送（如 git 邮箱可用）
 
 ## 下一步
 
