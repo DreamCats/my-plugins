@@ -94,7 +94,7 @@ EOF
 
 ## 步骤 5: 发送飞书摘要（使用 lark-send-msg）
 
-在命令结束后，使用 **lark-send-msg** 技能发送摘要消息（通过 Skill 工具调用）。
+在命令结束后，使用 **lark-send-msg** 技能**生成消息内容并执行发送**（通过 Skill 工具调用 + `lark-cli send-message`）。
 
 **接收人**：使用 SessionStart Hook 展示的 Git 用户邮箱（`user.email`）。  
 **如果未配置邮箱**：提示用户补充邮箱后再发送。
@@ -104,6 +104,14 @@ EOF
 - 规划产出（proposal/design/tasks）
 - 下一步建议（`/repo-apply $CHANGE_ID`）
 
+**执行方式**：
+1. 通过 `Skill(lark-send-msg)` 选择 `msg_type` 并生成单行 `content` JSON。
+2. 执行发送（示例）：
+```bash
+lark-cli send-message --receive-id-type email --msg-type text "$GIT_EMAIL" '{"text":"变更 ID: ...\n产出: proposal/design/tasks\n下一步: /repo-apply ..."}'
+```
+如需富文本排版，请使用 `msg_type=post` 并按 `lark-send-msg` 的结构生成 JSON。
+
 ## 完成标志
 
 当以下条件满足时，本命令完成：
@@ -112,7 +120,7 @@ EOF
 - [x] brainstorming 技能已完成，产出 `proposal.md` 和 `design.md`
 - [x] writing-plans 技能已完成，产出 `tasks.md`
 - [x] PlanSpec 文件已创建
-- [x] 飞书摘要已发送（如 git 邮箱可用）
+- [x] 已执行 `lark-cli send-message` 发送飞书摘要（如 git 邮箱可用）
 
 ## 下一步
 

@@ -202,7 +202,7 @@ git push -u origin feature/$CHANGE_ID
 
 ## 步骤 7: 发送飞书摘要（使用 lark-send-msg）
 
-在命令结束后，使用 **lark-send-msg** 技能发送摘要消息（通过 Skill 工具调用）。
+在命令结束后，使用 **lark-send-msg** 技能**生成消息内容并执行发送**（通过 Skill 工具调用 + `lark-cli send-message`）。
 
 **接收人**：使用 SessionStart Hook 展示的 Git 用户邮箱（`user.email`）。  
 **如果未配置邮箱**：提示用户补充邮箱后再发送。
@@ -214,6 +214,14 @@ git push -u origin feature/$CHANGE_ID
 - 提交信息（commit）
 - 推送链接（MR 链接，如有）
 
+**执行方式**：
+1. 通过 `Skill(lark-send-msg)` 选择 `msg_type` 并生成单行 `content` JSON。
+2. 执行发送（示例）：
+```bash
+lark-cli send-message --receive-id-type email --msg-type text "$GIT_EMAIL" '{"text":"变更 ID: ...\n关键文件: ...\n编译: go build ./handler/... 通过\n提交: <commit>\nMR: <link>"}'
+```
+如需富文本排版，请使用 `msg_type=post` 并按 `lark-send-msg` 的结构生成 JSON。
+
 ## 完成标志
 
 当以下条件满足时，本命令完成：
@@ -224,7 +232,7 @@ git push -u origin feature/$CHANGE_ID
 - [x] 编译验证已通过
 - [x] 变更已提交到 Git
 - [x] 推送链接已记录（如有）
-- [x] 飞书摘要已发送（如 git 邮箱可用）
+- [x] 已执行 `lark-cli send-message` 发送飞书摘要（如 git 邮箱可用）
 
 ## 下一步
 
