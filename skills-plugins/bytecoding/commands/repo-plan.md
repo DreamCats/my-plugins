@@ -31,6 +31,8 @@ echo "工作目录: $PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID"
 
 现在使用 **bytecoding:brainstorming** 技能开始需求精化和方案设计。
 
+**注意**：必须通过 **Skill 工具**调用（`/bytecoding:brainstorming` 或 `Skill(bytecoding:brainstorming)`），不要用子代理/agent 调用语法。
+
 **如果用户提供了变更描述**，使用：
 > 请使用 **bytecoding:brainstorming** 技能来讨论以下变更需求：
 > ```
@@ -54,6 +56,8 @@ echo "工作目录: $PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID"
 ## 步骤 3: 使用 writing-plans 技能
 
 在完成 `design.md` 后，使用 **bytecoding:writing-plans** 技能将设计文档转化为可执行任务列表。
+
+**注意**：必须通过 **Skill 工具**调用（`/bytecoding:writing-plans` 或 `Skill(bytecoding:writing-plans)`），不要用子代理/agent 调用语法。
 
 > 请使用 **bytecoding:writing-plans** 技能来分析设计文档并生成任务列表。
 
