@@ -174,6 +174,7 @@ Read: "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 **铁律**：
 - ❌ 禁止跳过编译验证
 - ❌ 禁止未编译就标记完成
+- ❌ 禁止执行 `go build ./...`（除非用户明确要求）
 
 ## 步骤 6: 提交变更
 

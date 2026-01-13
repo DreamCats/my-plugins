@@ -9,7 +9,7 @@ description: Use when executing complex tasks that benefit from clean context an
 
 ## 工作流程检查清单（强制执行）
 
-**复制以下检查清单并跟踪进度：**
+**复制或者使用 "TodoWrite" 以下检查清单并跟踪进度：**
 
 ```
 Subagent Progress:
@@ -40,6 +40,7 @@ Read: .bytecoding/changes/$CHANGE_ID/tasks.md
 ### 1.2 理解任务上下文
 
 **必须理解以下内容**：
+
 - 设计文档要求
 - 参考实现位置
 - 技术栈和框架
@@ -56,6 +57,7 @@ echo "Worktree root: $WORKTREE_ROOT"
 ```
 
 **规则**：
+
 - 后续所有文件路径必须基于 `WORKTREE_ROOT`
 - 派发给子代理的路径必须明确为 worktree 绝对路径
 - 禁止使用主仓库绝对路径
@@ -70,8 +72,8 @@ echo "Worktree root: $WORKTREE_ROOT"
 
 ```javascript
 Task({
-  subagent_type: "general-purpose",  // 子代理类型
-  description: "实现邮箱验证令牌生成",  // 短描述（3-5词）
+  subagent_type: "general-purpose", // 子代理类型
+  description: "实现邮箱验证令牌生成", // 短描述（3-5词）
   prompt: `请实现以下任务：
 
 ## 任务：实现 EmailVerificationToken.generateToken()
@@ -95,23 +97,25 @@ Task({
 
 请直接实现代码，不要询问确认。禁止修改 $WORKTREE_ROOT 之外的文件。
 `,
-  model: "sonnet"  // 可选：指定模型
-})
+  model: "sonnet", // 可选：指定模型
+});
 ```
 
 **派发规则**：
+
 - 若任务文件路径为相对路径，必须先拼接 `WORKTREE_ROOT`
 - Task prompt 必须包含 `工作目录` 和 worktree 绝对路径
 - 发现路径不在 `WORKTREE_ROOT` 下，立即纠正并重派
 
 ### 2.2 子代理类型
 
-| 类型 | 用途 |
-|------|------|
+| 类型              | 用途             |
+| ----------------- | ---------------- |
 | `general-purpose` | 通用任务（默认） |
-| `Explore` | 代码探索和分析 |
+| `Explore`         | 代码探索和分析   |
 
 **选择原则**：
+
 - 代码实现 → `general-purpose`
 - 代码分析 → `Explore`
 
@@ -124,22 +128,25 @@ Task({
 ### 3.1 等待策略
 
 **同步等待**：
+
 ```javascript
 TaskOutput({
   task_id: subagent_id,
-  block: true,  // 阻塞等待完成
-  timeout: 300000  // 5 分钟超时
-})
+  block: true, // 阻塞等待完成
+  timeout: 300000, // 5 分钟超时
+});
 ```
 
 ### 3.2 等待期间
 
 **禁止行为**：
+
 - 不要打断子代理
 - 不要修改子代理正在编辑的文件
 - 不要派发新的子代理
 
 **推荐行为**：
+
 - 准备审查工作
 - 阅读相关文档
 
@@ -152,6 +159,7 @@ TaskOutput({
 ### 4.1 审查项
 
 **规范符合性检查清单**：
+
 - [ ] 实现了任务要求的所有功能
 - [ ] 使用了指定的文件路径
 - [ ] 遵循了设计文档
@@ -164,8 +172,9 @@ TaskOutput({
 # 读取实现的代码
 Read: $WORKTREE_ROOT/src/services/EmailVerificationService.ts
 
-# 运行编译/构建（确保在 worktree 中执行）
-cd $WORKTREE_ROOT && npm run build  # 或 go build ./...
+# 运行编译/构建（确保在 worktree 中执行，优先最小化范围）
+# 注意：除非用户明确要求，否则禁止执行 go build ./...
+cd $WORKTREE_ROOT && npm run build  # 或 go build ./path/to/pkg
 
 # 可选：运行 Lint
 npm run lint
@@ -189,6 +198,7 @@ npm run lint
 ### 5.1 代码质量检查清单
 
 **代码质量审查项**：
+
 - [ ] 代码符合项目规范（ESLint/Prettier）
 - [ ] 无 TypeScript 错误
 - [ ] 无安全漏洞
@@ -207,11 +217,13 @@ npm run lint
 
 **编译验证**：构建通过
 
+**编译范围**：优先最小化范围；除非用户明确要求，禁止使用 `go build ./...`
+
 ### 5.3 审查方法
 
 ```bash
-# 运行编译/构建
-npm run build  # 或 go build ./...
+# 运行编译/构建（最小化范围优先）
+npm run build  # 或 go build ./path/to/pkg
 
 # 可选：运行类型检查或测试（如有）
 # npm run type-check
@@ -232,6 +244,7 @@ Read: $WORKTREE_ROOT/src/services/EmailVerificationService.ts
 ### 6.1 审查通过
 
 **标记任务完成**：
+
 ```markdown
 ### 1.1 ✅ 已完成
 
@@ -274,8 +287,8 @@ Task({
 4. 添加 JSDoc 注释
 
 请直接修复，不要询问确认。
-`
-})
+`,
+});
 ```
 
 **最多允许 3 次修复**，超过则人工介入。
@@ -298,12 +311,12 @@ Task({
 
 ### 阶段 1: 规范符合性审查
 
-| 审查项 | 状态 | 说明 |
-|--------|------|------|
-| 实现了所有功能 | ✅ | 所有要求都已实现 |
-| 使用指定文件路径 | ✅ | 文件路径正确 |
-| 遵循设计文档 | ✅ | 与设计一致 |
-| 参考推荐实现 | ✅ | 参考了本地实现 |
+| 审查项           | 状态 | 说明             |
+| ---------------- | ---- | ---------------- |
+| 实现了所有功能   | ✅   | 所有要求都已实现 |
+| 使用指定文件路径 | ✅   | 文件路径正确     |
+| 遵循设计文档     | ✅   | 与设计一致       |
+| 参考推荐实现     | ✅   | 参考了本地实现   |
 
 **结果**：✅ 通过
 
@@ -311,14 +324,14 @@ Task({
 
 ### 阶段 2: 代码质量审查
 
-| 审查项 | 状态 | 说明 |
-|--------|------|------|
-| 代码规范 | ✅ | ESLint 通过 |
-| 类型检查 | ✅ | 无 TypeScript 错误 |
-| 安全性 | ✅ | 使用 bcrypt 哈希 |
-| 性能 | ✅ | 哈希操作异步执行 |
-| 错误处理 | ✅ | 完整的 try-catch |
-| 命名清晰 | ✅ | 语义化命名 |
+| 审查项   | 状态 | 说明               |
+| -------- | ---- | ------------------ |
+| 代码规范 | ✅   | ESLint 通过        |
+| 类型检查 | ✅   | 无 TypeScript 错误 |
+| 安全性   | ✅   | 使用 bcrypt 哈希   |
+| 性能     | ✅   | 哈希操作异步执行   |
+| 错误处理 | ✅   | 完整的 try-catch   |
+| 命名清晰 | ✅   | 语义化命名         |
 
 **结果**：✅ 通过
 
@@ -335,18 +348,24 @@ Task({
 ### 子代理产出摘要
 
 **新增文件**：
+
 - src/services/EmailVerificationService.ts
 
 **修改文件**：
+
 - src/index.ts（导出新服务）
 
 **新增测试**：
+
 - 无（当前阶段不强制）
 
 **编译结果**：
 ```
+
 BUILD SUCCESS
+
 ```
+
 ```
 
 ---
@@ -371,12 +390,14 @@ BUILD SUCCESS
 **本技能强制使用以下 MCP 工具**：
 
 ### 主代理使用
+
 - `Task` - 派发子代理
 - `TaskOutput` - 获取子代理产出
 - `Read` - 审查代码
 - `Bash` - 运行编译/构建、Lint
 
 ### 子代理使用
+
 - `Read` - 读取参考实现
 - `Glob`/`Grep` - 搜索代码
 - `Write`/`Edit` - 编写代码
@@ -399,25 +420,32 @@ BUILD SUCCESS
 ## Subagent-Driven Development 技能完成
 
 ### 工作流程
+
 ✓ 所有 6 个步骤已完成
 
 ### 派发任务
+
 - 总任务数：5
 - 成功完成：5
 - 需要重做：0
 
 ### 审查结果
+
 - 规范符合性：5/5 通过
 - 代码质量：5/5 通过
 - 平均修复次数：0.4 次
 
 ### 子代理产出
+
 **新增文件**：3 个
 **修改文件**：2 个
 **编译结果**：
 ```
+
 BUILD SUCCESS
+
 ```
+
 ```
 
 ---

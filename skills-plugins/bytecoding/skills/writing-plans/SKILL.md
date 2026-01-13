@@ -9,7 +9,7 @@ description: Use when converting design documents into executable task lists. Th
 
 ## 工作流程检查清单（强制执行）
 
-**复制以下检查清单并跟踪进度：**
+**复制或者 使用 "TodoWrite" 以下检查清单并跟踪进度：**
 
 ```
 Writing Plans Progress:
@@ -40,6 +40,7 @@ Read: .bytecoding/changes/$CHANGE_ID/design.md
 ### 1.2 分析检查清单
 
 **必须理解以下内容**：
+
 - [ ] 架构设计和组件划分
 - [ ] 数据模型变更
 - [ ] API 端点变更
@@ -57,6 +58,7 @@ Read: .bytecoding/changes/$CHANGE_ID/design.md
 ### 2.1 搜索策略
 
 **查找类似模型**：
+
 ```bash
 # 查找现有模型
 Glob: "**/models/*.ts"
@@ -67,6 +69,7 @@ Read: src/models/User.ts
 ```
 
 **查找类似服务**：
+
 ```bash
 # 查找现有服务
 Glob: "**/services/*.ts"
@@ -78,6 +81,7 @@ Grep: "async.*verify"
 ```
 
 **查找测试模式**：
+
 ```bash
 # 查找测试文件
 Glob: "**/*.test.ts"
@@ -89,6 +93,7 @@ Grep: "it.*should.*"
 ```
 
 **完成标志**：
+
 - [ ] 为每个模型找到参考模型
 - [ ] 为每个服务找到参考服务
 - [ ] 为每个测试找到参考测试
@@ -112,45 +117,49 @@ cat ~/.bytecoding/config.json
 ### 3.2 Repotalk MCP 搜索策略
 
 **搜索类似实现**：
+
 ```javascript
 // 搜索令牌生成
 repotalk.search_nodes({
   repo_names: ["org/repo"],
-  question: "token generation 6 digit verification"
-})
+  question: "token generation 6 digit verification",
+});
 
 // 搜索哈希存储
 repotalk.search_nodes({
   repo_names: ["org/repo"],
-  question: "bcrypt hash token storage"
-})
+  question: "bcrypt hash token storage",
+});
 
 // 搜索验证逻辑
 repotalk.search_nodes({
   repo_names: ["org/repo"],
-  question: "verify token email validation"
-})
+  question: "verify token email validation",
+});
 
 // 搜索数据库设计
 repotalk.search_nodes({
   repo_names: ["org/repo"],
-  question: "verification token table migration"
-})
+  question: "verification token table migration",
+});
 ```
 
 **搜索技巧**：
+
 - 使用具体的技术术语（TypeScript, TypeORM, bcrypt）
 - 搜索"最佳实践"或"设计模式"
 - 查找字节内部类似项目
 - 优先搜索同一语言/框架的实现
 
 **完成标志**：
+
 - 找到 1-2 个参考实现
 - 记录参考项目路径
 - 识别可复用的代码片段
 - 注意安全和性能考虑
 
 **如果 Repotalk 无结果**：
+
 1. 检查 `repo_names` 格式是否正确（必须是 `org/repo`）
 2. 检查 Cookie 是否过期
 3. 尝试不同的搜索关键词
@@ -168,26 +177,30 @@ repotalk.search_nodes({
 ## 参考分析结果
 
 ### 本地参考
-| 任务类型 | 本地参考 | 参考说明 |
-|---------|---------|---------|
-| 模型创建 | `src/models/User.ts` | TypeORM 模型模式 |
-| 服务方法 | `src/services/EmailService.ts` | 异步方法实现 |
-| 测试编写 | `src/services/UserService.test.ts` | Jest 测试模式 |
+
+| 任务类型 | 本地参考                           | 参考说明         |
+| -------- | ---------------------------------- | ---------------- |
+| 模型创建 | `src/models/User.ts`               | TypeORM 模型模式 |
+| 服务方法 | `src/services/EmailService.ts`     | 异步方法实现     |
+| 测试编写 | `src/services/UserService.test.ts` | Jest 测试模式    |
 
 ### Repotalk 参考（字节内部）
-| 任务类型 | 项目路径 | 参考说明 |
-|---------|---------|---------|
+
+| 任务类型 | 项目路径                  | 参考说明              |
+| -------- | ------------------------- | --------------------- |
 | 令牌生成 | `project-a/auth/token.go` | 使用 crypto/rand 生成 |
-| 哈希存储 | `project-b/auth/hash.go` | bcrypt cost=10 |
-| 验证逻辑 | `project-c/api/verify.go` | 包含过期检查 |
+| 哈希存储 | `project-b/auth/hash.go`  | bcrypt cost=10        |
+| 验证逻辑 | `project-c/api/verify.go` | 包含过期检查          |
 
 ### 综合建议
+
 1. **模型设计**：采用本地 TypeORM 模式（参考 User.ts）
 2. **令牌生成**：采纳 Repotalk 的 crypto/rand 方案
 3. **测试策略**：复用本地 Jest 模式，增加边界测试
 ```
 
 **分析要点**：
+
 - 对比本地和 Repotalk 参考
 - 识别最佳实践
 - 评估每种方案的适用性
@@ -202,6 +215,7 @@ repotalk.search_nodes({
 ### 5.1 粒度原则
 
 **✅ 正确的粒度（2-5 分钟）**
+
 ```markdown
 - [ ] 创建 `EmailVerificationToken` 模型类
 - [ ] 实现 `generateToken()` 方法（生成 6 位数字）
@@ -211,6 +225,7 @@ repotalk.search_nodes({
 ```
 
 **❌ 错误的粒度（太大）**
+
 ```markdown
 - [ ] 实现 EmailVerificationService（包含所有方法）
 - [ ] 完成数据库迁移
@@ -218,6 +233,7 @@ repotalk.search_nodes({
 ```
 
 **❌ 错误的粒度（太小）**
+
 ```markdown
 - [ ] 定义类名
 - [ ] 添加 import 语句
@@ -235,17 +251,21 @@ repotalk.search_nodes({
 **按编译验证循环拆分**：实现 → 编译 → 修复 各为一个任务
 
 **编译验证任务拆分示例**：
+
 ```markdown
 ## EmailVerificationService
 
 ### 实现
+
 - [ ] 实现 `generateToken()` 最小改动
 
 ### 编译验证
+
 - [ ] 执行编译/构建命令
 - [ ] 确认编译通过
 
 ### 修复与复验
+
 - [ ] 修复编译错误（如有）
 - [ ] 重新编译确认通过
 ```
@@ -261,7 +281,8 @@ repotalk.search_nodes({
 ### 6.1 任务模板
 
 **每个任务必须包含**：
-```markdown
+
+````markdown
 ### [任务编号] [任务名称]
 
 **描述**：[一句话描述任务内容]
@@ -269,6 +290,7 @@ repotalk.search_nodes({
 **文件**：[仓库相对路径（以 Git worktree 根目录为准，禁止绝对路径）]
 
 **参考**：
+
 - 本地：`[本地参考路径]` - [参考说明]
 - Repotalk：`[Repotalk 路径]` - [参考说明]
 
@@ -276,16 +298,20 @@ repotalk.search_nodes({
 **输出**：[任务产出]
 
 **代码框架**：
+
 ```typescript
 // [代码框架]
 ```
+````
 
 **验证**：
+
 - [ ] [验证条件 1]
 - [ ] [验证条件 2]
 
 **预计时间**：2-5 分钟
-```
+
+````
 
 ### 6.2 tasks.md 结构
 
@@ -347,9 +373,10 @@ export class EmailVerificationToken {
   @Column('timestamp', { default: () => 'NOW()' })
   createdAt: Date;
 }
-```
+````
 
 **验证**：
+
 - [ ] 模型类编译通过
 - [ ] 字段类型正确
 - [ ] 包含必要的装饰器
@@ -386,6 +413,7 @@ export class EmailVerificationToken {
 ## 备注
 
 [任何额外说明、注意事项、依赖关系]
+
 ```
 
 **重要**：
@@ -401,6 +429,7 @@ export class EmailVerificationToken {
 **完成标志检查清单**：
 
 ```
+
 ✓ 完整分析 design.md
 ✓ 完成本地参考搜索（为每个任务找到参考）
 ✓ 完成 Repotalk MCP 搜索（找到 1-2 个参考实现）
@@ -411,7 +440,8 @@ export class EmailVerificationToken {
 ✓ 依赖关系清晰
 ✓ 验证标准明确
 ✓ 生成 tasks.md
-```
+
+````
 
 **当且仅当所有上述条件满足时，本技能完成。**
 
@@ -466,7 +496,7 @@ repotalk.get_files_detail({
   repo_name: "org/repo",
   file_path: "path/to/file"
 })
-```
+````
 
 **重要**：使用正确的 `repo_names` 格式（`org/repo`）
 
@@ -495,23 +525,28 @@ repotalk.get_files_detail({
 ## Writing Plans 技能完成
 
 ### 工作流程
+
 ✓ 所有 7 个步骤已完成
 
 ### 设计文档分析
+
 - 架构：服务层 + 数据层 + API 层
 - 数据模型：EmailVerificationToken
 - API 端点：POST /api/auth/verify-email
 
 ### 参考搜索结果
+
 - 本地：找到 5 个参考文件（模型、服务、测试）
 - Repotalk：找到 2 个参考实现（令牌生成、哈希存储）
 
 ### 任务拆分
+
 - 总任务数：18
 - 预计时间：45-60 分钟
 - 任务分组：数据模型(4) + 服务层(6) + API 层(4) + 测试(4)
 
 ### 生成的文档
+
 - tasks.md: .bytecoding/changes/change-email-verification/tasks.md
 
 下一步：使用 subagent-driven-development 技能执行任务
