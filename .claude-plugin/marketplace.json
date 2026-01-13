@@ -164,6 +164,17 @@
       "source": "./skills-plugins/bytecoding",
       "category": "development",
       "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/bytecoding"
+    },
+    {
+      "name": "docshub",
+      "description": "Docshub MCP integration，提供文档中心集成功能",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills-plugins/docshub",
+      "category": "productivity",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/docshub"
     }
   ]
 }
