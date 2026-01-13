@@ -12,9 +12,18 @@ allowed-tools: Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash
 
 - `$1` 或 `$ARGUMENTS` - 变更 ID（如 `change-email-verification-20250112`）
 
-## 步骤 1: 验证 PlanSpec
+## 步骤 1: 运行脚本验证与创建 Worktree（推荐）
 
-首先，验证指定的变更是否存在 PlanSpec（项目级）：
+脚本会完成 PlanSpec 校验、必要文件检查与 worktree 创建：
+
+```bash
+CHANGE_ID="${1:-$ARGUMENTS}"
+plugin/scripts/bytecoding/repo-apply.sh --change-id "$CHANGE_ID"
+```
+
+记录输出的 `worktree` 与 `branch`，后续步骤使用该工作区。
+
+**手动备用**（仅当脚本不可用时）：
 
 ```bash
 # 从参数获取 change-id
@@ -60,9 +69,9 @@ cat "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 - 依赖关系
 - 预计时间
 
-## 步骤 3: 使用 using-git-worktrees 技能
+## 步骤 3: 使用 using-git-worktrees 技能（手动备用）
 
-在执行任务前，建议创建 Git Worktree 以保持主工作区整洁。
+若未通过脚本创建 worktree，可按以下步骤手动创建。
 
 **检查当前 Git 状态**：
 ```bash

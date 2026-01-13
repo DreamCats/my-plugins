@@ -12,7 +12,24 @@ allowed-tools: Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Bash(lark-cli*), Ba
 
 - `$1` 或 `$ARGUMENTS` - 变更 ID（如 `change-email-verification-20250112`）
 
-## 步骤 1: 验证变更状态
+## 步骤 1: 运行脚本归档（推荐）
+
+脚本会完成归档目录移动、PlanSpec 更新与 Worktree 清理：
+
+```bash
+CHANGE_ID="${1:-$ARGUMENTS}"
+plugin/scripts/bytecoding/repo-archive.sh --change-id "$CHANGE_ID"
+```
+
+如需忽略 `status != completed` 的校验，可加 `--force`：
+
+```bash
+plugin/scripts/bytecoding/repo-archive.sh --change-id "$CHANGE_ID" --force
+```
+
+**手动备用**（仅当脚本不可用时）：
+
+## 步骤 2: 验证变更状态（手动备用）
 
 首先，验证变更是否已完成（项目级）：
 
@@ -47,7 +64,7 @@ echo "变更 ID: $CHANGE_ID"
 echo "项目目录: $PROJECT_ROOT"
 ```
 
-## 步骤 2: 检查 Git 状态
+## 步骤 3: 检查 Git 状态（手动备用）
 
 确认变更已在主分支合并：
 
@@ -64,7 +81,7 @@ if git worktree list | grep -q "feature-$CHANGE_ID"; then
 fi
 ```
 
-## 步骤 3: 移动变更到归档目录
+## 步骤 4: 移动变更到归档目录（手动备用）
 
 将变更目录移动到 archive（项目级）：
 
@@ -78,7 +95,7 @@ mv "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID" "$PROJECT_ROOT/.bytecoding/cha
 echo "✅ 变更已归档到: .bytecoding/changes/archive/$CHANGE_ID"
 ```
 
-## 步骤 4: 清理 Worktree（可选）
+## 步骤 5: 清理 Worktree（可选，手动备用）
 
 如果 Worktree 已不再需要，清理它：
 
@@ -107,7 +124,7 @@ if git worktree list | grep -q "feature-$CHANGE_ID"; then
 fi
 ```
 
-## 步骤 5: 更新 PlanSpec 状态
+## 步骤 6: 更新 PlanSpec 状态（手动备用）
 
 更新归档变更的 PlanSpec：
 
@@ -121,7 +138,7 @@ echo "archived_at: $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$PROJECT_ROOT/.bytecodi
 echo "✅ PlanSpec 已更新"
 ```
 
-## 步骤 6: 显示归档摘要
+## 步骤 7: 显示归档摘要（手动备用）
 
 显示归档变更的摘要信息：
 
@@ -139,7 +156,7 @@ ls -1 "$PROJECT_ROOT/.bytecoding/changes/archive/$CHANGE_ID/"
 echo "=========================================="
 ```
 
-## 步骤 7: 发送飞书摘要（使用 lark-send-msg）
+## 步骤 8: 发送飞书摘要（使用 lark-send-msg）
 
 在命令结束后，使用 **lark-send-msg** 技能**生成消息内容并执行发送**（通过 Skill 工具调用 + `lark-cli send-message`）。
 

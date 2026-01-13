@@ -8,9 +8,17 @@ allowed-tools: Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Bash(pytho
 
 本命令引导你完成规划阶段，通过触发 **brainstorming** 和 **writing-plans** 技能来生成完整的变更提案和任务列表。
 
-## 步骤 1: 创建变更目录
+## 步骤 1: 运行脚本初始化（推荐）
 
-首先，为这次变更创建一个唯一的工作目录（项目级）：
+使用脚本完成变更目录与 PlanSpec 初始化：
+
+```bash
+plugin/scripts/bytecoding/repo-plan.sh --desc "$ARGUMENTS"
+```
+
+记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。
+
+**手动备用**（仅当脚本不可用时）：
 
 ```bash
 # 获取当前项目根目录
@@ -70,9 +78,9 @@ echo "工作目录: $PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID"
 **产出文件**（保存到 `~/.bytecoding/changes/$CHANGE_ID/`）：
 - `tasks.md` - 可执行任务列表
 
-## 步骤 4: 创建 PlanSpec
+## 步骤 4: 确认 PlanSpec
 
-在完成上述步骤后，创建 PlanSpec 文件：
+脚本已创建 PlanSpec。若为手动模式，请创建 PlanSpec 文件：
 
 ```bash
 cat > "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/planspec.yaml" << 'EOF'
