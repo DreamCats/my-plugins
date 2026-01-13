@@ -67,7 +67,7 @@ cat "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 **检查当前 Git 状态**：
 ```bash
 # 检查当前分支
-git branch --show-current
+git rev-parse --abbrev-ref HEAD
 
 # 检查是否有未提交的更改
 git status --short
@@ -83,18 +83,30 @@ git status --short
 1. 检查当前 Git 状态
 2. 创建 Worktree 目录
 3. 创建功能分支
-4. 安装依赖
-5. 验证基线
+4. 进入 Worktree 目录
 
 **完成标志**：
 - [x] Worktree 已创建
 - [x] 在正确分支上
-- [x] 依赖已安装
-- [x] 基线验证通过
+- [x] 已进入 Worktree 目录
+> 注：依赖安装与编译验证放到后续任务阶段按需执行。
 
 ## 步骤 4: 使用 subagent-driven-development 技能
 
 在 Worktree 中，使用 **bytecoding:subagent-driven-development** 技能执行任务列表。
+
+**切换到 Worktree 并设置工作根目录**：
+```bash
+# 进入 worktree 目录（示例）
+cd ../feature-$CHANGE_ID
+WORKTREE_ROOT=$(pwd)
+echo "Worktree: $WORKTREE_ROOT"
+```
+
+**路径约束**：
+- tasks.md 中的文件路径必须是**仓库相对路径**
+- 在 Worktree 中执行 Read/Write/Edit/Glob/Grep，确保修改落在 worktree
+- 如发现绝对路径，先改为相对路径再执行任务
 
 > 请使用 **bytecoding:subagent-driven-development** 技能来执行任务列表。
 
