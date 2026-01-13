@@ -19,14 +19,24 @@ allowed-tools: Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Bash(lark-cli*), Ba
 ```bash
 CHANGE_ID="${1:-$ARGUMENTS}"
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-"$PROJECT_ROOT/plugin/scripts/bytecoding/repo-archive.sh" --change-id "$CHANGE_ID"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
+if [ -z "$PLUGIN_ROOT" ]; then
+  echo "错误：CLAUDE_PLUGIN_ROOT 未设置，请指向插件目录"
+  exit 1
+fi
+"$PLUGIN_ROOT/scripts/bytecoding/repo-archive.sh" --change-id "$CHANGE_ID"
 ```
 
 如需忽略 `status != completed` 的校验，可加 `--force`：
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-"$PROJECT_ROOT/plugin/scripts/bytecoding/repo-archive.sh" --change-id "$CHANGE_ID" --force
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
+if [ -z "$PLUGIN_ROOT" ]; then
+  echo "错误：CLAUDE_PLUGIN_ROOT 未设置，请指向插件目录"
+  exit 1
+fi
+"$PLUGIN_ROOT/scripts/bytecoding/repo-archive.sh" --change-id "$CHANGE_ID" --force
 ```
 
 **手动备用**（仅当脚本不可用时）：
@@ -171,7 +181,7 @@ echo "=========================================="
 1. 通过 `Skill(lark-md-to-doc)` 确认调用方式。
 2. 使用脚本渲染（示例）：
 ```bash
-python3 "$PROJECT_ROOT/plugin/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
+python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
   --md "$PROJECT_ROOT/.bytecoding/changes/archive/$CHANGE_ID/proposal.md" \
   --title "[repo-archive] $CHANGE_ID proposal"
 ```

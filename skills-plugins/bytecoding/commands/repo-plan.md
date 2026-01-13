@@ -14,7 +14,12 @@ allowed-tools: Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Bash(pytho
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-"$PROJECT_ROOT/plugin/scripts/bytecoding/repo-plan.sh" --desc "$ARGUMENTS"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
+if [ -z "$PLUGIN_ROOT" ]; then
+  echo "错误：CLAUDE_PLUGIN_ROOT 未设置，请指向插件目录"
+  exit 1
+fi
+"$PLUGIN_ROOT/scripts/bytecoding/repo-plan.sh" --desc "$ARGUMENTS"
 ```
 
 记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。
@@ -111,7 +116,7 @@ EOF
 1. 通过 `Skill(lark-md-to-doc)` 确认调用方式。
 2. 使用脚本渲染（示例）：
 ```bash
-python3 "$PROJECT_ROOT/plugin/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
+python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
   --md "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/proposal.md" \
   --title "[repo-plan] $CHANGE_ID proposal"
 ```

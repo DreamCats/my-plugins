@@ -19,7 +19,12 @@ allowed-tools: Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash
 ```bash
 CHANGE_ID="${1:-$ARGUMENTS}"
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-"$PROJECT_ROOT/plugin/scripts/bytecoding/repo-apply.sh" --change-id "$CHANGE_ID"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
+if [ -z "$PLUGIN_ROOT" ]; then
+  echo "错误：CLAUDE_PLUGIN_ROOT 未设置，请指向插件目录"
+  exit 1
+fi
+"$PLUGIN_ROOT/scripts/bytecoding/repo-apply.sh" --change-id "$CHANGE_ID"
 ```
 
 记录输出的 `worktree` 与 `branch`，后续步骤使用该工作区。
@@ -223,7 +228,7 @@ git push -u origin feature/$CHANGE_ID
 1. 通过 `Skill(lark-md-to-doc)` 确认调用方式。
 2. 使用脚本渲染（示例）：
 ```bash
-python3 "$PROJECT_ROOT/plugin/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
+python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
   --md "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md" \
   --title "[repo-apply] $CHANGE_ID tasks"
 ```
