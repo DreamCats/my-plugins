@@ -67,21 +67,26 @@ bc_init_planspec() {
   local description="$2"
   local out="$3"
 
-  cat > "$out" <<EOF2
-# PlanSpec for $change_id
-
-change_id: $change_id
-description: $description
-created_at: $(bc_now_utc)
-status: pending
-
-# outputs
-proposal: proposal.md
-design: design.md
-tasks: tasks.md
-
-spec_deltas: []
-EOF2
+  {
+    printf "# PlanSpec for %s\n\n" "$change_id"
+    printf "change_id: %s\n" "$change_id"
+    if [ -z "$description" ]; then
+      printf "description: \"\"\n"
+    else
+      # Use a block scalar so multi-line descriptions stay valid YAML.
+      printf "description: |-\n"
+      while IFS= read -r line; do
+        printf "  %s\n" "$line"
+      done <<< "$description"
+    fi
+    printf "created_at: %s\n" "$(bc_now_utc)"
+    printf "status: pending\n\n"
+    printf "# outputs\n"
+    printf "proposal: proposal.md\n"
+    printf "design: design.md\n"
+    printf "tasks: tasks.md\n\n"
+    printf "spec_deltas: []\n"
+  } > "$out"
 }
 
 bc_find_worktree_by_branch() {

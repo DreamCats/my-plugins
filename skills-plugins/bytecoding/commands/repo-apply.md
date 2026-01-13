@@ -8,13 +8,33 @@ allowed-tools: Bash(bash*), Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bas
 
 本命令引导你完成执行阶段，通过触发技能链来实施变更。
 
+## 工作流程检查清单（强制执行）
+
+**复制或者使用 "TodoWrite" 以下检查清单并跟踪进度：**
+
+```
+Repo-Apply Progress:
+- [ ] 步骤 1: 运行脚本验证与创建 Worktree
+- [ ] 步骤 2: 读取任务列表
+- [ ] 步骤 3: subagent-driven-development - 执行任务
+- [ ] 步骤 4: test-driven-development - 编译验证
+- [ ] 步骤 5: 标记 PlanSpec 状态为 completed
+- [ ] 步骤 6: 提交变更
+- [ ] 步骤 7: lark-send-msg - 发送飞书摘要
+```
+
+**重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
+
 ## 参数
 
 - `$1` 或 `$ARGUMENTS` - 变更 ID（如 `change-email-verification-20250112`）
 
 ## 步骤 1: 运行脚本验证与创建 Worktree（推荐）
 
-脚本会完成 PlanSpec 校验、必要文件检查与 worktree 创建：
+脚本会完成 PlanSpec 校验、必要文件检查与 worktree 创建，并写入 worktree 元信息：
+
+- `"$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/worktree.path"`
+- `"$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/worktree.branch"`
 
 ```bash
 CHANGE_ID="${1:-$ARGUMENTS}"
@@ -34,37 +54,6 @@ bash "$SCRIPT_DIR/repo-apply.sh" --change-id "$CHANGE_ID"
 
 记录输出的 `worktree` 与 `branch`，后续步骤使用该工作区。
 
-**手动备用**（仅当脚本不可用时）：
-
-```bash
-# 从参数获取 change-id
-CHANGE_ID="${1:-$ARGUMENTS}"
-
-# 获取当前项目根目录
-PROJECT_ROOT=$(pwd)
-
-# 验证目录存在
-if [ ! -d "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID" ]; then
-  echo "错误：变更不存在 - $CHANGE_ID"
-  echo "请先使用 /repo-plan 创建变更提案"
-  exit 1
-fi
-
-# 验证必要文件存在
-REQUIRED_FILES=("proposal.md" "design.md" "tasks.md" "planspec.yaml")
-for file in "${REQUIRED_FILES[@]}"; do
-  if [ ! -f "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/$file" ]; then
-    echo "错误：缺少必要文件 - $file"
-    echo "请先完成规划阶段（/repo-plan）"
-    exit 1
-  fi
-done
-
-echo "✅ PlanSpec 验证通过"
-echo "变更 ID: $CHANGE_ID"
-echo "项目目录: $PROJECT_ROOT"
-```
-
 ## 步骤 2: 读取任务列表
 
 读取任务列表，了解需要执行的工作：
@@ -81,52 +70,16 @@ cat "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 - 依赖关系
 - 预计时间
 
-## 步骤 3: 使用 using-git-worktrees 技能（手动备用）
-
-若未通过脚本创建 worktree，可按以下步骤手动创建。
-
-**检查当前 Git 状态**：
-
-```bash
-# 检查当前分支
-git rev-parse --abbrev-ref HEAD
-
-# 检查是否有未提交的更改
-git status --short
-```
-
-**如果当前在主分支（main/master）**，询问用户：
-
-> 检测到你在主分支上执行变更。建议创建 Git Worktree 以保持主工作区整洁。
-
-**使用 **bytecoding:using-git-worktrees** 技能创建 Worktree**：
-
-> 请使用 **bytecoding:using-git-worktrees** 技能为变更 `$CHANGE_ID` 创建隔离的工作区。
-
-**using-git-worktrees 技能将引导你**：
-
-1. 检查当前 Git 状态
-2. 创建 Worktree 目录
-3. 创建功能分支
-4. 进入 Worktree 目录
-
-**完成标志**：
-
-- [x] Worktree 已创建
-- [x] 在正确分支上
-- [x] 已进入 Worktree 目录
-  > 注：依赖安装与编译验证放到后续任务阶段按需执行。
-
-## 步骤 4: 使用 subagent-driven-development 技能
+## 步骤 3: 使用 subagent-driven-development 技能
 
 在 Worktree 中，使用 **bytecoding:subagent-driven-development** 技能执行任务列表。
 
 **切换到 Worktree 并设置工作根目录**：
 
 ```bash
-# 进入 worktree 目录（示例）
-cd ../feature-$CHANGE_ID
-WORKTREE_ROOT=$(pwd)
+# 从 worktree 元信息读取路径
+WORKTREE_ROOT="$(cat "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/worktree.path")"
+cd "$WORKTREE_ROOT"
 echo "Worktree: $WORKTREE_ROOT"
 ```
 
@@ -194,7 +147,7 @@ Read: "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 **审查结果**：✅ **通过**
 ```
 
-## 步骤 5: 使用 test-driven-development 技能（简化版）
+## 步骤 4: 使用 test-driven-development 技能（简化版）
 
 对于需要编写代码的任务，使用 **bytecoding:test-driven-development** 技能执行**编译验证驱动**流程。
 
@@ -211,6 +164,26 @@ Read: "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 - ❌ 禁止跳过编译验证
 - ❌ 禁止未编译就标记完成
 - ❌ 禁止执行 `go build ./...`（除非用户明确要求）
+
+## 步骤 5: 标记 PlanSpec 状态为 completed
+
+完成任务并通过验证后，更新 PlanSpec 状态：
+
+```bash
+CHANGE_ID="${1:-$ARGUMENTS}"
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"
+SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
+# Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
+if [ -x "$PLUGIN_ROOT/repo-apply.sh" ]; then
+  SCRIPT_DIR="$PLUGIN_ROOT"
+fi
+if [ ! -x "$SCRIPT_DIR/repo-apply.sh" ]; then
+  echo "错误：找不到插件脚本，请确认插件路径"
+  exit 1
+fi
+bash "$SCRIPT_DIR/repo-apply.sh" --change-id "$CHANGE_ID" --mark-completed
+```
 
 ## 步骤 6: 提交变更
 

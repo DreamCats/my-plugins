@@ -8,6 +8,21 @@ allowed-tools: Bash(bash*), Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*
 
 本命令引导你完成规划阶段，通过触发 **brainstorming** 和 **writing-plans** 技能来生成完整的变更提案和任务列表。
 
+## 工作流程检查清单（强制执行）
+
+**复制或者使用 "TodoWrite" 以下检查清单并跟踪进度：**
+
+```
+Repo-Plan Progress:
+- [ ] 步骤 1: 运行脚本初始化 - 创建 change 目录与 PlanSpec
+- [ ] 步骤 2: brainstorming - 需求精化与方案设计
+- [ ] 步骤 3: writing-plans - 生成任务列表
+- [ ] 步骤 4: 确认 PlanSpec - 核对 change-id 与产出文件
+- [ ] 步骤 5: lark-md-to-doc - 转换 proposal/design/tasks 并获取链接
+```
+
+**重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
+
 ## 步骤 1: 运行脚本初始化（必须）
 
 使用脚本完成变更目录与 PlanSpec 初始化：
@@ -28,23 +43,6 @@ bash "$SCRIPT_DIR/repo-plan.sh" --desc "$ARGUMENTS"
 ```
 
 **必须先执行完此脚本再进入下一步**。记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。若脚本失败，先排查报错原因，不要直接进入 brainstorming。
-
-**手动备用**（仅当脚本不可用时）：
-
-```bash
-# 获取当前项目根目录
-PROJECT_ROOT=$(pwd)
-
-# 生成变更 ID（基于当前时间戳）
-CHANGE_ID="change-$(date +%Y%m%d-%H%M)"
-
-# 创建项目级变更目录
-mkdir -p "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID"
-
-echo "变更 ID: $CHANGE_ID"
-echo "项目目录: $PROJECT_ROOT"
-echo "工作目录: $PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID"
-```
 
 ## 步骤 2: 使用 brainstorming 技能
 
@@ -98,25 +96,7 @@ echo "工作目录: $PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID"
 
 ## 步骤 4: 确认 PlanSpec
 
-脚本已创建 PlanSpec。若为手动模式，请创建 PlanSpec 文件：
-
-```bash
-cat > "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/planspec.yaml" << 'EOF'
-# PlanSpec for $CHANGE_ID
-
-change_id: $CHANGE_ID
-description: $ARGUMENTS
-created_at: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
-status: pending
-
-# 产出文件
-proposal: proposal.md
-design: design.md
-tasks: tasks.md
-
-spec_deltas: []
-EOF
-```
+脚本已创建 PlanSpec，进入下一步即可。
 
 ## 步骤 5: 转换 Markdown 文档（使用 lark-md-to-doc）
 

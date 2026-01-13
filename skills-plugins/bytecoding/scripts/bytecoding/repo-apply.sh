@@ -9,6 +9,7 @@ bc_require_git
 
 CHANGE_ID="${CHANGE_ID:-}"
 WORKTREE_DIR="${WORKTREE_DIR:-}"
+MARK_COMPLETED=0
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -20,8 +21,12 @@ while [ "$#" -gt 0 ]; do
       WORKTREE_DIR="$2"
       shift 2
       ;;
+    --mark-completed)
+      MARK_COMPLETED=1
+      shift
+      ;;
     -h|--help)
-      echo "usage: repo-apply.sh --change-id <id> [--worktree-dir <path>]"
+      echo "usage: repo-apply.sh --change-id <id> [--worktree-dir <path>] [--mark-completed]"
       exit 0
       ;;
     *)
@@ -47,6 +52,16 @@ for file in "${REQUIRED_FILES[@]}"; do
   [ -f "$CHANGE_DIR/$file" ] || bc_die "missing required file: $file"
  done
 
+if [ "$MARK_COMPLETED" -eq 1 ]; then
+  bc_update_planspec_status "$PLANSPEC" "completed"
+  bc_append_planspec_field "$PLANSPEC" "completed_at" "$(bc_now_utc)"
+  cat <<EOF2
+change-id: $CHANGE_ID
+status: completed
+EOF2
+  exit 0
+fi
+
 BRANCH_NAME="feature-$CHANGE_ID"
 if [ -z "$WORKTREE_DIR" ]; then
   WORKTREE_DIR="$(dirname "$PROJECT_ROOT")/feature-$CHANGE_ID"
@@ -61,6 +76,9 @@ else
     git worktree add "$WORKTREE_DIR" -b "$BRANCH_NAME"
   fi
 fi
+
+printf "%s\n" "$WORKTREE_DIR" > "$CHANGE_DIR/worktree.path"
+printf "%s\n" "$BRANCH_NAME" > "$CHANGE_DIR/worktree.branch"
 
 cat <<EOF2
 change-id: $CHANGE_ID
