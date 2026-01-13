@@ -18,7 +18,8 @@ allowed-tools: Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash
 
 ```bash
 CHANGE_ID="${1:-$ARGUMENTS}"
-plugin/scripts/bytecoding/repo-apply.sh --change-id "$CHANGE_ID"
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+"$PROJECT_ROOT/plugin/scripts/bytecoding/repo-apply.sh" --change-id "$CHANGE_ID"
 ```
 
 记录输出的 `worktree` 与 `branch`，后续步骤使用该工作区。

@@ -13,7 +13,8 @@ allowed-tools: Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Bash(pytho
 使用脚本完成变更目录与 PlanSpec 初始化：
 
 ```bash
-plugin/scripts/bytecoding/repo-plan.sh --desc "$ARGUMENTS"
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+"$PROJECT_ROOT/plugin/scripts/bytecoding/repo-plan.sh" --desc "$ARGUMENTS"
 ```
 
 记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。

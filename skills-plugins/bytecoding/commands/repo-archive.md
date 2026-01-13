@@ -18,13 +18,15 @@ allowed-tools: Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Bash(lark-cli*), Ba
 
 ```bash
 CHANGE_ID="${1:-$ARGUMENTS}"
-plugin/scripts/bytecoding/repo-archive.sh --change-id "$CHANGE_ID"
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+"$PROJECT_ROOT/plugin/scripts/bytecoding/repo-archive.sh" --change-id "$CHANGE_ID"
 ```
 
 如需忽略 `status != completed` 的校验，可加 `--force`：
 
 ```bash
-plugin/scripts/bytecoding/repo-archive.sh --change-id "$CHANGE_ID" --force
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+"$PROJECT_ROOT/plugin/scripts/bytecoding/repo-archive.sh" --change-id "$CHANGE_ID" --force
 ```
 
 **手动备用**（仅当脚本不可用时）：
