@@ -1,6 +1,18 @@
 'use strict';
 
 // Minimal argument parser with support for --flag value and --flag=value.
+function storeFlag(flags, key, value) {
+  if (flags[key] === undefined) {
+    flags[key] = value;
+    return;
+  }
+  if (Array.isArray(flags[key])) {
+    flags[key].push(value);
+    return;
+  }
+  flags[key] = [flags[key], value];
+}
+
 function parseArgs(argv) {
   const flags = {};
   const positionals = [];
@@ -17,24 +29,24 @@ function parseArgs(argv) {
       if (eqIndex !== -1) {
         const key = arg.slice(2, eqIndex);
         const value = arg.slice(eqIndex + 1);
-        flags[key] = value;
+        storeFlag(flags, key, value);
         continue;
       }
 
       const key = arg.slice(2);
       const next = argv[i + 1];
       if (next && !next.startsWith('-')) {
-        flags[key] = next;
+        storeFlag(flags, key, next);
         i += 1;
       } else {
-        flags[key] = true;
+        storeFlag(flags, key, true);
       }
       continue;
     }
 
     if (arg.startsWith('-') && arg.length > 1) {
       const key = arg.slice(1);
-      flags[key] = true;
+      storeFlag(flags, key, true);
       continue;
     }
 
@@ -45,6 +57,9 @@ function parseArgs(argv) {
 }
 
 function isTruthyFlag(value) {
+  if (Array.isArray(value)) {
+    return value.some((item) => item === true || item === 'true' || item === '1');
+  }
   return value === true || value === 'true' || value === '1';
 }
 

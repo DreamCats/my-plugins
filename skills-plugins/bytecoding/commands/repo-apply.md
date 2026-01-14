@@ -255,25 +255,34 @@ node "$SCRIPT_DIR/repo-apply.js" --change-id "$CHANGE_ID" --mark-completed
 验证通过后，提交变更：
 
 ```bash
-# 进入 worktree 目录
-cd ../feature-$CHANGE_ID
-
-# 添加所有更改
-git add .
-
-# 提交变更
-git commit -m "feat: $CHANGE_ID
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-
-# 推送到远程
-git push -u origin feature/$CHANGE_ID
+CHANGE_ID="${1:-$ARGUMENTS}"
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"
+SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
+# Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
+if [ -f "$PLUGIN_ROOT/repo-apply-git.js" ]; then
+  SCRIPT_DIR="$PLUGIN_ROOT"
+fi
+if [ ! -f "$SCRIPT_DIR/repo-apply-git.js" ]; then
+  echo "错误：找不到插件脚本，请确认插件路径"
+  exit 1
+fi
+node "$SCRIPT_DIR/repo-apply-git.js" \
+  --change-id "$CHANGE_ID" \
+  --message "feat: $CHANGE_ID" \
+  --item "实现核心改动并完成验证" \
+  --item "更新相关文档与说明"
 ```
+
+**提交信息要求**：
+
+- 必须使用列表式正文（`--item` 可重复传入）。
+- 脚本会自动注入 `Co-Authored-By: <name> <email>`（基于 git user 配置，可用 `--co-author-*` 覆盖）。
 
 **推送链接处理**：
 
-- 如果 `git push` 输出中包含 merge request 创建链接（例如 `https://.../merge_requests/new?...`），需在最终摘要中展示该链接
-- 如果未输出链接，明确标注“未提供 MR 链接”
+- 如果 `git push` 输出中包含 merge request 创建链接（例如 `https://.../merge_requests/new?...`），脚本会写入 `planspec.yaml` 的 `mr_url`
+- 如果未输出链接，脚本会提示 `mr_url: not found in push output`
 
 ## 步骤 8: 发送飞书摘要（使用 lark-send-msg）
 
@@ -292,14 +301,29 @@ git push -u origin feature/$CHANGE_ID
 
 **执行方式**：
 
-1. 通过 `Skill(lark-send-msg)` 选择 `msg_type` 并生成单行 `content` JSON。
-2. 执行发送（示例）：
+1. 通过 `Skill(lark-send-msg)` 确认消息结构与 `msg_type`。
+2. 使用脚本自动组装并发送（示例）：
 
 ```bash
-lark-cli send-message --receive-id-type email --msg-type text "$GIT_EMAIL" '{"text":"变更 ID: ...\n关键文件: ...\n编译: go build ./handler/... 通过\n提交: <commit>\nMR: <link>"}'
+CHANGE_ID="${1:-$ARGUMENTS}"
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"
+SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
+# Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
+if [ -f "$PLUGIN_ROOT/repo-apply-lark.js" ]; then
+  SCRIPT_DIR="$PLUGIN_ROOT"
+fi
+if [ ! -f "$SCRIPT_DIR/repo-apply-lark.js" ]; then
+  echo "错误：找不到插件脚本，请确认插件路径"
+  exit 1
+fi
+node "$SCRIPT_DIR/repo-apply-lark.js" \
+  --change-id "$CHANGE_ID" \
+  --verify "go build ./handler/...: pass" \
+  --verify "eslint: pass"
 ```
 
-如需富文本排版，请使用 `msg_type=post` 并按 `lark-send-msg` 的结构生成 JSON。
+脚本会读取 `planspec.yaml` 的 `lark_docs` 与 `mr_url` 组装摘要并直接发送。接收人默认使用 `lark_email`（由 repo-plan 初始化），可用 `--receive-id` 覆盖。
 
 ## 完成标志
 

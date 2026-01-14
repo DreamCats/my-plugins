@@ -42,7 +42,7 @@ fi
 node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
 ```
 
-**必须先执行完此脚本再进入下一步**。记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。若脚本失败，先排查报错原因，不要直接进入 brainstorming。
+**必须先执行完此脚本再进入下一步**。脚本会创建 `planspec.yaml` 以及 `proposal.md`/`design.md`/`tasks.md` 模板（含变更标题与固定章节）。记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。若脚本失败，先排查报错原因，不要直接进入 brainstorming。
 
 ## 步骤 2: 使用 brainstorming 技能
 
@@ -107,15 +107,26 @@ node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
 **执行方式**：
 
 1. 通过 `Skill(lark-md-to-doc)` 确认调用方式。
-2. 使用脚本渲染（示例）：
+2. 使用批量脚本渲染并回写 PlanSpec（示例）：
 
 ```bash
-python3 "$PLUGIN_ROOT/skills/lark-md-to-doc/scripts/render_lark_doc.py" \
-  --md "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/proposal.md" \
-  --title "[repo-plan] $CHANGE_ID proposal"
+node "$SCRIPT_DIR/repo-plan-lark.js" \
+  --change-id "$CHANGE_ID" \
+  --title-prefix "[repo-plan] $CHANGE_ID"
 ```
 
-分别渲染 `design.md` 和 `tasks.md`，记录输出中的 `doc_id`/链接，用于飞书摘要。
+该脚本会批量渲染 `proposal.md`/`design.md`/`tasks.md` 并回写 `planspec.yaml` 的 `lark_docs` 字段（包含 `doc_id` 与 `url`）。
+
+**可选：自动开通协作权限（示例）**：
+
+```bash
+node "$SCRIPT_DIR/repo-plan-lark.js" \
+  --change-id "$CHANGE_ID" \
+  --title-prefix "[repo-plan] $CHANGE_ID" \
+  --share-email "user@example.com" \
+  --share-perm edit \
+  --share-notify
+```
 
 ## 步骤 6: 发送飞书摘要（使用 lark-send-msg）
 

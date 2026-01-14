@@ -7,7 +7,7 @@
  * - Welcome message with plugin status
  * - Loads the using-bytecoding skill to establish skill usage rules
  * - Checks Repotalk Cookie configuration
- * - Lists available commands and skills
+ * - Lists available commands
  * - User and project configuration status
  */
 
@@ -302,20 +302,6 @@ function getMcpConfigPath() {
 // ============================================================================
 
 /**
- * Core skills that should always be available
- */
-const CORE_SKILLS = [
-  { name: 'brainstorming', description: '需求精化 + 多源代码分析（本地 + repotalk MCP）' },
-  { name: 'writing-plans', description: '设计方案 → 可执行任务列表' },
-  { name: 'test-driven-development', description: '编译验证驱动（不强制单测）' },
-  { name: 'using-git-worktrees', description: '创建隔离的 Git 工作区' },
-  { name: 'subagent-driven-development', description: '子代理驱动开发 + 两阶段评审' },
-  { name: 'dispatching-parallel-agents', description: '独立任务并行派发' },
-  { name: 'lark-send-msg', namespace: '', description: '发送飞书消息（摘要通知）' },
-  { name: 'lark-md-to-doc', namespace: '', description: 'Markdown 转飞书文档（生成链接）' },
-];
-
-/**
  * Load using-bytecoding skill content
  * This establishes the fundamental rules for skill usage
  */
@@ -356,33 +342,6 @@ function loadUsingBytecodingSkill() {
 
 不要寻找不使用技能的理由。如果技能适用，就必须使用。
 `;
-}
-
-/**
- * Discover available skills in plugin/skills directory
- * Skills use flat structure (no core/ subdirectory)
- */
-function discoverAvailableSkills() {
-  const skillsDir = getSkillsDir();
-
-  if (!fs.existsSync(skillsDir)) {
-    return { core: [], available: false };
-  }
-
-  // Check skills in flat structure
-  const coreSkillsFound = [];
-
-  for (const skill of CORE_SKILLS) {
-    const skillPath = path.join(skillsDir, skill.name, 'SKILL.md');
-    if (fs.existsSync(skillPath)) {
-      coreSkillsFound.push(skill);
-    }
-  }
-
-  return {
-    core: coreSkillsFound,
-    available: true
-  };
 }
 
 /**
@@ -513,34 +472,6 @@ function getRepotalkUsageTip() {
 // ============================================================================
 
 /**
- * Build skills display section
- */
-function buildSkillsDisplay(skillsInfo) {
-  if (!skillsInfo.available || skillsInfo.core.length === 0) {
-    return `
-⚠️ **技能系统未就绪**
-
-核心技能文件尚未创建。请参考 \`plugin/BYTECODING_TECHNICAL_DESIGN.md\` 创建技能文件。
-`;
-  }
-
-  const skillsList = skillsInfo.core
-    .map((s) => {
-      const namespace = s.namespace === undefined ? 'bytecoding' : s.namespace;
-      const displayName = namespace ? `${namespace}:${s.name}` : s.name;
-      return `  - \`${displayName}\` - ${s.description}`;
-    })
-    .join('\n');
-
-  return `
-✅ **可用核心技能** (${skillsInfo.core.length}/${CORE_SKILLS.length}):
-${skillsList}
-
-💡 技能可以独立调用，或通过 Commands 自动触发。
-`;
-}
-
-/**
  * Build commands display section
  */
 function buildCommandsDisplay() {
@@ -560,7 +491,7 @@ ${commandsList}
 /**
  * Build welcome message with status information
  */
-function buildWelcomeMessage(skillsInfo) {
+function buildWelcomeMessage() {
   // Ensure directories and config exist (auto-initialize)
   const dirsCreated = ensureBytecodingDirs();
   const configCreated = ensureDefaultConfig();
@@ -629,7 +560,6 @@ ${statusSection}
 
 ${buildCommandsDisplay()}
 
-${buildSkillsDisplay(skillsInfo)}
 ---
 `;
 }
@@ -644,9 +574,6 @@ ${buildSkillsDisplay(skillsInfo)}
  * @returns {Object} Hook output with systemMessage and/or hookSpecificOutput
  */
 function handleSessionStart(input) {
-  // Discover available skills
-  const skillsInfo = discoverAvailableSkills();
-
   // Load using-bytecoding skill (establishes skill usage rules)
   const usingBytecodingSkill = loadUsingBytecodingSkill();
 
@@ -657,7 +584,7 @@ function handleSessionStart(input) {
   const repotalkUsageTip = getRepotalkUsageTip();
 
   // Build welcome message
-  const welcomeMessage = buildWelcomeMessage(skillsInfo);
+  const welcomeMessage = buildWelcomeMessage();
 
   // Build output
   const output = {

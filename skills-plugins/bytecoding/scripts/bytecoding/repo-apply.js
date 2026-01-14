@@ -9,6 +9,7 @@ const { execGit, requireGit, getProjectRoot, hasBranch } = require('./lib/git');
 const { changeDir } = require('./lib/paths');
 const { appendField, updateStatus } = require('./lib/planspec');
 const { nowUtcIso } = require('./lib/time');
+const { createRunLogger, registerRunLogger } = require('./lib/runlog');
 const {
   parseTasksFromMarkdown,
   loadTaskState,
@@ -74,6 +75,14 @@ function main() {
     die(`planspec not found: ${planspecPath}`);
   }
 
+  const logger = createRunLogger({
+    changeId,
+    changeDir: changeDirPath,
+    script: path.basename(__filename),
+    argv: process.argv.slice(2),
+  });
+  registerRunLogger(logger);
+
   const requiredFiles = ['proposal.md', 'design.md', 'tasks.md', 'planspec.yaml'];
   requiredFiles.forEach((file) => {
     const fullPath = path.join(changeDirPath, file);
@@ -129,6 +138,19 @@ function main() {
     }
 
     printTaskSummary(state, taskStatePath);
+    logger.finishOk({
+      change_id: changeId,
+      action: 'task-update',
+      task: updatedTask
+        ? {
+            id: updatedTask.id,
+            title: updatedTask.title,
+            status: updatedTask.status,
+          }
+        : null,
+      tasks_state: taskStatePath,
+      stats: state.stats,
+    });
     return;
   }
 
@@ -138,6 +160,13 @@ function main() {
     console.log(`change-id: ${changeId}`);
     console.log('status: completed');
     printTaskSummary(taskStateResult.state, taskStatePath);
+    logger.finishOk({
+      change_id: changeId,
+      action: 'mark-completed',
+      status: 'completed',
+      tasks_state: taskStatePath,
+      stats: taskStateResult.state.stats,
+    });
     return;
   }
 
@@ -161,6 +190,15 @@ function main() {
   console.log(`worktree: ${worktreeDir}`);
   console.log(`branch: ${branchName}`);
   printTaskSummary(taskStateResult.state, taskStatePath);
+
+  logger.finishOk({
+    change_id: changeId,
+    action: 'init-worktree',
+    worktree: worktreeDir,
+    branch: branchName,
+    tasks_state: taskStatePath,
+    stats: taskStateResult.state.stats,
+  });
 }
 
 main();

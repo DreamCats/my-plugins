@@ -55,10 +55,38 @@ function listWorktreesPorcelain() {
   return execGit(['worktree', 'list', '--porcelain']);
 }
 
+function readGitConfig(args, cwd) {
+  const output = execGit(['config', ...args], { cwd, allowFailure: true });
+  const trimmed = output.trim();
+  return trimmed ? trimmed : null;
+}
+
+function getGitIdentity(projectRoot) {
+  if (!projectRoot) {
+    return { source: 'missing', name: null, email: null };
+  }
+
+  const localEmail = readGitConfig(['user.email'], projectRoot);
+  const localName = readGitConfig(['user.name'], projectRoot);
+  if (localEmail || localName) {
+    return { source: 'local', name: localName, email: localEmail };
+  }
+
+  const globalEmail = readGitConfig(['--global', 'user.email'], projectRoot);
+  const globalName = readGitConfig(['--global', 'user.name'], projectRoot);
+  if (globalEmail || globalName) {
+    return { source: 'global', name: globalName, email: globalEmail };
+  }
+
+  return { source: 'missing', name: null, email: null };
+}
+
 module.exports = {
   execGit,
   requireGit,
   getProjectRoot,
   hasBranch,
   listWorktreesPorcelain,
+  readGitConfig,
+  getGitIdentity,
 };
