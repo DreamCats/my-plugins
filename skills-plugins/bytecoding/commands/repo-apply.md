@@ -1,7 +1,7 @@
 ---
 description: 执行落地（触发 git-worktrees + dispatching-parallel-agents + subagent-dev + 编译验证驱动）
 argument-hint: [change-id]
-allowed-tools: Bash(bash*), Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash(pnpm*), Bash(bun*), Bash(go*), Bash(lark-cli*), Bash(python3*), Read, Write, Edit, Glob, Grep, Task, TaskOutput
+allowed-tools: Bash(bash*), Bash(node*), Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash(pnpm*), Bash(bun*), Bash(go*), Bash(lark-cli*), Bash(python3*), Read, Write, Edit, Glob, Grep, Task, TaskOutput
 ---
 
 # /repo-apply 命令
@@ -43,14 +43,14 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"
 SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
 # Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
-if [ -x "$PLUGIN_ROOT/repo-apply.sh" ]; then
+if [ -f "$PLUGIN_ROOT/repo-apply.js" ]; then
   SCRIPT_DIR="$PLUGIN_ROOT"
 fi
-if [ ! -x "$SCRIPT_DIR/repo-apply.sh" ]; then
+if [ ! -f "$SCRIPT_DIR/repo-apply.js" ]; then
   echo "错误：找不到插件脚本，请确认插件路径"
   exit 1
 fi
-bash "$SCRIPT_DIR/repo-apply.sh" --change-id "$CHANGE_ID"
+node "$SCRIPT_DIR/repo-apply.js" --change-id "$CHANGE_ID"
 ```
 
 记录输出的 `worktree` 与 `branch`，后续步骤使用该工作区。
@@ -70,6 +70,30 @@ cat "$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.md"
 - 任务分组
 - 依赖关系
 - 预计时间
+
+## 步骤 2.5: 任务进度自动化（repo-apply.js 自动同步）
+
+执行步骤 1 时，脚本会自动解析 `tasks.md` 并生成进度状态文件：
+
+- `"$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/tasks.state.json"`
+
+该文件记录每个任务的 `pending/in_progress/completed` 状态、开始/完成时间与统计信息。
+
+**常用操作**（可在任意时间执行）：
+
+```bash
+# 标记任务开始
+node "$SCRIPT_DIR/repo-apply.js" --change-id "$CHANGE_ID" --task-start 1.1
+
+# 标记任务完成
+node "$SCRIPT_DIR/repo-apply.js" --change-id "$CHANGE_ID" --task-done 1.1
+
+# 重置任务状态
+node "$SCRIPT_DIR/repo-apply.js" --change-id "$CHANGE_ID" --task-reset 1.1
+
+# 查看任务统计
+node "$SCRIPT_DIR/repo-apply.js" --change-id "$CHANGE_ID" --task-status
+```
 
 ## 步骤 3: 使用 dispatching-parallel-agents 技能（可选）
 
@@ -216,14 +240,14 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"
 SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
 # Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
-if [ -x "$PLUGIN_ROOT/repo-apply.sh" ]; then
+if [ -f "$PLUGIN_ROOT/repo-apply.js" ]; then
   SCRIPT_DIR="$PLUGIN_ROOT"
 fi
-if [ ! -x "$SCRIPT_DIR/repo-apply.sh" ]; then
+if [ ! -f "$SCRIPT_DIR/repo-apply.js" ]; then
   echo "错误：找不到插件脚本，请确认插件路径"
   exit 1
 fi
-bash "$SCRIPT_DIR/repo-apply.sh" --change-id "$CHANGE_ID" --mark-completed
+node "$SCRIPT_DIR/repo-apply.js" --change-id "$CHANGE_ID" --mark-completed
 ```
 
 ## 步骤 7: 提交变更

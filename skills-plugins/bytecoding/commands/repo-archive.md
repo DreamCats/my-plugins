@@ -1,7 +1,7 @@
 ---
 description: 归档已完成的变更
 argument-hint: [change-id]
-allowed-tools: Bash(bash*), Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Bash(lark-cli*), Bash(python3*), Read, Glob, Grep
+allowed-tools: Bash(bash*), Bash(node*), Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Bash(lark-cli*), Bash(python3*), Read, Glob, Grep
 ---
 
 # /repo-archive 命令
@@ -34,16 +34,16 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"
 SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
 # Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
-if [ -x "$PLUGIN_ROOT/repo-archive.sh" ]; then
+if [ -f "$PLUGIN_ROOT/repo-archive.js" ]; then
   SCRIPT_DIR="$PLUGIN_ROOT"
 fi
-if [ ! -x "$SCRIPT_DIR/repo-archive.sh" ]; then
+if [ ! -f "$SCRIPT_DIR/repo-archive.js" ]; then
   echo "错误：找不到插件脚本，请确认插件路径"
   exit 1
 fi
 # 如需忽略 status 校验，设置 FORCE_FLAG="--force"
 FORCE_FLAG=""
-bash "$SCRIPT_DIR/repo-archive.sh" --change-id "$CHANGE_ID" $FORCE_FLAG
+node "$SCRIPT_DIR/repo-archive.js" --change-id "$CHANGE_ID" $FORCE_FLAG
 ```
 
 ## 步骤 2: 发送飞书摘要（使用 lark-send-msg）

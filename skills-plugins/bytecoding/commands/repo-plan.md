@@ -1,7 +1,7 @@
 ---
 description: 生成方案与 PlanSpec（触发 brainstorming + writing-plans 技能）
 argument-hint: [变更描述]
-allowed-tools: Bash(bash*), Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Bash(python3*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(bash*), Bash(node*), Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Bash(python3*), Read, Write, Edit, Glob, Grep
 ---
 
 # /repo-plan 命令
@@ -32,14 +32,14 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"
 SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
 # Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
-if [ -x "$PLUGIN_ROOT/repo-plan.sh" ]; then
+if [ -f "$PLUGIN_ROOT/repo-plan.js" ]; then
   SCRIPT_DIR="$PLUGIN_ROOT"
 fi
-if [ ! -x "$SCRIPT_DIR/repo-plan.sh" ]; then
+if [ ! -f "$SCRIPT_DIR/repo-plan.js" ]; then
   echo "错误：找不到插件脚本，请确认插件路径"
   exit 1
 fi
-bash "$SCRIPT_DIR/repo-plan.sh" --desc "$ARGUMENTS"
+node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
 ```
 
 **必须先执行完此脚本再进入下一步**。记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。若脚本失败，先排查报错原因，不要直接进入 brainstorming。
