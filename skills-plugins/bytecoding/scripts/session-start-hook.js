@@ -5,7 +5,6 @@
  *
  * This hook runs when a Claude Code session starts and provides:
  * - Welcome message with plugin status
- * - Loads the using-bytecoding skill to establish skill usage rules
  * - Checks Repotalk Cookie configuration
  * - Lists available commands
  * - User and project configuration status
@@ -284,64 +283,8 @@ function getPluginRootDir() {
   return path.resolve(__dirname, '..');
 }
 
-function getSkillsDir() {
-  return path.join(getPluginRootDir(), 'skills');
-}
-
-// Note: Skills use flat structure, no core/ subdirectory
-// function getCoreSkillsDir() {
-//   return path.join(getSkillsDir(), 'core');
-// }
-
 function getMcpConfigPath() {
   return path.join(getPluginRootDir(), '.mcp.json');
-}
-
-// ============================================================================
-// Skill Loading
-// ============================================================================
-
-/**
- * Load using-bytecoding skill content
- * This establishes the fundamental rules for skill usage
- */
-function loadUsingBytecodingSkill() {
-  const skillPath = path.join(getSkillsDir(), 'using-bytecoding', 'SKILL.md');
-
-  if (fs.existsSync(skillPath)) {
-    try {
-      return fs.readFileSync(skillPath, 'utf-8');
-    } catch (error) {
-      return '';
-    }
-  }
-
-  // Fallback: Basic skill usage rules if file doesn't exist yet
-  return `
-## Bytecoding 技能使用规则
-
-**核心原则**：如果技能适用，就必须使用（即使只有 1% 的可能性）
-
-### 技能触发时机
-
-1. **需求讨论** → 使用 \`bytecoding:brainstorming\`
-2. **生成方案** → 使用 \`/repo-plan\` 命令（自动触发 brainstorming + writing-plans）
-3. **执行变更** → 使用 \`/repo-apply\` 命令（自动触发相关技能链）
-4. **编写代码** → 使用 \`bytecoding:test-driven-development\`
-
-### Commands vs Skills
-
-- **Commands** (\`/repo-plan\`, \`/repo-apply\`) - 顶层操作，批量触发技能
-- **Skills** - 可独立调用，提供流程指导和 MCP 工具编排
-
-### MCP 工具使用
-
-- **本地搜索** - Glob/Grep 工具
-- **Repotalk 搜索** - repotalk MCP 工具（搜索字节内部代码库）
-- **综合分析** - 结合两者结果，识别最佳实践
-
-不要寻找不使用技能的理由。如果技能适用，就必须使用。
-`;
 }
 
 /**
@@ -574,9 +517,6 @@ ${buildCommandsDisplay()}
  * @returns {Object} Hook output with systemMessage and/or hookSpecificOutput
  */
 function handleSessionStart(input) {
-  // Load using-bytecoding skill (establishes skill usage rules)
-  const usingBytecodingSkill = loadUsingBytecodingSkill();
-
   // Check Repotalk Cookie
   const cookieTip = checkRepotalkAuth();
 
@@ -593,13 +533,6 @@ function handleSessionStart(input) {
 
   // Add skill rules to additional context
   const additionalContextParts = [];
-
-  if (usingBytecodingSkill) {
-    additionalContextParts.push(`
-## Bytecoding 技能系统规则
-${usingBytecodingSkill}
-`);
-  }
 
   if (cookieTip) {
     additionalContextParts.push(cookieTip);
