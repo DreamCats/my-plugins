@@ -164,7 +164,7 @@ node "$SCRIPT_DIR/repo-plan-send.js" \
 
 ## 下一步
 
-使用 `/repo-apply $CHANGE_ID` 命令来执行这个变更。
+使用 `/bytecoding:repo-apply $CHANGE_ID` 命令来执行这个变更。
 
 ## 目录结构
 

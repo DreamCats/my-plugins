@@ -384,6 +384,11 @@ Grep: "router.*Handle" path/to/candidate/dir
 
 - 安全考虑 1
 - 安全考虑 2
+
+## 验证与发布
+
+- 验证方式：编译/构建或手动验证（默认不写单元测试，除非用户明确要求）
+- 发布策略：小流量/灰度/逐步放量
 ```
 
 **重要**：
@@ -391,6 +396,7 @@ Grep: "router.*Handle" path/to/candidate/dir
 - 本技能只负责生成 `proposal.md` 和 `design.md`
 - `tasks.md` 由 `writing-plans` 技能负责生成
 - `planspec.yaml` 由 `repo-plan` 命令负责生成
+- 如无明确要求，不在 design.md 的迁移/发布/验证步骤中加入单元测试
 
 ---
 

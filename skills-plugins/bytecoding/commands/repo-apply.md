@@ -100,11 +100,13 @@ node "$SCRIPT_DIR/repo-apply.js" --change-id "$CHANGE_ID" --task-status
 当任务**彼此独立**且可并行时，先使用 **bytecoding:dispatching-parallel-agents** 并行派发子代理。
 
 **并行判断标准**：
+
 - 任务之间无顺序依赖
 - 不修改同一文件/同一函数
 - 不共享全局状态
 
 **执行流程**：
+
 1. 按文件/子系统分组任务
 2. 为每组编写 Task Prompt（包含 worktree 路径）
 3. 并行派发 Task
@@ -338,4 +340,4 @@ node "$SCRIPT_DIR/repo-apply-lark.js" \
 
 ## 下一步
 
-使用 `/repo-archive $CHANGE_ID` 命令来归档已完成的变更。
+使用 `/bytecoding:repo-archive $CHANGE_ID` 命令来归档已完成的变更。

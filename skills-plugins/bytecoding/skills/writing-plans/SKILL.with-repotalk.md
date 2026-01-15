@@ -7,6 +7,8 @@ description: Use when converting design documents into executable task lists. Th
 
 通过强制工作流和双源参考搜索，将设计方案转化为可执行的任务列表。
 
+**默认策略**：除非用户明确要求，否则不安排单元测试任务；验证以编译/构建或手动验证为主。
+
 ## 工作流程检查清单（强制执行）
 
 **复制或者 使用 "TodoWrite" 以下检查清单并跟踪进度：**
@@ -45,7 +47,7 @@ Read: .bytecoding/changes/$CHANGE_ID/design.md
 - [ ] 数据模型变更
 - [ ] API 端点变更
 - [ ] 安全考虑事项
-- [ ] 测试策略
+- [ ] 验证策略（默认不写单元测试）
 
 **在继续下一步之前，确认已完全理解设计文档。**
 
@@ -80,7 +82,7 @@ Grep: "async.*generate"
 Grep: "async.*verify"
 ```
 
-**查找测试模式**：
+**可选：查找验证/测试模式（仅当用户要求）**：
 
 ```bash
 # 查找测试文件
@@ -96,7 +98,7 @@ Grep: "it.*should.*"
 
 - [ ] 为每个模型找到参考模型
 - [ ] 为每个服务找到参考服务
-- [ ] 为每个测试找到参考测试
+- [ ] 如需测试，为测试找到参考测试
 - [ ] 记录参考文件的相对路径（以仓库根为准）
 
 ---
@@ -182,7 +184,7 @@ repotalk.search_nodes({
 | -------- | ---------------------------------- | ---------------- |
 | 模型创建 | `src/models/User.ts`               | TypeORM 模型模式 |
 | 服务方法 | `src/services/EmailService.ts`     | 异步方法实现     |
-| 测试编写 | `src/services/UserService.test.ts` | Jest 测试模式    |
+| 验证参考 | `src/services/UserService.test.ts` | 参考验证模式     |
 
 ### Repotalk 参考（字节内部）
 
@@ -196,7 +198,7 @@ repotalk.search_nodes({
 
 1. **模型设计**：采用本地 TypeORM 模式（参考 User.ts）
 2. **令牌生成**：采纳 Repotalk 的 crypto/rand 方案
-3. **测试策略**：复用本地 Jest 模式，增加边界测试
+3. **验证策略**：复用本地验证模式（如有），默认不写单元测试
 ```
 
 **分析要点**：
@@ -221,7 +223,7 @@ repotalk.search_nodes({
 - [ ] 实现 `generateToken()` 方法（生成 6 位数字）
 - [ ] 实现 `hashToken()` 方法（使用 bcrypt）
 - [ ] 实现 `verifyToken()` 方法（验证令牌）
-- [ ] 为 `EmailVerificationToken` 编写单元测试
+- [ ] 记录验证方式（编译/构建或手动验证）
 ```
 
 **❌ 错误的粒度（太大）**
@@ -338,7 +340,7 @@ repotalk.search_nodes({
 - 阶段 1: 数据模型 (X 个任务)
 - 阶段 2: 服务层 (X 个任务)
 - 阶段 3: API 层 (X 个任务)
-- 阶段 4: 测试 (X 个任务)
+- 阶段 4: 验证 (X 个任务)
 
 ---
 
@@ -409,7 +411,7 @@ export class EmailVerificationToken {
 ## 完成标准
 
 - [ ] 所有任务完成
-- [ ] 所有测试通过
+- [ ] 验证通过（编译/构建或手动验证）
 - [ ] 代码审查通过
 - [ ] 设计文档一致性确认
 
@@ -541,14 +543,14 @@ repotalk.get_files_detail({
 
 ### 参考搜索结果
 
-- 本地：找到 5 个参考文件（模型、服务、测试）
+- 本地：找到 5 个参考文件（模型、服务、验证）
 - Repotalk：找到 2 个参考实现（令牌生成、哈希存储）
 
 ### 任务拆分
 
 - 总任务数：18
 - 预计时间：45-60 分钟
-- 任务分组：数据模型(4) + 服务层(6) + API 层(4) + 测试(4)
+- 任务分组：数据模型(4) + 服务层(6) + API 层(4) + 验证(4)
 
 ### 生成的文档
 
