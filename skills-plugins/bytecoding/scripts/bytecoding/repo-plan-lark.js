@@ -35,21 +35,6 @@ function printUsage() {
   );
 }
 
-function resolvePluginRoot() {
-  const envRoot = process.env.CLAUDE_PLUGIN_ROOT;
-  if (!envRoot) {
-    return path.resolve(__dirname, '..', '..');
-  }
-  const resolved = path.resolve(envRoot);
-  if (
-    path.basename(resolved) === 'bytecoding' &&
-    path.basename(path.dirname(resolved)) === 'scripts'
-  ) {
-    return path.resolve(resolved, '..', '..');
-  }
-  return resolved;
-}
-
 function ensureFile(filePath) {
   if (!fs.existsSync(filePath)) {
     die(`required file not found: ${filePath}`);
@@ -83,7 +68,7 @@ function runRender(scriptPath, options) {
   }
 
   try {
-    const stdout = execFileSync('python3', args, { encoding: 'utf8' });
+    const stdout = execFileSync(process.execPath, args, { encoding: 'utf8' });
     return parseDocOutput(stdout, options.docId);
   } catch (error) {
     if (error.stdout) {
@@ -193,14 +178,7 @@ function main() {
   ensureFile(designPath);
   ensureFile(tasksPath);
 
-  const pluginRoot = resolvePluginRoot();
-  const renderScript = path.join(
-    pluginRoot,
-    'skills',
-    'lark-md-to-doc',
-    'scripts',
-    'render_lark_doc.py'
-  );
+  const renderScript = path.join(__dirname, 'lark', 'render-lark-doc.js');
 
   ensureFile(renderScript);
 

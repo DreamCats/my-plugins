@@ -1,7 +1,7 @@
 ---
 description: 生成方案与 PlanSpec（触发 brainstorming + writing-plans 技能）
 argument-hint: [变更描述]
-allowed-tools: Bash(bash*), Bash(node*), Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Bash(python3*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(bash*), Bash(node*), Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Read, Write, Edit, Glob, Grep
 ---
 
 # /repo-plan 命令
@@ -18,7 +18,8 @@ Repo-Plan Progress:
 - [ ] 步骤 2: brainstorming - 需求精化与方案设计
 - [ ] 步骤 3: writing-plans - 生成任务列表
 - [ ] 步骤 4: 确认 PlanSpec - 核对 change-id 与产出文件
-- [ ] 步骤 5: lark-md-to-doc - 转换 proposal/design/tasks 并获取链接
+- [ ] 步骤 5: repo-plan-lark.js - 转换 proposal/design/tasks 并获取链接
+- [ ] 步骤 6: repo-plan-send.js - 发送飞书摘要
 ```
 
 **重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
@@ -98,16 +99,15 @@ node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
 
 脚本已创建 PlanSpec，进入下一步即可。
 
-## 步骤 5: 转换 Markdown 文档（使用 lark-md-to-doc）
+## 步骤 5: 转换 Markdown 文档（使用 repo-plan-lark.js）
 
-当摘要包含 Markdown 文档时（本命令固定包含 `proposal.md`/`design.md`/`tasks.md`），先用 **lark-md-to-doc** 将文档转为飞书文档，并记录返回的文档链接。
+当摘要包含 Markdown 文档时（本命令固定包含 `proposal.md`/`design.md`/`tasks.md`），使用 **repo-plan-lark.js** 批量渲染并记录文档链接。脚本会调用插件内渲染器，避免技能重名冲突。
 
 **标题规范**：`[repo-plan] $CHANGE_ID <文档名>`（如 `proposal`/`design`/`tasks`）。
 
 **执行方式**：
 
-1. 通过 `Skill(lark-md-to-doc)` 确认调用方式。
-2. 使用批量脚本渲染并回写 PlanSpec（示例）：
+使用批量脚本渲染并回写 PlanSpec（示例）：
 
 ```bash
 node "$SCRIPT_DIR/repo-plan-lark.js" \
@@ -128,30 +128,28 @@ node "$SCRIPT_DIR/repo-plan-lark.js" \
   --share-notify
 ```
 
-## 步骤 6: 发送飞书摘要（使用 lark-send-msg）
+## 步骤 6: 发送飞书摘要（使用 repo-plan-send.js）
 
-在命令结束后，使用 **lark-send-msg** 技能**生成消息内容并执行发送**（通过 Skill 工具调用 + `lark-cli send-message`）。
+在命令结束后，使用 **repo-plan-send.js** 发送飞书摘要。
 
-**接收人**：使用 SessionStart Hook 展示的 Git 用户邮箱（`user.email`）。  
-**如果未配置邮箱**：提示用户补充邮箱后再发送。
+**接收人**：默认使用 `planspec.yaml` 的 `lark_email`（初始化时取 Git 用户邮箱）。  
+**如果未配置邮箱**：提示用户补充邮箱或使用 `--receive-id` 覆盖。
 
 **摘要内容建议**：
 
 - 变更 ID
 - 规划产出（proposal/design/tasks）
-- 文档链接（由 `lark-md-to-doc` 生成）
+- 文档链接（由 `repo-plan-lark.js` 生成）
 - 下一步建议（`/repo-apply $CHANGE_ID`）
 
-**执行方式**：
-
-1. 通过 `Skill(lark-send-msg)` 选择 `msg_type` 并生成单行 `content` JSON。
-2. 执行发送（示例）：
+**执行方式**（示例）：
 
 ```bash
-lark-cli send-message --receive-id-type email --msg-type text "$GIT_EMAIL" '{"text":"变更 ID: ...\n产出: proposal/design/tasks\n下一步: /repo-apply ..."}'
+node "$SCRIPT_DIR/repo-plan-send.js" \
+  --change-id "$CHANGE_ID"
 ```
 
-如需富文本排版，请使用 `msg_type=post` 并按 `lark-send-msg` 的结构生成 JSON。
+如需自定义接收人或格式，可追加 `--receive-id`/`--receive-id-type`/`--msg-type` 等参数。
 
 ## 完成标志
 

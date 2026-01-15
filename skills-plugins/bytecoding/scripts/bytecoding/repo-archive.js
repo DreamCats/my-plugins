@@ -8,9 +8,9 @@ const { die } = require('./lib/errors');
 const { execGit, requireGit, getProjectRoot, hasBranch } = require('./lib/git');
 const { changeDir, archiveRoot } = require('./lib/paths');
 const { appendField, readStatus, updateStatus, readPlanspec } = require('./lib/planspec');
+const { sendMessage } = require('./lib/lark/message');
 const { nowUtcIso } = require('./lib/time');
 const { findWorktreeByBranch } = require('./lib/worktree');
-const { execFileSync } = require('child_process');
 const { createRunLogger, registerRunLogger } = require('./lib/runlog');
 
 function printUsage() {
@@ -243,36 +243,6 @@ function buildLarkMarkdown(data) {
   return lines.join('\n');
 }
 
-function sendLarkMessage(receiveId, receiveIdType, msgType, title, markdown, dryRun) {
-  const content =
-    msgType === 'post'
-      ? {
-          zh_cn: {
-            title,
-            content: [[{ tag: 'md', text: markdown }]],
-          },
-        }
-      : { text: markdown };
-
-  const payload = JSON.stringify(content);
-  const args = [
-    'send-message',
-    '--receive-id-type',
-    receiveIdType,
-    '--msg-type',
-    msgType,
-    receiveId,
-    payload,
-  ];
-
-  if (dryRun) {
-    console.log(`dry-run: lark-cli ${args.join(' ')}`);
-    return;
-  }
-
-  execFileSync('lark-cli', args, { stdio: 'inherit' });
-}
-
 function main() {
   const { flags, positionals } = parseArgs(process.argv.slice(2));
   if (flags.h || flags.help) {
@@ -385,7 +355,14 @@ function main() {
       commits,
       verifications,
     });
-    sendLarkMessage(receiveId, receiveIdType, msgType, title, markdown, dryRun);
+    sendMessage({
+      receiveId,
+      receiveIdType,
+      msgType,
+      title,
+      text: markdown,
+      dryRun,
+    });
   }
 
   console.log(`change-id: ${changeId}`);

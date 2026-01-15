@@ -1,7 +1,7 @@
 ---
 description: 归档已完成的变更
 argument-hint: [change-id]
-allowed-tools: Bash(bash*), Bash(node*), Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Bash(lark-cli*), Bash(python3*), Read, Glob, Grep
+allowed-tools: Bash(bash*), Bash(node*), Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Bash(lark-cli*), Read, Glob, Grep
 ---
 
 # /repo-archive 命令
@@ -14,8 +14,7 @@ allowed-tools: Bash(bash*), Bash(node*), Bash(git*), Bash(mv*), Bash(rm*), Bash(
 
 ```
 Repo-Archive Progress:
-- [ ] 步骤 1: 运行脚本归档
-- [ ] 步骤 2: lark-send-msg - 发送飞书摘要
+- [ ] 步骤 1: 运行脚本归档 + 生成总结 + 发送飞书摘要
 ```
 
 **重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
@@ -26,7 +25,7 @@ Repo-Archive Progress:
 
 ## 步骤 1: 运行脚本归档（推荐）
 
-脚本会完成归档目录移动、PlanSpec 更新与 Worktree 清理：
+脚本会完成归档目录移动、PlanSpec 更新、生成 `archive-summary.md`、发送飞书摘要与 Worktree 清理：
 
 ```bash
 CHANGE_ID="${1:-$ARGUMENTS}"
@@ -43,33 +42,14 @@ if [ ! -f "$SCRIPT_DIR/repo-archive.js" ]; then
 fi
 # 如需忽略 status 校验，设置 FORCE_FLAG="--force"
 FORCE_FLAG=""
-node "$SCRIPT_DIR/repo-archive.js" --change-id "$CHANGE_ID" $FORCE_FLAG
+node "$SCRIPT_DIR/repo-archive.js" \
+  --change-id "$CHANGE_ID" \
+  --verify "go build ./...: pass" \
+  --verify "e2e: pass" \
+  $FORCE_FLAG
 ```
 
-## 步骤 2: 发送飞书摘要（使用 lark-send-msg）
-
-在命令结束后，使用 **lark-send-msg** 技能**生成消息内容并执行发送**（通过 Skill 工具调用 + `lark-cli send-message`）。
-
-**接收人**：使用 SessionStart Hook 展示的 Git 用户邮箱（`user.email`）。  
-**如果未配置邮箱**：提示用户补充邮箱后再发送。
-
-**摘要内容建议**：
-
-- 变更 ID
-- 归档时间
-- 归档位置
-- 是否清理 Worktree/分支
-
-**执行方式**：
-
-1. 通过 `Skill(lark-send-msg)` 选择 `msg_type` 并生成单行 `content` JSON。
-2. 执行发送（示例）：
-
-```bash
-lark-cli send-message --receive-id-type email --msg-type text "$GIT_EMAIL" '{"text":"变更 ID: ...\n归档时间: ...\n归档位置: ...\n清理: worktree/分支已处理"}'
-```
-
-如需富文本排版，请使用 `msg_type=post` 并按 `lark-send-msg` 的结构生成 JSON。
+**说明**：脚本默认会基于 `planspec.yaml` 的 `lark_docs` / `mr_url` / `lark_email` 组装消息并发送；如需跳过发送，传 `--no-lark`。
 
 ## 完成标志
 
@@ -77,8 +57,9 @@ lark-cli send-message --receive-id-type email --msg-type text "$GIT_EMAIL" '{"te
 
 - [x] 变更目录已移动到 archive/
 - [x] PlanSpec 状态已更新为 archived
+- [x] 已生成 `archive-summary.md`
 - [x] Worktree 已清理（如果存在）
-- [x] 已执行 `lark-cli send-message` 发送飞书摘要（如 git 邮箱可用）
+- [x] 已执行 `lark-cli send-message` 发送飞书摘要（如 lark_email 可用）
 
 ## 归档目录结构
 
@@ -89,6 +70,7 @@ lark-cli send-message --receive-id-type email --msg-type text "$GIT_EMAIL" '{"te
 │       ├── archive/          # 已归档的变更
 │       │   ├── change-email-verification-20250112/
 │       │   │   ├── planspec.yaml
+│       │   │   ├── archive-summary.md
 │       │   │   ├── proposal.md
 │       │   │   ├── design.md
 │       │   │   └── tasks.md

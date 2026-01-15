@@ -1,7 +1,7 @@
 ---
 description: 执行落地（触发 git-worktrees + dispatching-parallel-agents + subagent-dev + 编译验证驱动）
 argument-hint: [change-id]
-allowed-tools: Bash(bash*), Bash(node*), Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash(pnpm*), Bash(bun*), Bash(go*), Bash(lark-cli*), Bash(python3*), Read, Write, Edit, Glob, Grep, Task, TaskOutput
+allowed-tools: Bash(bash*), Bash(node*), Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash(pnpm*), Bash(bun*), Bash(go*), Bash(lark-cli*), Read, Write, Edit, Glob, Grep, Task, TaskOutput
 ---
 
 # /repo-apply 命令
@@ -21,7 +21,7 @@ Repo-Apply Progress:
 - [ ] 步骤 5: test-driven-development - 编译验证
 - [ ] 步骤 6: 标记 PlanSpec 状态为 completed
 - [ ] 步骤 7: 提交变更
-- [ ] 步骤 8: lark-send-msg - 发送飞书摘要
+- [ ] 步骤 8: repo-apply-lark.js - 发送飞书摘要
 ```
 
 **重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
@@ -284,12 +284,12 @@ node "$SCRIPT_DIR/repo-apply-git.js" \
 - 如果 `git push` 输出中包含 merge request 创建链接（例如 `https://.../merge_requests/new?...`），脚本会写入 `planspec.yaml` 的 `mr_url`
 - 如果未输出链接，脚本会提示 `mr_url: not found in push output`
 
-## 步骤 8: 发送飞书摘要（使用 lark-send-msg）
+## 步骤 8: 发送飞书摘要（使用 repo-apply-lark.js）
 
-在命令结束后，使用 **lark-send-msg** 技能**生成消息内容并执行发送**（通过 Skill 工具调用 + `lark-cli send-message`）。
+在命令结束后，使用 **repo-apply-lark.js** 发送飞书摘要。
 
-**接收人**：使用 SessionStart Hook 展示的 Git 用户邮箱（`user.email`）。  
-**如果未配置邮箱**：提示用户补充邮箱后再发送。
+**接收人**：默认使用 `planspec.yaml` 的 `lark_email`（初始化时取 Git 用户邮箱）。  
+**如果未配置邮箱**：提示用户补充邮箱或使用 `--receive-id` 覆盖。
 
 **摘要内容建议**：
 
@@ -299,10 +299,7 @@ node "$SCRIPT_DIR/repo-apply-git.js" \
 - 提交信息（commit）
 - 推送链接（MR 链接，如有）
 
-**执行方式**：
-
-1. 通过 `Skill(lark-send-msg)` 确认消息结构与 `msg_type`。
-2. 使用脚本自动组装并发送（示例）：
+**执行方式**（示例）：
 
 ```bash
 CHANGE_ID="${1:-$ARGUMENTS}"
@@ -324,6 +321,8 @@ node "$SCRIPT_DIR/repo-apply-lark.js" \
 ```
 
 脚本会读取 `planspec.yaml` 的 `lark_docs` 与 `mr_url` 组装摘要并直接发送。接收人默认使用 `lark_email`（由 repo-plan 初始化），可用 `--receive-id` 覆盖。
+
+如需自定义接收人或格式，可追加 `--receive-id`/`--receive-id-type`/`--msg-type` 等参数。
 
 ## 完成标志
 

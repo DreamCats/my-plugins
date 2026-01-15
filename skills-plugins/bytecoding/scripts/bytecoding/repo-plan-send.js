@@ -14,16 +14,16 @@ const { createRunLogger, registerRunLogger } = require('./lib/runlog');
 function printUsage() {
   console.log(
     [
-      'usage: repo-apply-lark.js --change-id <id> [options]',
+      'usage: repo-plan-send.js --change-id <id> [options]',
       '',
       'options:',
       '  --receive-id <id>          Receiver id (email/open_id/etc)',
       '  --receive-id-type <type>   email|open_id|user_id|union_id|chat_id (default: email)',
       '  --msg-type <type>          text|post (default: post)',
-      '  --title <text>             Post title (default: Repo Apply Summary: <change-id>)',
-      '  --verify <text>            Verification line (repeatable)',
-      '  --verify-file <path>       File with verification lines',
+      '  --title <text>             Post title (default: Repo Plan Summary: <change-id>)',
+      '  --next-step <text>         Override next step (default: /repo-apply <change-id>)',
       '  --dry-run                  Print command without sending',
+      '  --verbose                  Verbose lark-cli output',
     ].join('\n')
   );
 }
@@ -32,30 +32,6 @@ function ensureFile(filePath) {
   if (!fs.existsSync(filePath)) {
     die(`required file not found: ${filePath}`);
   }
-}
-
-function readVerifyLines(flags) {
-  const lines = [];
-  const verifyFlag = flags.verify;
-  if (verifyFlag) {
-    if (Array.isArray(verifyFlag)) {
-      lines.push(...verifyFlag);
-    } else {
-      lines.push(verifyFlag);
-    }
-  }
-
-  const verifyFile = flags['verify-file'];
-  if (verifyFile) {
-    const content = fs.readFileSync(verifyFile, 'utf8');
-    content.split(/\r?\n/).forEach((line) => {
-      if (line.trim()) {
-        lines.push(line.trim());
-      }
-    });
-  }
-
-  return lines.map((line) => line.trim()).filter(Boolean);
 }
 
 function formatDocLine(label, doc) {
@@ -71,47 +47,35 @@ function formatDocLine(label, doc) {
 function buildMarkdown(summary) {
   const lines = [];
   lines.push(`**Change ID**: ${summary.changeId}`);
+  if (summary.description) {
+    lines.push('');
+    lines.push('**Description**:');
+    lines.push(summary.description.trim());
+  }
   lines.push('');
   lines.push('**Artifacts**:');
   lines.push(formatDocLine('proposal', summary.larkDocs.proposal));
   lines.push(formatDocLine('design', summary.larkDocs.design));
   lines.push(formatDocLine('tasks', summary.larkDocs.tasks));
   lines.push('');
-  lines.push('**MR**:');
-  if (summary.mrUrl) {
-    lines.push(`- [${summary.mrUrl}](${summary.mrUrl})`);
-  } else {
-    lines.push('- not found');
-  }
-  lines.push('');
-  lines.push('**Verification**:');
-  if (summary.verifications.length) {
-    summary.verifications.forEach((line) => {
-      lines.push(`- ${line}`);
-    });
-  } else {
-    lines.push('- not provided');
-  }
+  lines.push('**Next Step**:');
+  lines.push(`- ${summary.nextStep}`);
   return lines.join('\n');
 }
 
 function buildText(summary) {
   const lines = [];
   lines.push(`Change ID: ${summary.changeId}`);
+  if (summary.description) {
+    lines.push('Description:');
+    lines.push(summary.description.trim());
+  }
   lines.push('Artifacts:');
   lines.push(formatDocLine('proposal', summary.larkDocs.proposal));
   lines.push(formatDocLine('design', summary.larkDocs.design));
   lines.push(formatDocLine('tasks', summary.larkDocs.tasks));
-  lines.push('MR:');
-  lines.push(summary.mrUrl || 'not found');
-  lines.push('Verification:');
-  if (summary.verifications.length) {
-    summary.verifications.forEach((line) => {
-      lines.push(`- ${line}`);
-    });
-  } else {
-    lines.push('- not provided');
-  }
+  lines.push('Next Step:');
+  lines.push(summary.nextStep);
   return lines.join('\n');
 }
 
@@ -148,29 +112,30 @@ function main() {
     die('missing receiver id; use --receive-id or set lark_email in planspec');
   }
 
-  const verifications = readVerifyLines(flags);
-  const summary = {
-    changeId,
-    larkDocs: planspec.lark_docs || {},
-    mrUrl: planspec.mr_url || '',
-    verifications,
-  };
-
   const msgType = flags['msg-type'] || 'post';
   if (!['post', 'text'].includes(msgType)) {
     die(`unsupported msg-type: ${msgType}`);
   }
-  const title = flags.title || `Repo Apply Summary: ${changeId}`;
-  const markdown = msgType === 'post' ? buildMarkdown(summary) : buildText(summary);
-  const dryRun = isTruthyFlag(flags['dry-run']);
+
+  const nextStep = flags['next-step'] || `/repo-apply ${changeId}`;
+  const summary = {
+    changeId,
+    description: planspec.description || '',
+    larkDocs: planspec.lark_docs || {},
+    nextStep,
+  };
+
+  const title = flags.title || `Repo Plan Summary: ${changeId}`;
+  const text = msgType === 'post' ? buildMarkdown(summary) : buildText(summary);
 
   sendMessage({
     receiveId,
     receiveIdType,
     msgType,
     title,
-    text: markdown,
-    dryRun,
+    text,
+    dryRun: isTruthyFlag(flags['dry-run']),
+    verbose: isTruthyFlag(flags.verbose),
   });
 
   logger.finishOk({
@@ -178,8 +143,6 @@ function main() {
     receive_id_type: receiveIdType,
     receive_id: receiveId,
     msg_type: msgType,
-    verifications: verifications.length,
-    mr_url: summary.mrUrl || '',
   });
 }
 
