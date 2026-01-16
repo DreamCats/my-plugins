@@ -411,6 +411,21 @@ function getRepotalkUsageTip() {
 }
 
 /**
+ * Get default CLAUDE.md template content
+ */
+function getClaudeMdTemplate() {
+  return `# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with this repository.
+
+## Repository Overview
+
+在此处添加您的仓库概述信息...
+
+`;
+}
+
+/**
  * LSP Guidelines content to be injected into CLAUDE.md
  */
 function getLspGuidelines() {
@@ -449,16 +464,16 @@ function getLspGuidelines() {
 ### 示例
 
 **传统方式（不推荐）**：
-\\\`\\\`\\\`bash
+\`\`\`bash
 # 查找函数调用 - 可能匹配到注释、字符串中的同名文本
 grep -r "myFunction" src/
-\\\`\\\`\\\`
+\`\`\`
 
 **LSP 方式（推荐）**：
-\\\`\\\`\\\`
+\`\`\`
 # 使用 LSP 查找所有引用 - 精确定位到代码引用
 textDocument/references { textDocument: { uri: "file:///path/to/file.ts" }, position: { line: 10, character: 5 } }
-\\\`\\\`\\\`
+\`\`\`
 
 ### 注意事项
 
@@ -472,7 +487,8 @@ textDocument/references { textDocument: { uri: "file:///path/to/file.ts" }, posi
 
 /**
  * Check and ensure LSP guidelines in CLAUDE.md
- * @returns {Object} { updated: boolean, path: string|null }
+ * Creates CLAUDE.md if it doesn't exist
+ * @returns {Object} { updated: boolean, path: string|null, reason: string }
  */
 function checkAndEnsureLspGuidelines() {
   const gitRoot = findGitRoot(process.cwd());
@@ -481,14 +497,26 @@ function checkAndEnsureLspGuidelines() {
   }
 
   const claudeMdPath = path.join(gitRoot, 'CLAUDE.md');
+  const lspStartMarker = '<< ------- lsp intro start ------->>';
+  const lspEndMarker = '<< ------- lsp intro end ------->>';
+
+  let content = '';
 
   // Check if CLAUDE.md exists
   if (!fs.existsSync(claudeMdPath)) {
-    return { updated: false, path: claudeMdPath, reason: 'no-claude-md' };
+    // Create CLAUDE.md with template and LSP guidelines
+    const template = getClaudeMdTemplate();
+    const lspGuidelines = getLspGuidelines();
+
+    try {
+      fs.writeFileSync(claudeMdPath, template + lspGuidelines);
+      return { updated: true, path: claudeMdPath, reason: 'created' };
+    } catch (error) {
+      return { updated: false, path: claudeMdPath, reason: 'create-failed' };
+    }
   }
 
   // Read existing content
-  let content = '';
   try {
     content = fs.readFileSync(claudeMdPath, 'utf-8');
   } catch (error) {
@@ -496,9 +524,6 @@ function checkAndEnsureLspGuidelines() {
   }
 
   // Check if LSP guidelines already exist
-  const lspStartMarker = '<< ------- lsp intro start ------->>';
-  const lspEndMarker = '<< ------- lsp intro end ------->>';
-
   if (content.includes(lspStartMarker) && content.includes(lspEndMarker)) {
     return { updated: false, path: claudeMdPath, reason: 'already-exists' };
   }
@@ -597,12 +622,12 @@ function buildWelcomeMessage(lspCheckResult = null) {
 
   // Add LSP guidelines check status
   if (lspCheckResult) {
-    if (lspCheckResult.updated) {
+    if (lspCheckResult.reason === 'created') {
+      statusInfo += `\n📝 **CLAUDE.md**: ✅ 已创建并添加 LSP 准则`;
+    } else if (lspCheckResult.reason === 'added') {
       statusInfo += `\n📝 **CLAUDE.md**: ✅ 已添加 LSP 准则`;
     } else if (lspCheckResult.reason === 'already-exists') {
       statusInfo += `\n📝 **CLAUDE.md**: ✅ LSP 准则已存在`;
-    } else if (lspCheckResult.reason === 'no-claude-md') {
-      // No CLAUDE.md found, silent skip
     }
   }
 
@@ -614,7 +639,11 @@ function buildWelcomeMessage(lspCheckResult = null) {
     initMessage += '\n🧹 已更新 .gitignore（添加 .bytecoding，避免误提交）。';
   }
   if (lspCheckResult && lspCheckResult.updated) {
-    initMessage += '\n📚 已在 CLAUDE.md 中添加 LSP 定位与查询准则。';
+    if (lspCheckResult.reason === 'created') {
+      initMessage += '\n📚 已创建 CLAUDE.md 并添加 LSP 定位与查询准则。';
+    } else {
+      initMessage += '\n📚 已在 CLAUDE.md 中添加 LSP 定位与查询准则。';
+    }
   }
 
   // Build status section
