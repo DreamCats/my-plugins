@@ -324,4 +324,4 @@ node "$SCRIPT_DIR/repo-apply-lark.js" \
 
 ## 下一步
 
-使用 `/bytecoding:repo-archive $CHANGE_ID` 命令来归档已完成的变更。
+先使用 `/compact` 命令压缩变更目录，然后再使用 `/bytecoding:repo-archive $CHANGE_ID` 命令来归档已完成的变更。

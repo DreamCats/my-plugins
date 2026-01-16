@@ -160,7 +160,7 @@ node "$SCRIPT_DIR/repo-plan-send.js" \
 
 ## 下一步
 
-使用 `/bytecoding:repo-apply $CHANGE_ID` 命令来执行这个变更。
+先使用 `/compact` 命令压缩变更目录，然后再使用 `/bytecoding:repo-apply $CHANGE_ID` 命令来执行这个变更。
 
 ## 目录结构
 
