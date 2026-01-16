@@ -410,6 +410,119 @@ function getRepotalkUsageTip() {
 `;
 }
 
+/**
+ * LSP Guidelines content to be injected into CLAUDE.md
+ */
+function getLspGuidelines() {
+  return `
+
+<< ------- lsp intro start ------->>
+
+## LSP 定位与查询准则
+
+请务必使用 LSP (Language Server Protocol) 进行代码定位与查询，优先于传统的文本搜索和正则表达式匹配。
+
+### 核心原则
+
+1. **优先使用 LSP**: 当需要查找定义、引用、类型信息时，优先使用 LSP 相关工具而非 Grep/Glob
+2. **语义理解**: LSP 能够理解代码语义，提供更准确的代码定位结果
+3. **跨语言支持**: 利用各语言的 LSP 服务实现智能代码查询
+
+### LSP 工具使用场景
+
+| 场景 | 推荐工具 | 说明 |
+|------|----------|------|
+| 查找定义 | \`textDocument/definition\` | 跳转到符号定义位置 |
+| 查找引用 | \`textDocument/references\` | 查找符号的所有引用 |
+| 查找类型 | \`textDocument/typeDefinition\` | 跳转到类型定义 |
+| 查找实现 | \`textDocument/implementation\` | 查找接口实现 |
+| 符号搜索 | \`workspace/symbol\` | 在工作区中搜索符号 |
+| 代码补全 | \`textDocument/completion\` | 获取代码补全建议 |
+| 悬停信息 | \`textDocument/hover\` | 获取符号的文档信息 |
+| 重命名 | \`textDocument/rename\` | 重命名符号并更新所有引用 |
+
+### 与传统工具的对比
+
+- **Grep/Grep**: 基于文本匹配，无法理解代码语义，容易产生误报
+- **LSP**: 基于语义理解，精确定位符号，减少误报
+
+### 示例
+
+**传统方式（不推荐）**：
+\\\`\\\`\\\`bash
+# 查找函数调用 - 可能匹配到注释、字符串中的同名文本
+grep -r "myFunction" src/
+\\\`\\\`\\\`
+
+**LSP 方式（推荐）**：
+\\\`\\\`\\\`
+# 使用 LSP 查找所有引用 - 精确定位到代码引用
+textDocument/references { textDocument: { uri: "file:///path/to/file.ts" }, position: { line: 10, character: 5 } }
+\\\`\\\`\\\`
+
+### 注意事项
+
+- 确保项目已配置相应的 LSP 服务器
+- 对于大型项目，LSP 索引可能需要时间初始化
+- 当 LSP 不可用时，可以降级使用传统搜索工具
+
+<< ------- lsp intro end ------->>
+`;
+}
+
+/**
+ * Check and ensure LSP guidelines in CLAUDE.md
+ * @returns {Object} { updated: boolean, path: string|null }
+ */
+function checkAndEnsureLspGuidelines() {
+  const gitRoot = findGitRoot(process.cwd());
+  if (!gitRoot) {
+    return { updated: false, path: null, reason: 'no-git' };
+  }
+
+  const claudeMdPath = path.join(gitRoot, 'CLAUDE.md');
+
+  // Check if CLAUDE.md exists
+  if (!fs.existsSync(claudeMdPath)) {
+    return { updated: false, path: claudeMdPath, reason: 'no-claude-md' };
+  }
+
+  // Read existing content
+  let content = '';
+  try {
+    content = fs.readFileSync(claudeMdPath, 'utf-8');
+  } catch (error) {
+    return { updated: false, path: claudeMdPath, reason: 'read-failed' };
+  }
+
+  // Check if LSP guidelines already exist
+  const lspStartMarker = '<< ------- lsp intro start ------->>';
+  const lspEndMarker = '<< ------- lsp intro end ------->>';
+
+  if (content.includes(lspStartMarker) && content.includes(lspEndMarker)) {
+    return { updated: false, path: claudeMdPath, reason: 'already-exists' };
+  }
+
+  // Append LSP guidelines
+  const lspGuidelines = getLspGuidelines();
+  let newContent = content;
+
+  // Ensure there's a newline before adding the new section
+  if (newContent && !newContent.endsWith('\n')) {
+    newContent += '\n';
+  }
+
+  newContent += lspGuidelines;
+
+  // Write updated content
+  try {
+    fs.writeFileSync(claudeMdPath, newContent);
+    return { updated: true, path: claudeMdPath, reason: 'added' };
+  } catch (error) {
+    return { updated: false, path: claudeMdPath, reason: 'write-failed' };
+  }
+}
+
 // ============================================================================
 // Welcome Message Builder
 // ============================================================================
@@ -434,7 +547,7 @@ ${commandsList}
 /**
  * Build welcome message with status information
  */
-function buildWelcomeMessage() {
+function buildWelcomeMessage(lspCheckResult = null) {
   // Ensure directories and config exist (auto-initialize)
   const dirsCreated = ensureBytecodingDirs();
   const configCreated = ensureDefaultConfig();
@@ -482,12 +595,26 @@ function buildWelcomeMessage() {
     }
   }
 
+  // Add LSP guidelines check status
+  if (lspCheckResult) {
+    if (lspCheckResult.updated) {
+      statusInfo += `\n📝 **CLAUDE.md**: ✅ 已添加 LSP 准则`;
+    } else if (lspCheckResult.reason === 'already-exists') {
+      statusInfo += `\n📝 **CLAUDE.md**: ✅ LSP 准则已存在`;
+    } else if (lspCheckResult.reason === 'no-claude-md') {
+      // No CLAUDE.md found, silent skip
+    }
+  }
+
   let initMessage = '';
   if (dirsCreated || configCreated) {
     initMessage = '\n✅ Bytecoding 目录结构已自动创建。';
   }
   if (gitignoreStatus.status === 'added' || gitignoreStatus.status === 'created') {
     initMessage += '\n🧹 已更新 .gitignore（添加 .bytecoding，避免误提交）。';
+  }
+  if (lspCheckResult && lspCheckResult.updated) {
+    initMessage += '\n📚 已在 CLAUDE.md 中添加 LSP 定位与查询准则。';
   }
 
   // Build status section
@@ -517,6 +644,9 @@ ${buildCommandsDisplay()}
  * @returns {Object} Hook output with systemMessage and/or hookSpecificOutput
  */
 function handleSessionStart(input) {
+  // Check and ensure LSP guidelines in CLAUDE.md
+  const lspCheckResult = checkAndEnsureLspGuidelines();
+
   // Check Repotalk Cookie
   const cookieTip = checkRepotalkAuth();
 
@@ -524,7 +654,7 @@ function handleSessionStart(input) {
   const repotalkUsageTip = getRepotalkUsageTip();
 
   // Build welcome message
-  const welcomeMessage = buildWelcomeMessage();
+  let welcomeMessage = buildWelcomeMessage(lspCheckResult);
 
   // Build output
   const output = {
