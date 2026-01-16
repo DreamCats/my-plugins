@@ -17,14 +17,5 @@
     "multimodal",
     "ocr",
     "image-understanding"
-  ],
-  "skills": [
-    "./skills/image-vision"
-  ],
-  "hooks": {
-    "session-start": "./scripts/session-start-hook.js"
-  },
-  "scripts": {
-    "vision-api": "python3 ./scripts/vision_api.py"
-  }
+  ]
 }
