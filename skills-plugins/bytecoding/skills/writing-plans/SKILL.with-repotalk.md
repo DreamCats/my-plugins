@@ -1,11 +1,11 @@
 ---
 name: writing-plans
-description: Use when converting design documents into executable task lists. This skill enforces a mandatory workflow: analyze design → local reference search → Repotalk MCP reference search → generate fine-grained tasks (2-5 minutes each) with comprehensive reference documentation.
+description: Use when converting design documents into executable task lists. This skill enforces a mandatory workflow: analyze design → Repotalk MCP reference search → generate fine-grained tasks (2-5 minutes each) with comprehensive reference documentation.
 ---
 
 # Writing Plans 技能
 
-通过强制工作流和双源参考搜索，将设计方案转化为可执行的任务列表。
+通过强制工作流和 Repotalk 参考搜索，将设计方案转化为可执行的任务列表。
 
 **默认策略**：除非用户明确要求，否则不安排单元测试任务；验证以编译/构建或手动验证为主。
 
@@ -16,12 +16,11 @@ description: Use when converting design documents into executable task lists. Th
 ```
 Writing Plans Progress:
 - [ ] 步骤 1: 分析设计文档 - 完全理解 design.md 内容
-- [ ] 步骤 2: 本地参考搜索 - 为每个任务找到本地参考实现
-- [ ] 步骤 3: Repotalk MCP 搜索 - 查找字节内部参考实现
-- [ ] 步骤 4: 综合参考分析 - 结合本地和 Repotalk 参考
-- [ ] 步骤 5: 细粒度任务拆分 - 2-5 分钟/任务
-- [ ] 步骤 6: 生成任务列表 - 创建 tasks.md
-- [ ] 步骤 7: 验证完成 - 确认任务列表完整
+- [ ] 步骤 2: Repotalk MCP 搜索 - 查找字节内部参考实现
+- [ ] 步骤 3: 综合参考分析 - 结合设计文档和 Repotalk 参考
+- [ ] 步骤 4: 细粒度任务拆分 - 2-5 分钟/任务
+- [ ] 步骤 5: 生成任务列表 - 创建 tasks.md
+- [ ] 步骤 6: 验证完成 - 确认任务列表完整
 ```
 
 **重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
@@ -53,70 +52,20 @@ Read: .bytecoding/changes/$CHANGE_ID/design.md
 
 ---
 
-## 步骤 2: 本地参考搜索（必须执行）
-
-**目标**：为每个任务找到本地参考实现。
-
-### 2.1 搜索策略
-
-**查找类似模型**：
-
-```bash
-# 查找现有模型
-Glob: "**/models/*.ts"
-Glob: "**/entities/*.ts"
-
-# 读取类似模型
-Read: src/models/User.ts
-```
-
-**查找类似服务**：
-
-```bash
-# 查找现有服务
-Glob: "**/services/*.ts"
-
-# 搜索服务方法
-Grep: "class.*Service"
-Grep: "async.*generate"
-Grep: "async.*verify"
-```
-
-**可选：查找验证/测试模式（仅当用户要求）**：
-
-```bash
-# 查找测试文件
-Glob: "**/*.test.ts"
-Glob: "**/*.spec.ts"
-
-# 搜索测试模式
-Grep: "describe.*Service"
-Grep: "it.*should.*"
-```
-
-**完成标志**：
-
-- [ ] 为每个模型找到参考模型
-- [ ] 为每个服务找到参考服务
-- [ ] 如需测试，为测试找到参考测试
-- [ ] 记录参考文件的相对路径（以仓库根为准）
-
----
-
-## 步骤 3: Repotalk MCP 搜索（必须优先执行）
+## 步骤 2: Repotalk MCP 搜索（必须优先执行）
 
 **目标**：查找字节内部参考实现。
 
-### 3.1 检查 Cookie 配置
+### 2.1 检查 Cookie 配置
 
 ```bash
 # 检查 CAS Session Cookie 是否已配置
 cat ~/.bytecoding/config.json
 ```
 
-如果 Cookie 未配置或过期，在输出中明确标注，但仍继续执行本地搜索。
+如果 Cookie 未配置或过期，在输出中明确标注，但仍继续执行后续步骤。
 
-### 3.2 Repotalk MCP 搜索策略
+### 2.2 Repotalk MCP 搜索策略
 
 **搜索类似实现**：
 
@@ -169,22 +118,19 @@ repotalk.search_nodes({
 
 ---
 
-## 步骤 4: 综合参考分析
+## 步骤 3: 综合参考分析
 
-**目标**：结合本地和 Repotalk 搜索结果，为每个任务提供完整参考。
+**目标**：结合设计文档与 Repotalk 搜索结果，为每个任务提供可复用参考。
 
 **输出格式**：参考对照表
 
 ```markdown
 ## 参考分析结果
 
-### 本地参考
+### 设计文档要点
 
-| 任务类型 | 本地参考                           | 参考说明         |
-| -------- | ---------------------------------- | ---------------- |
-| 模型创建 | `src/models/User.ts`               | TypeORM 模型模式 |
-| 服务方法 | `src/services/EmailService.ts`     | 异步方法实现     |
-| 验证参考 | `src/services/UserService.test.ts` | 参考验证模式     |
+- [要点 1]
+- [要点 2]
 
 ### Repotalk 参考（字节内部）
 
@@ -196,25 +142,25 @@ repotalk.search_nodes({
 
 ### 综合建议
 
-1. **模型设计**：采用本地 TypeORM 模式（参考 User.ts）
+1. **模型设计**：以 design.md 定义为准
 2. **令牌生成**：采纳 Repotalk 的 crypto/rand 方案
-3. **验证策略**：复用本地验证模式（如有），默认不写单元测试
+3. **验证策略**：按 design.md 的验证要求，默认不写单元测试
 ```
 
 **分析要点**：
 
-- 对比本地和 Repotalk 参考
+- 对齐设计文档与 Repotalk 参考
 - 识别最佳实践
 - 评估每种方案的适用性
 - 推荐最合适的参考（带理由）
 
 ---
 
-## 步骤 5: 细粒度任务拆分
+## 步骤 4: 细粒度任务拆分
 
 **目标**：将设计拆分为 2-5 分钟可完成的任务。
 
-### 5.1 粒度原则
+### 4.1 粒度原则
 
 **✅ 正确的粒度（2-5 分钟）**
 
@@ -242,7 +188,7 @@ repotalk.search_nodes({
 - [ ] 编写左括号
 ```
 
-### 5.2 拆分技巧
+### 4.2 拆分技巧
 
 **按方法拆分**：每个公共方法是一个任务
 
@@ -279,13 +225,13 @@ repotalk.search_nodes({
 
 ---
 
-## 步骤 6: 生成任务列表（强制要求）
+## 步骤 5: 生成任务列表（强制要求）
 
 **目标**：生成完整的任务列表文档。
 
 **必须生成 tasks.md 文件**
 
-### 6.1 任务模板
+### 5.1 任务模板
 
 **每个任务必须包含**：
 
@@ -296,9 +242,9 @@ repotalk.search_nodes({
 
 **文件**：[仓库相对路径（以 Git worktree 根目录为准，禁止绝对路径）]
 
-**参考**：
+**参考（可选）**：
 
-- 本地：`[本地参考路径]` - [参考说明]
+- 设计文档：`design.md` - [引用章节]
 - Repotalk：`[Repotalk 路径]` - [参考说明]
 
 **输入**：[任务输入/依赖]
@@ -320,7 +266,7 @@ repotalk.search_nodes({
 
 ````
 
-### 6.2 tasks.md 结构
+### 5.2 tasks.md 结构
 
 ```markdown
 # 任务列表：[变更名称]
@@ -355,7 +301,7 @@ repotalk.search_nodes({
 **文件**：[仓库相对路径]
 
 **参考**：
-- 本地：`src/models/User.ts` - TypeORM 模型模式
+- 设计文档：`design.md` - 设计约束
 - Repotalk：`project-a/models/verification.go` - 验证令牌模型
 
 **输入**：设计文档中的数据模型定义
@@ -424,25 +370,22 @@ export class EmailVerificationToken {
 ```
 
 **重要**：
-- 每个任务必须包含本地参考
 - 每个任务必须包含 Repotalk 参考（如果可用）
 - 任务粒度必须控制在 2-5 分钟
 - 必须明确标注依赖关系
 
 ---
 
-## 步骤 7: 验证完成
+## 步骤 6: 验证完成
 
 **完成标志检查清单**：
 
 ```
 
 ✓ 完整分析 design.md
-✓ 完成本地参考搜索（为每个任务找到参考）
 ✓ 完成 Repotalk MCP 搜索（找到 1-2 个参考实现）
 ✓ 产出综合参考分析表
 ✓ 任务粒度合适（2-5 分钟/任务）
-✓ 每个任务包含本地参考
 ✓ 每个任务包含 Repotalk 参考（如果可用）
 ✓ 依赖关系清晰
 ✓ 验证标准明确
@@ -456,10 +399,9 @@ export class EmailVerificationToken {
 
 ## 禁止行为
 
-- ❌ **跳过本地参考搜索** - 必须为每个任务找到本地参考
 - ❌ **跳过 Repotalk MCP 搜索** - 必须查找字节内部参考
 - ❌ **repo_names 格式错误** - 必须使用 `org/repo` 格式
-- ❌ **跳过综合分析** - 必须结合本地和 Repotalk 参考
+- ❌ **跳过综合分析** - 必须结合设计文档与 Repotalk 参考
 - ❌ **任务粒度过大** - 超过 5 分钟的任务需要拆分
 - ❌ **任务粒度过小** - 小于 2 分钟的任务需要合并
 - ❌ **不包含验证标准** - 每个任务必须有明确的验证条件
@@ -507,11 +449,9 @@ repotalk.get_files_detail({
 
 **重要**：使用正确的 `repo_names` 格式（`org/repo`）
 
-### 后续执行：本地工具
+### 后续执行：本地工具（可选）
 
 - `Read` - 读取 design.md
-- `Glob` - 查找参考文件
-- `Grep` - 搜索代码模式
 
 ---
 
@@ -521,7 +461,7 @@ repotalk.get_files_detail({
 
 1. **工作流程检查清单**（所有项目已勾选）
 2. **设计文档分析摘要**
-3. **参考搜索结果摘要**（本地 + Repotalk）
+3. **参考搜索结果摘要**（Repotalk）
 4. **综合参考分析表**
 5. **任务拆分摘要**
 6. **生成的文档路径**：`tasks.md`
@@ -533,7 +473,7 @@ repotalk.get_files_detail({
 
 ### 工作流程
 
-✓ 所有 7 个步骤已完成
+✓ 所有 6 个步骤已完成
 
 ### 设计文档分析
 
@@ -543,7 +483,6 @@ repotalk.get_files_detail({
 
 ### 参考搜索结果
 
-- 本地：找到 5 个参考文件（模型、服务、验证）
 - Repotalk：找到 2 个参考实现（令牌生成、哈希存储）
 
 ### 任务拆分
@@ -572,9 +511,9 @@ repotalk.get_files_detail({
 ## 技能元数据
 
 - **技能类型**：规划类技能
-- **强制流程**：是（7 步工作流）
+- **强制流程**：是（6 步工作流）
 - **必需输出**：tasks.md
 - **工具限制**：Repotalk MCP 必须优先于本地工具
 - **用户交互**：必须在步骤 1 确认理解设计文档
 - **完成标志**：所有检查清单项目已完成
-- **核心铁律**：每个任务必须有本地和 Repotalk 参考
+- **核心铁律**：每个任务必须包含明确的验证标准

@@ -36,10 +36,6 @@ SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
 if [ -f "$PLUGIN_ROOT/repo-archive.js" ]; then
   SCRIPT_DIR="$PLUGIN_ROOT"
 fi
-if [ ! -f "$SCRIPT_DIR/repo-archive.js" ]; then
-  echo "错误：找不到插件脚本，请确认插件路径"
-  exit 1
-fi
 # 如需忽略 status 校验，设置 FORCE_FLAG="--force"
 FORCE_FLAG=""
 node "$SCRIPT_DIR/repo-archive.js" \

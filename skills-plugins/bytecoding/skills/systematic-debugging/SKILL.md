@@ -78,7 +78,16 @@ cat ~/.bytecoding/config.json
 
 ### 2.2 Repotalk MCP 搜索策略
 
-**搜索类似错误**：
+**推荐流程**：
+
+```javascript
+// 1. 获取仓库详情（概览 + 包列表）
+repotalk.get_repos_detail({
+  repo_names: ["org/repo"],
+});
+```
+
+**搜索类似错误**（语义化查询）：
 ```javascript
 // 搜索相同错误消息
 repotalk.search_nodes({
@@ -99,11 +108,33 @@ repotalk.search_nodes({
 })
 ```
 
-**搜索技巧**：
-- 使用完整的错误消息片段
-- 包含语言名称（TypeScript, Go 等）
-- 搜索"最佳实践"或"修复方案"
-- 查找防御性编程模式
+**继续收敛**：
+
+```javascript
+// 3. 搜索包详情（聚焦候选包）
+repotalk.get_packages_detail({
+  repo_name: "org/repo",
+  package_ids: ["module?path/to/pkg"],
+});
+
+// 4. 获取节点详情（确认实现与依赖）
+repotalk.get_nodes_detail({
+  repo_name: "org/repo",
+  node_ids: ["module?path/to/pkg#FuncName"],
+  need_related_codes: true,
+});
+```
+
+**对外知识输出**：
+
+- 提炼“复现路径/根因模式/修复策略/防回归点”，形成可复用的排查结论。
+
+**成本优化建议**：
+
+- `get_repos_detail` 只跑一次并复用包列表信息
+- `search_nodes` 控制在 1-2 次查询，尽量加 `package_ids` 缩小范围
+- `get_nodes_detail` 只取 Top 2-3 候选节点，必要时再递归
+- 结果落盘到证据池/PlanSpec，避免重复请求
 
 **完成标志**：
 - 找到 2-3 个类似问题

@@ -36,10 +36,6 @@ SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
 if [ -f "$PLUGIN_ROOT/repo-plan.js" ]; then
   SCRIPT_DIR="$PLUGIN_ROOT"
 fi
-if [ ! -f "$SCRIPT_DIR/repo-plan.js" ]; then
-  echo "错误：找不到插件脚本，请确认插件路径"
-  exit 1
-fi
 node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
 ```
 

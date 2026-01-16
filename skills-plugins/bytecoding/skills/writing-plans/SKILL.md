@@ -1,11 +1,11 @@
 ---
 name: writing-plans
-description: Use when converting design documents into executable task lists. This skill enforces a mandatory workflow: analyze design → local reference search → generate fine-grained tasks (2-5 minutes each) with clear task documentation.
+description: Use when converting design documents into executable task lists. This skill enforces a mandatory workflow: analyze design → generate fine-grained tasks (2-5 minutes each) with clear task documentation.
 ---
 
 # Writing Plans 技能
 
-通过强制工作流和本地参考搜索，将设计方案转化为可执行的任务列表。
+通过强制工作流，将设计方案转化为可执行的任务列表。
 
 **默认策略**：除非用户明确要求，否则不安排单元测试任务；验证以编译/构建或手动验证为主。
 
@@ -16,10 +16,9 @@ description: Use when converting design documents into executable task lists. Th
 ```
 Writing Plans Progress:
 - [ ] 步骤 1: 分析设计文档 - 完全理解 design.md 内容
-- [ ] 步骤 2: 本地参考搜索 - 为每个任务找到本地参考实现
-- [ ] 步骤 3: 细粒度任务拆分 - 2-5 分钟/任务
-- [ ] 步骤 4: 生成任务列表 - 创建 tasks.md
-- [ ] 步骤 5: 验证完成 - 确认任务列表完整
+- [ ] 步骤 2: 细粒度任务拆分 - 2-5 分钟/任务
+- [ ] 步骤 3: 生成任务列表 - 创建 tasks.md
+- [ ] 步骤 4: 验证完成 - 确认任务列表完整
 ```
 
 **重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
@@ -51,61 +50,11 @@ Read: .bytecoding/changes/$CHANGE_ID/design.md
 
 ---
 
-## 步骤 2: 本地参考搜索（必须执行）
-
-**目标**：为每个任务找到本地参考实现。
-
-### 2.1 搜索策略
-
-**查找类似模型**：
-
-```bash
-# 查找现有模型
-Glob: "**/models/*.ts"
-Glob: "**/entities/*.ts"
-
-# 读取类似模型
-Read: src/models/User.ts
-```
-
-**查找类似服务**：
-
-```bash
-# 查找现有服务
-Glob: "**/services/*.ts"
-
-# 搜索服务方法
-Grep: "class.*Service"
-Grep: "async.*generate"
-Grep: "async.*verify"
-```
-
-**可选：查找验证/测试模式（仅当用户要求）**：
-
-```bash
-# 查找测试文件
-Glob: "**/*.test.ts"
-Glob: "**/*.spec.ts"
-
-# 搜索测试模式
-Grep: "describe.*Service"
-Grep: "it.*should.*"
-```
-
-**完成标志**：
-
-- [ ] 为每个模型找到参考模型
-- [ ] 为每个服务找到参考服务
-- [ ] 如需测试，为测试找到参考测试
-- [ ] 记录参考文件的相对路径（以仓库根为准）
-
----
-
-## 步骤 3: 细粒度任务拆分
+## 步骤 2: 细粒度任务拆分
 
 **目标**：将设计拆分为 2-5 分钟可完成的任务。
 
-### 3.1 粒度原则
+### 2.1 粒度原则
 
 **✅ 正确的粒度（2-5 分钟）**
 
@@ -133,7 +82,7 @@ Grep: "it.*should.*"
 - [ ] 编写左括号
 ```
 
-### 3.2 拆分技巧
+### 2.2 拆分技巧
 
 **按方法拆分**：每个公共方法是一个任务
 
@@ -170,13 +119,13 @@ Grep: "it.*should.*"
 
 ---
 
-## 步骤 4: 生成任务列表（强制要求）
+## 步骤 3: 生成任务列表（强制要求）
 
 **目标**：生成完整的任务列表文档。
 
 **必须生成 tasks.md 文件**
 
-### 4.1 任务模板
+### 3.1 任务模板
 
 **每个任务必须包含**：
 
@@ -187,9 +136,9 @@ Grep: "it.*should.*"
 
 **文件**：[仓库相对路径（以 Git worktree 根目录为准，禁止绝对路径）]
 
-**参考**：
+**参考（可选）**：
 
-- 本地：`[本地参考路径]` - [参考说明]
+- 设计文档：`design.md` - [引用章节]
 
 **输入**：[任务输入/依赖]
 **输出**：[任务产出]
@@ -210,7 +159,7 @@ Grep: "it.*should.*"
 
 ````
 
-### 4.2 tasks.md 结构
+### 3.2 tasks.md 结构
 
 ```markdown
 # 任务列表：[变更名称]
@@ -245,7 +194,7 @@ Grep: "it.*should.*"
 **文件**：[仓库相对路径]
 
 **参考**：
-- 本地：`src/models/User.ts` - TypeORM 模型模式
+- 设计文档：`design.md` - 数据模型定义
 
 **输入**：设计文档中的数据模型定义
 **输出**：完整的 TypeORM 模型类
@@ -313,22 +262,19 @@ export class EmailVerificationToken {
 ```
 
 **重要**：
-- 每个任务必须包含本地参考
 - 任务粒度必须控制在 2-5 分钟
 - 必须明确标注依赖关系
 
 ---
 
-## 步骤 5: 验证完成
+## 步骤 4: 验证完成
 
 **完成标志检查清单**：
 
 ```
 
 ✓ 完整分析 design.md
-✓ 完成本地参考搜索（为每个任务找到参考）
 ✓ 任务粒度合适（2-5 分钟/任务）
-✓ 每个任务包含本地参考
 ✓ 依赖关系清晰
 ✓ 验证标准明确
 ✓ 生成 tasks.md
@@ -341,7 +287,6 @@ export class EmailVerificationToken {
 
 ## 禁止行为
 
-- ❌ **跳过本地参考搜索** - 必须为每个任务找到本地参考
 - ❌ **任务粒度过大** - 超过 5 分钟的任务需要拆分
 - ❌ **任务粒度过小** - 小于 2 分钟的任务需要合并
 - ❌ **不包含验证标准** - 每个任务必须有明确的验证条件
@@ -355,8 +300,6 @@ export class EmailVerificationToken {
 **本技能使用以下本地工具**：
 
 - `Read` - 读取 design.md
-- `Glob` - 查找参考文件
-- `Grep` - 搜索代码模式
 
 ---
 
@@ -366,9 +309,8 @@ export class EmailVerificationToken {
 
 1. **工作流程检查清单**（所有项目已勾选）
 2. **设计文档分析摘要**
-3. **参考搜索结果摘要**（本地）
-4. **任务拆分摘要**
-5. **生成的文档路径**：`tasks.md`
+3. **任务拆分摘要**
+4. **生成的文档路径**：`tasks.md`
 
 **示例输出**：
 
@@ -377,17 +319,13 @@ export class EmailVerificationToken {
 
 ### 工作流程
 
-✓ 所有 5 个步骤已完成
+✓ 所有 4 个步骤已完成
 
 ### 设计文档分析
 
 - 架构：服务层 + 数据层 + API 层
 - 数据模型：EmailVerificationToken
 - API 端点：POST /api/auth/verify-email
-
-### 参考搜索结果
-
-- 本地：找到 5 个参考文件（模型、服务、验证）
 
 ### 任务拆分
 
@@ -414,8 +352,8 @@ export class EmailVerificationToken {
 ## 技能元数据
 
 - **技能类型**：规划类技能
-- **强制流程**：是（5 步工作流）
+- **强制流程**：是（4 步工作流）
 - **必需输出**：tasks.md
 - **用户交互**：必须在步骤 1 确认理解设计文档
 - **完成标志**：所有检查清单项目已完成
-- **核心铁律**：每个任务必须有本地参考
+- **核心铁律**：每个任务必须包含明确的验证标准

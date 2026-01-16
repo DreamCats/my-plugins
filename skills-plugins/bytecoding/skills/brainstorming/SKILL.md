@@ -90,33 +90,44 @@ repo_names: ["oec/live_promotion_core"];
 repo_names: ["live_promotion_core"]; // ❌ 错误！
 ```
 
-**搜索查询模式**：
+**推荐流程**：
 
 ```javascript
-// 1. 使用 search_nodes 搜索代码实现
+// 1. 获取仓库详情（概览 + 包列表）
+repotalk.get_repos_detail({
+  repo_names: ["org/repo"],
+});
+
+// 2. 语义化代码搜索（收敛候选）
 repotalk.search_nodes({
   repo_names: ["org/repo"],
   question: "handler 注释规范 最佳实践",
 });
 
-// 2. 搜索类似功能实现
-repotalk.search_nodes({
-  repo_names: ["org/repo"],
-  question: "秒杀活动 handler 实现",
+// 3. 搜索包详情（聚焦候选包）
+repotalk.get_packages_detail({
+  repo_name: "org/repo",
+  package_ids: ["module?path/to/pkg"],
 });
 
-// 3. 搜索特定技术方案
-repotalk.search_nodes({
-  repo_names: ["org/repo"],
-  question: "Go 语言 package 注释规范",
+// 4. 获取节点详情（确认实现与依赖）
+repotalk.get_nodes_detail({
+  repo_name: "org/repo",
+  node_ids: ["module?path/to/pkg#FuncName"],
+  need_related_codes: true,
 });
 ```
 
-**搜索技巧**：
+**对外知识输出**：
 
-- 使用具体的技术术语（如 "handler", "注释", "package"）
-- 包含语言名称（如 "Go", "TypeScript"）
-- 搜索"最佳实践"或"设计模式"
+- 根据场景提炼“可复用结论”：推荐实现路径、关键文件/节点、已知风险与验证点。
+
+**成本优化建议**：
+
+- `get_repos_detail` 只跑一次并复用包列表信息
+- `search_nodes` 控制在 1-2 次查询，尽量加 `package_ids` 缩小范围
+- `get_nodes_detail` 只取 Top 2-3 候选节点，必要时再递归
+- 结果落盘到证据池/PlanSpec，避免重复请求
 
 **完成标志**：
 

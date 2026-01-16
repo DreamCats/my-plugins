@@ -46,10 +46,6 @@ SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
 if [ -f "$PLUGIN_ROOT/repo-apply.js" ]; then
   SCRIPT_DIR="$PLUGIN_ROOT"
 fi
-if [ ! -f "$SCRIPT_DIR/repo-apply.js" ]; then
-  echo "错误：找不到插件脚本，请确认插件路径"
-  exit 1
-fi
 node "$SCRIPT_DIR/repo-apply.js" --change-id "$CHANGE_ID"
 ```
 
@@ -245,10 +241,6 @@ SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
 if [ -f "$PLUGIN_ROOT/repo-apply.js" ]; then
   SCRIPT_DIR="$PLUGIN_ROOT"
 fi
-if [ ! -f "$SCRIPT_DIR/repo-apply.js" ]; then
-  echo "错误：找不到插件脚本，请确认插件路径"
-  exit 1
-fi
 node "$SCRIPT_DIR/repo-apply.js" --change-id "$CHANGE_ID" --mark-completed
 ```
 
@@ -264,10 +256,6 @@ SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
 # Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
 if [ -f "$PLUGIN_ROOT/repo-apply-git.js" ]; then
   SCRIPT_DIR="$PLUGIN_ROOT"
-fi
-if [ ! -f "$SCRIPT_DIR/repo-apply-git.js" ]; then
-  echo "错误：找不到插件脚本，请确认插件路径"
-  exit 1
 fi
 node "$SCRIPT_DIR/repo-apply-git.js" \
   --change-id "$CHANGE_ID" \
@@ -311,10 +299,6 @@ SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
 # Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
 if [ -f "$PLUGIN_ROOT/repo-apply-lark.js" ]; then
   SCRIPT_DIR="$PLUGIN_ROOT"
-fi
-if [ ! -f "$SCRIPT_DIR/repo-apply-lark.js" ]; then
-  echo "错误：找不到插件脚本，请确认插件路径"
-  exit 1
 fi
 node "$SCRIPT_DIR/repo-apply-lark.js" \
   --change-id "$CHANGE_ID" \
