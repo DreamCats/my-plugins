@@ -1,0 +1,30 @@
+{
+  "name": "image-vision",
+  "version": "1.0.0",
+  "description": "Image Vision Plugin - 调用火山引擎 Ark API 进行图片理解和分析，支持本地路径、Base64 和 HTTPS URL",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "repository": "https://github.com/DreamCats/my-plugins",
+  "license": "MIT",
+  "keywords": [
+    "image",
+    "vision",
+    "ai",
+    "volcengine",
+    "ark",
+    "multimodal",
+    "ocr",
+    "image-understanding"
+  ],
+  "skills": [
+    "./skills/image-vision"
+  ],
+  "hooks": {
+    "session-start": "./scripts/session-start-hook.js"
+  },
+  "scripts": {
+    "vision-api": "python3 ./scripts/vision_api.py"
+  }
+}

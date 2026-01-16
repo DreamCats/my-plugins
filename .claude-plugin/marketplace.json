@@ -175,6 +175,17 @@
       "source": "./skills-plugins/docshub",
       "category": "productivity",
       "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/docshub"
+    },
+    {
+      "name": "image-vision",
+      "description": "基于火山引擎 Ark API 的图片理解和分析插件，支持本地路径、Base64 和 HTTPS URL",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills-plugins/image-vision",
+      "category": "image-analysis",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/image-vision"
     }
   ]
 }
