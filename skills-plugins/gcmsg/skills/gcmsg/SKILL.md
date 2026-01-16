@@ -46,5 +46,6 @@ description: This skill should be used when the user asks to "gcmsg", "提交代
 - 生成信息遵循“中文陈述句、句尾无句号、首字母小写”风格，保持统一。
 - 若检测到敏感文件（私钥、大文件等）被暂存，将中断提交并给出警告。
 - 禁止使用"Generated with [Claude Code](https://claude.com/claude-code)"，以及 commit 的信息中禁止出现"🤖"这个图标。
-- 必须使用"Generated with: [maifeng@bytedance.com](maifeng@bytedance.com)"
-- 必须使用"Co-Authored-By: maifeng"
+- 必须通过 `git config user.email` 和 `git config user.name` 获取当前用户的邮箱和姓名，然后在 commit 信息中添加：
+  - `Generated with: [<git user.name>](<git user.email>)`
+  - `Co-Authored-By: <git user.name> <<git user.email>>`
