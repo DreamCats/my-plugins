@@ -10,6 +10,8 @@ import os
 import base64
 import argparse
 import urllib.request
+import urllib.error
+import tempfile
 from pathlib import Path
 
 # 配置文件路径
@@ -56,7 +58,55 @@ def image_to_base64(image_path):
 
 def is_valid_url(url):
     """检查是否是有效的 HTTPS URL"""
-    return url.startswith("https://")
+    return url.startswith("https://") or url.startswith("http://")
+
+
+def download_remote_image(url):
+    """
+    下载远程图片到临时文件
+    返回临时文件路径，失败返回 None
+    """
+    try:
+        # 创建请求，添加 User-Agent 避免某些服务器拒绝
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+            }
+        )
+
+        # 下载图片，使用较长的超时时间
+        with urllib.request.urlopen(req, timeout=60) as response:
+            # 检查 Content-Type
+            content_type = response.headers.get("Content-Type", "")
+            if not content_type.startswith("image/"):
+                print(f"Warning: URL does not point to an image (Content-Type: {content_type})", file=sys.stderr)
+
+            # 读取图片数据
+            image_data = response.read()
+
+            # 创建临时文件保存图片
+            suffix = ".jpg"  # 默认后缀
+            if "png" in content_type:
+                suffix = ".png"
+            elif "gif" in content_type:
+                suffix = ".gif"
+            elif "webp" in content_type:
+                suffix = ".webp"
+
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
+                tmp_file.write(image_data)
+                return tmp_file.name
+
+    except urllib.error.HTTPError as e:
+        print(f"Error downloading image: HTTP {e.code} - {e.reason}", file=sys.stderr)
+        return None
+    except urllib.error.URLError as e:
+        print(f"Error downloading image: {e.reason}", file=sys.stderr)
+        return None
+    except Exception as e:
+        print(f"Error downloading image: {e}", file=sys.stderr)
+        return None
 
 
 def get_image_url(image_input):
@@ -65,11 +115,23 @@ def get_image_url(image_input):
     支持三种输入：
     1. 本地文件路径 -> 转换为 Base64
     2. Base64 编码 -> 直接返回（需要 data:image/ 前缀或纯 base64）
-    3. HTTPS URL -> 直接返回
+    3. HTTP/HTTPS URL -> 先下载再转换为 Base64
     """
-    # 检查是否是 URL
+    # 检查是否是远程 URL
     if is_valid_url(image_input):
-        return image_input
+        # 下载远程图片到本地临时文件
+        tmp_file = download_remote_image(image_input)
+        if tmp_file:
+            # 转换为 Base64
+            base64_data = image_to_base64(tmp_file)
+            # 删除临时文件
+            try:
+                os.unlink(tmp_file)
+            except:
+                pass
+            if base64_data:
+                return f"data:image/jpeg;base64,{base64_data}"
+        return None
 
     # 检查是否已经是 data URL 格式的 Base64
     if image_input.startswith("data:image/"):
@@ -133,7 +195,7 @@ def call_vision_api(api_key, model_id, image_url, prompt):
             method="POST"
         )
 
-        with urllib.request.urlopen(req, timeout=30) as response:
+        with urllib.request.urlopen(req, timeout=120) as response:
             response_data = json.loads(response.read().decode("utf-8"))
 
             if "choices" in response_data and len(response_data["choices"]) > 0:

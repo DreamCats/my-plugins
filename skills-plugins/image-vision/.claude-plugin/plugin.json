@@ -1,6 +1,6 @@
 {
   "name": "image-vision",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Image Vision Plugin - 调用火山引擎 Ark API 进行图片理解和分析，支持本地路径、Base64 和 HTTPS URL",
   "author": {
     "name": "DreamCats",
