@@ -6,6 +6,10 @@
       "env": {
         "CAS_SESSION": "18818dfc9057a57857925e102d69d867"
       }
+    },
+    "bcindex": {
+      "command": "bcindex",
+      "args": ["mcp"]
     }
   }
 }

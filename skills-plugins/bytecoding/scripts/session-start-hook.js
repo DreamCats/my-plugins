@@ -378,37 +378,6 @@ Bytecoding 的 repotalk MCP 功能需要配置 CAS Session Cookie 才能访问�
 `;
 }
 
-/**
- * Get Repotalk MCP tool usage instructions
- */
-function getRepotalkUsageTip() {
-  return `
----
-**🔍 Repotalk MCP 工具使用说明**
-
-使用 repotalk MCP 工具搜索字节内部代码库时，请注意以下参数格式：
-
-**repo_names / repo_name 参数格式**：
-- ✅ 正确格式：\`org/repo\`（如 \`oec/live_promotion_core\`）
-- ❌ 错误格式：仅仓库名（如 \`live_promotion_core\`）
-
-**从项目路径推断仓库名**：
-- 项目路径：\`/data00/home/xxx/go/src/code.byted.org/org/repo_name\`
-- 对应仓库名：\`org/repo_name\`
-
-**常见需要 repo_names 参数的工具**：
-- \`get_repos_detail\` - 获取仓库详细信息
-- \`search_nodes\` - 语义化代码搜索
-- \`get_packages_detail\` - 获取包详细信息
-- \`get_nodes_detail\` - 获取函数/类型/变量详情
-- \`get_files_detail\` - 获取文件详情
-- \`get_service_apis\` - 获取 API 接口信息
-- \`get_asset_file\` - 获取 asset 文件
-
-**提示**：如果搜索没有返回结果，请首先检查 \`repo_names\` 参数格式是否正确。
----
-`;
-}
 
 /**
  * Get default CLAUDE.md template content
@@ -445,35 +414,21 @@ function getLspGuidelines() {
 
 ### LSP 工具使用场景
 
-| 场景 | 推荐工具 | 说明 |
-|------|----------|------|
-| 查找定义 | \`textDocument/definition\` | 跳转到符号定义位置 |
-| 查找引用 | \`textDocument/references\` | 查找符号的所有引用 |
-| 查找类型 | \`textDocument/typeDefinition\` | 跳转到类型定义 |
-| 查找实现 | \`textDocument/implementation\` | 查找接口实现 |
-| 符号搜索 | \`workspace/symbol\` | 在工作区中搜索符号 |
-| 代码补全 | \`textDocument/completion\` | 获取代码补全建议 |
-| 悬停信息 | \`textDocument/hover\` | 获取符号的文档信息 |
-| 重命名 | \`textDocument/rename\` | 重命名符号并更新所有引用 |
+| 场景 |   说明 |
+|------|------|
+| 查找定义 | 跳转到符号定义位置 |
+| 查找引用 | 查找符号的所有引用 |
+| 查找类型 | 跳转到类型定义 |
+| 查找实现 | 查找接口实现 |
+| 符号搜索 | 在工作区中搜索符号 |
+| 代码补全 | 获取代码补全建议 |
+| 悬停信息 | 获取符号的文档信息 |
+| 重命名 | 重命名符号并更新所有引用 |
 
 ### 与传统工具的对比
 
 - **Grep/Grep**: 基于文本匹配，无法理解代码语义，容易产生误报
 - **LSP**: 基于语义理解，精确定位符号，减少误报
-
-### 示例
-
-**传统方式（不推荐）**：
-\`\`\`bash
-# 查找函数调用 - 可能匹配到注释、字符串中的同名文本
-grep -r "myFunction" src/
-\`\`\`
-
-**LSP 方式（推荐）**：
-\`\`\`
-# 使用 LSP 查找所有引用 - 精确定位到代码引用
-textDocument/references { textDocument: { uri: "file:///path/to/file.ts" }, position: { line: 10, character: 5 } }
-\`\`\`
 
 ### 注意事项
 
@@ -595,15 +550,15 @@ function buildWelcomeMessage(lspCheckResult = null) {
       // Configuration status
       const preferLocal = config.repo_plan?.prefer_local ?? true;
       const verifyMode = config.repo_plan?.verify_mode ?? 'smart';
-      statusInfo += `\n⚙️ **配置**: prefer_local=${preferLocal}, verify_mode=${verifyMode}`;
+      statusInfo += `\n⚙️ 配置: prefer_local=${preferLocal}, verify_mode=${verifyMode}`;
 
       // Cookie status with helpful messages
       if (cookieSync.sync) {
-        statusInfo += `\n🍪 **Repotalk Cookie**: ✅ 已同步到 .mcp.json`;
+        statusInfo += `\n🍪 Repotalk Cookie**: ✅ 已同步到 .mcp.json`;
       } else if (cookieValid) {
-        statusInfo += `\n🍪 **Repotalk Cookie**: ✅ 已配置`;
+        statusInfo += `\n🍪 Repotalk Cookie**: ✅ 已配置`;
       } else {
-        statusInfo += `\n🍪 **Repotalk Cookie**: ❌ 未配置`;
+        statusInfo += `\n🍪 Repotalk Cookie**: ❌ 未配置`;
         statusInfo += `\n   💡 提示: 配置 Cookie 以启用字节内部代码库搜索`;
         statusInfo += `\n   📝 配置方法: 编辑 \`~/.bytecoding/config.json\``;
         statusInfo += `\n   🔗 获取 Cookie: 登录 https://cloud.bytedance.net`;
@@ -650,8 +605,7 @@ function buildWelcomeMessage(lspCheckResult = null) {
   const statusSection = statusInfo ? `\n---\n${statusInfo}` : '';
 
   return `
-🔌 **Bytecoding 插件已加载**
-
+🔌 Bytecoding 插件已加载...
 👋 嘿！我是 MaiMai，一位极致专注的开发者～
 💫 超能力：精准定位 Bug、优雅代码设计、完美平衡咖啡因与逻辑
 ${initMessage}
@@ -679,9 +633,6 @@ function handleSessionStart(input) {
   // Check Repotalk Cookie
   const cookieTip = checkRepotalkAuth();
 
-  // Get Repotalk usage tip
-  const repotalkUsageTip = getRepotalkUsageTip();
-
   // Build welcome message
   let welcomeMessage = buildWelcomeMessage(lspCheckResult);
 
@@ -696,9 +647,6 @@ function handleSessionStart(input) {
   if (cookieTip) {
     additionalContextParts.push(cookieTip);
   }
-
-  // Add repotalk usage tip to additional context
-  additionalContextParts.push(repotalkUsageTip);
 
   if (additionalContextParts.length > 0) {
     output.hookSpecificOutput = {
