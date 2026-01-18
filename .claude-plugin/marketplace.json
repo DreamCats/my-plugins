@@ -172,7 +172,7 @@
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills-plugins/docshub",
+      "source": "./mcp-plugins/docshub",
       "category": "productivity",
       "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/docshub"
     },
