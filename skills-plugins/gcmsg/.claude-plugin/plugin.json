@@ -1,11 +1,12 @@
 {
   "name": "gcmsg",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "在 Git 仓库中一键完成提交：自动暂存、分析变更、生成符合 Conventional Commits 规范的提交信息，并直接完成提交。适合希望快速、规范地记录代码历史的场景。 缩写：gcmsg",
   "author": {
     "name": "Feng Mai"
   },
   "skills": [
-    "./skills/gcmsg"
+    "./skills/gcmsg",
+    "./skills/gcmsg-push"
   ]
 }
