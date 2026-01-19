@@ -2,7 +2,9 @@
   "mcpServers": {
     "repotalk-stdio": {
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/repotalk-server/stdio/repotalk-index.js"],
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/scripts/repotalk-server/stdio/repotalk-index.js"
+      ],
       "env": {
         "CAS_SESSION": "18818dfc9057a57857925e102d69d867"
       }
@@ -10,6 +12,10 @@
     "bcindex": {
       "command": "bcindex",
       "args": ["mcp"]
+    },
+    "serena": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--project", "."]
     }
   }
 }
