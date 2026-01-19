@@ -1,7 +1,7 @@
 {
   "name": "my-plugins",
   "description": "我的 Claude Code 插件集合，包含各种实用技能和工具",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "DreamCats",
     "email": "maifeng@bytedance.com"
@@ -111,6 +111,17 @@
       "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/lark-create-plantuml"
     },
     {
+      "name": "write-lark-markdown",
+      "description": "结构化 Markdown 写作规范（tech-design/howto/research/proposal），强制 PlantUML-only 图表 + callout 高亮块，并提供 PlantUML 校验与 AI 插图落盘建议",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills-plugins/write-lark-markdown",
+      "category": "productivity",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/write-lark-markdown"
+    },
+    {
       "name": "lark-doc-to-md",
       "description": "飞书文档转Markdown工具，将飞书文档转换为Markdown格式",
       "author": {
@@ -174,7 +185,7 @@
       },
       "source": "./mcp-plugins/docshub",
       "category": "productivity",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/docshub"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/mcp-plugins/docshub"
     },
     {
       "name": "image-vision",

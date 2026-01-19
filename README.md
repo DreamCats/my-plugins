@@ -24,6 +24,7 @@
 ### 📈 生产力工具
 - **[lark-add-permission](./skills-plugins/lark-add-permission)** - 飞书权限管理工具，用于添加和管理用户权限
 - **[lark-create-plantuml](./skills-plugins/lark-create-plantuml)** - 飞书PlantUML图表创建工具，支持在飞书中生成UML图表
+- **[write-lark-markdown](./skills-plugins/write-lark-markdown)** - 结构化 Markdown 写作规范（tech-design/howto/research/proposal），强制 PlantUML-only 图表 + callout 高亮块
 - **[lark-doc-to-md](./skills-plugins/lark-doc-to-md)** - 飞书文档转Markdown工具，将飞书文档转换为Markdown格式
 - **[lark-md-to-doc](./skills-plugins/lark-md-to-doc)** - Markdown转飞书文档工具，将Markdown内容转换为飞书文档格式
 - **[docshub](./skills-plugins/docshub)** - Docshub MCP integration，提供文档中心集成功能
@@ -36,7 +37,7 @@
 | 开发工具 | 3 | 代码分析和日志处理工具 |
 | 设计工具 | 1 | Figma设计集成工具 |
 | 通信工具 | 3 | 消息处理和飞书消息发送工具 |
-| 生产力工具 | 5 | 飞书生态系统的各种效率工具和文档中心集成 |
+| 生产力工具 | 6 | 飞书生态系统的各种效率工具和文档中心集成 |
 
 ## 🛠️ 安装和使用
 
