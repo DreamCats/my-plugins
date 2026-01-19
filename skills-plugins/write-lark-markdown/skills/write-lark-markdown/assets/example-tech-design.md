@@ -6,6 +6,24 @@
 **Conclusion**
 Adopt a fixed set of Markdown writing styles (tech-design/howto/research/proposal) with PlantUML-only diagrams and callout-heavy structure. This reduces review friction, improves exec readability, and keeps diagrams diffable and safe to render in Lark.
 
+**Key Metrics**
+- Owner: Dev Productivity (Docs)
+- Decision Needed: Approve v1 templates + PlantUML safe subset enforcement
+- User/Business Impact: Faster alignment in reviews; fewer rewrites (TBD: measure cycle-time reduction)
+- Engineering Impact: Add new skill + optional validator; no service changes
+- Estimated Cost: 1-2 days to adopt + migrate key docs
+- Timeline: Week 1: rollout in team; Week 2: feedback + v1.1
+- Key Risks: Over-constraining authors, diagram rendering drift, partial adoption
+- Rollback Strategy: Stop enforcing; keep docs as-is; revert to free-form writing
+
+**Top Risks**
+- Over-constraining authors — Impact: docs feel rigid; Mitigation: keep optional sections + allow per-style density; Rollback trigger: consistent negative feedback from 3+ teams.
+- Rendering drift — Impact: diagrams fail to render; Mitigation: conservative safe subset + validator; Rollback trigger: repeated diagram failures in Lark.
+- Partial adoption — Impact: mixed doc quality; Mitigation: provide examples + migration checklist; Rollback trigger: no improvement after 2 weeks.
+```
+
+## Key Metrics
+
 | Item | Value |
 |---|---|
 | Owner | Dev Productivity (Docs) |
@@ -16,12 +34,6 @@ Adopt a fixed set of Markdown writing styles (tech-design/howto/research/proposa
 | Timeline | Week 1: rollout in team; Week 2: feedback + v1.1 |
 | Key Risks | Over-constraining authors, diagram rendering drift, partial adoption |
 | Rollback Strategy | Stop enforcing; keep docs as-is; revert to free-form writing |
-
-**Top Risks**
-- Over-constraining authors — Impact: docs feel rigid; Mitigation: keep optional sections + allow per-style density; Rollback trigger: consistent negative feedback from 3+ teams.
-- Rendering drift — Impact: diagrams fail to render; Mitigation: conservative safe subset + validator; Rollback trigger: repeated diagram failures in Lark.
-- Partial adoption — Impact: mixed doc quality; Mitigation: provide examples + migration checklist; Rollback trigger: no improvement after 2 weeks.
-```
 
 ## Background
 - Current state:

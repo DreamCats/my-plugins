@@ -83,6 +83,7 @@ Rules:
 
 - `callout` creates a Lark highlight block.
   - `type=info|warning|error|success`
+  - Markdown tables are **not supported inside** callout blocks. If you need a table, put it immediately after the callout as normal Markdown.
 - Non-instruction fences are kept as-is.
 
 ## AI image workflow (optional)
@@ -133,6 +134,26 @@ Must be the first section and must be wrapped by `callout type=info`.
 **Conclusion**
 <1-3 sentences: what we decide, why now, and what outcome we expect>
 
+**Key Metrics**
+- Owner: <name/team>
+- Decision Needed: <who approves what>
+- User/Business Impact: <metrics/impact or TBD + how to get it>
+- Engineering Impact: <services touched / migration scope>
+- Estimated Cost: <eng days / infra cost>
+- Timeline: <milestones>
+- Key Risks: <1-line list>
+- Rollback Strategy: <how to rollback + trigger>
+
+**Top Risks**
+- <Risk 1> — Impact: ...; Mitigation: ...; Rollback trigger: ...
+- <Risk 2> — Impact: ...; Mitigation: ...; Rollback trigger: ...
+- <Risk 3> — Impact: ...; Mitigation: ...; Rollback trigger: ...
+```
+
+Immediately after the TL;DR callout, add a normal section with the metrics table:
+
+```markdown
+## Key Metrics
 | Item | Value |
 |---|---|
 | Owner | <name/team> |
@@ -143,11 +164,6 @@ Must be the first section and must be wrapped by `callout type=info`.
 | Timeline | <milestones> |
 | Key Risks | <1-line list> |
 | Rollback Strategy | <how to rollback + trigger> |
-
-**Top Risks**
-- <Risk 1> — Impact: ...; Mitigation: ...; Rollback trigger: ...
-- <Risk 2> — Impact: ...; Mitigation: ...; Rollback trigger: ...
-- <Risk 3> — Impact: ...; Mitigation: ...; Rollback trigger: ...
 ```
 
 #### Required diagrams (must exist)
@@ -247,6 +263,18 @@ stop
 
 <Insert TL;DR callout here>
 
+## Key Metrics
+| Item | Value |
+|---|---|
+| Owner | ... |
+| Decision Needed | ... |
+| User/Business Impact | ... |
+| Engineering Impact | ... |
+| Estimated Cost | ... |
+| Timeline | ... |
+| Key Risks | ... |
+| Rollback Strategy | ... |
+
 ## Background
 - Current state:
 - Pain points (with evidence):
@@ -306,7 +334,7 @@ stop
 
 Notes:
 
-- If any TL;DR table cell is `TBD`, add a corresponding item in `Open Questions`.
+- If any `Key Metrics` table cell is `TBD`, add a corresponding item in `Open Questions`.
 - For `audience=exec`, keep `Detailed Design` short and expand `Impact`, `Risks`, and `Timeline`.
 
 ### style=howto

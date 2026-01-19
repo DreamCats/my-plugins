@@ -1,6 +1,6 @@
 {
   "name": "write-lark-markdown",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Generate Lark-ready Markdown in fixed styles with PlantUML-only diagrams and callout-heavy structure",
   "author": {
     "name": "DreamCats",
