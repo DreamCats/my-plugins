@@ -74,11 +74,11 @@ function buildWelcomeMessage(lspCheckResult = null) {
 
       // Cookie status with helpful messages
       if (cookieSync.sync) {
-        statusInfo += `\n🍪 Repotalk Cookie**: ✅ 已同步到 .mcp.json`;
+        statusInfo += `\n🍪 Repotalk Cookie: ✅ 已同步到 .mcp.json`;
       } else if (cookieValid) {
-        statusInfo += `\n🍪 Repotalk Cookie**: ✅ 已配置`;
+        statusInfo += `\n🍪 Repotalk Cookie: ✅ 已配置`;
       } else {
-        statusInfo += `\n🍪 Repotalk Cookie**: ❌ 未配置`;
+        statusInfo += `\n🍪 Repotalk Cookie: ❌ 未配置`;
         statusInfo += `\n   💡 提示: 配置 Cookie 以启用字节内部代码库搜索`;
         statusInfo += `\n   📝 配置方法: 编辑 \`~/.bytecoding/config.json\``;
         statusInfo += `\n   🔗 获取 Cookie: 登录 https://cloud.bytedance.net`;
@@ -86,13 +86,13 @@ function buildWelcomeMessage(lspCheckResult = null) {
 
       if (gitIdentity.status === 'local' || gitIdentity.status === 'global') {
         const scopeLabel = gitIdentity.status === 'local' ? 'local' : 'global';
-        statusInfo += `\n👤 **Git 用户**: ${gitUtils.formatGitIdentity(gitIdentity)} (${scopeLabel})`;
+        statusInfo += `\n👤 Git 用户: ${gitUtils.formatGitIdentity(gitIdentity)} (${scopeLabel})`;
       } else if (gitIdentity.status === 'missing') {
-        statusInfo += `\n👤 **Git 用户**: ❌ 未配置`;
+        statusInfo += `\n👤 Git 用户: ❌ 未配置`;
       }
 
       // Serena status
-      statusInfo += `\n🔧 **Serena**: ${serenaStatus.message}`;
+      statusInfo += `\n🔧 Serena: ${serenaStatus.message}`;
       if (!serenaStatus.installed && serenaStatus.needsInstall) {
         statusInfo += `\n   💡 提示: Serena 需要安装才能使用语义代码分析功能`;
       }
@@ -104,11 +104,11 @@ function buildWelcomeMessage(lspCheckResult = null) {
   // Add LSP guidelines check status
   if (lspCheckResult) {
     if (lspCheckResult.reason === 'created') {
-      statusInfo += `\n📝 **CLAUDE.md**: ✅ 已创建并添加 LSP 准则`;
+      statusInfo += `\n📝 CLAUDE.md: ✅ 已创建并添加 LSP 准则`;
     } else if (lspCheckResult.reason === 'added') {
-      statusInfo += `\n📝 **CLAUDE.md**: ✅ 已添加 LSP 准则`;
+      statusInfo += `\n📝 CLAUDE.md: ✅ 已添加 LSP 准则`;
     } else if (lspCheckResult.reason === 'already-exists') {
-      statusInfo += `\n📝 **CLAUDE.md**: ✅ LSP 准则已存在`;
+      statusInfo += `\n📝 CLAUDE.md: ✅ LSP 准则已存在`;
     }
   }
 
