@@ -61,7 +61,7 @@ function loadMcpConfig() {
     return mcpConfigCache;
   }
 
-  const mcpConfigPath = pathUtils.getMcpConfigPath();
+  const mcpConfigPath = getMcpConfigPath();
   let mcpConfig = { mcpServers: {} };
 
   if (fs.existsSync(mcpConfigPath)) {
@@ -81,7 +81,7 @@ function loadMcpConfig() {
  * @param {Object} mcpConfig - MCP config object to save
  */
 function saveMcpConfig(mcpConfig) {
-  const mcpConfigPath = pathUtils.getMcpConfigPath();
+  const mcpConfigPath = getMcpConfigPath();
   fs.writeFileSync(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
   mcpConfigCache = mcpConfig;
   configModified = true;
