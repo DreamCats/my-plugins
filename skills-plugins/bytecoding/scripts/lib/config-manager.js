@@ -2,12 +2,90 @@
  * Configuration Manager for Bytecoding
  *
  * Handles directory creation, config initialization, and gitignore management.
+ * Optimized with caching to avoid repeated file I/O.
  */
 
 const fs = require('fs');
 const path = require('path');
 const pathUtils = require('./path-utils');
 const gitUtils = require('./git-utils');
+
+// Cache for config to avoid repeated file reads
+let userConfigCache = null;
+let mcpConfigCache = null;
+
+// Flag to track if config was modified
+let configModified = false;
+
+/**
+ * Clear all caches
+ * Useful when config may have been modified externally
+ */
+function clearCache() {
+  userConfigCache = null;
+  mcpConfigCache = null;
+}
+
+/**
+ * Load user config with caching
+ * @returns {Object|null} User config object
+ */
+function loadUserConfig() {
+  if (userConfigCache !== null) {
+    return userConfigCache;
+  }
+
+  const configPath = pathUtils.getUserConfigPath();
+
+  if (!fs.existsSync(configPath)) {
+    userConfigCache = null;
+    return null;
+  }
+
+  try {
+    const content = fs.readFileSync(configPath, 'utf-8');
+    userConfigCache = JSON.parse(content);
+    return userConfigCache;
+  } catch (error) {
+    userConfigCache = null;
+    return null;
+  }
+}
+
+/**
+ * Load MCP config with caching
+ * @returns {Object} MCP config object
+ */
+function loadMcpConfig() {
+  if (mcpConfigCache !== null) {
+    return mcpConfigCache;
+  }
+
+  const mcpConfigPath = pathUtils.getMcpConfigPath();
+  let mcpConfig = { mcpServers: {} };
+
+  if (fs.existsSync(mcpConfigPath)) {
+    try {
+      mcpConfig = JSON.parse(fs.readFileSync(mcpConfigPath, 'utf-8'));
+    } catch (error) {
+      // Parse error, use default
+    }
+  }
+
+  mcpConfigCache = mcpConfig;
+  return mcpConfig;
+}
+
+/**
+ * Save MCP config and update cache
+ * @param {Object} mcpConfig - MCP config object to save
+ */
+function saveMcpConfig(mcpConfig) {
+  const mcpConfigPath = pathUtils.getMcpConfigPath();
+  fs.writeFileSync(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
+  mcpConfigCache = mcpConfig;
+  configModified = true;
+}
 
 /**
  * Ensure bytecoding directories exist
@@ -103,6 +181,7 @@ function ensureDefaultConfig() {
     };
 
     fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2));
+    userConfigCache = defaultConfig; // Update cache
     return true;
   }
 
@@ -137,35 +216,28 @@ function getMcpConfigPath() {
  * @returns {Object} Sync result with sync, value, source
  */
 function syncCasSessionToMcpConfig() {
-  const mcpConfigPath = getMcpConfigPath();
   const configPath = pathUtils.getUserConfigPath();
 
   let casSession = null;
   let source = null;
 
-  // Read from user config (source of truth)
+  // Read from user config (source of truth) - use cached version if available
   if (fs.existsSync(configPath)) {
     try {
-      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-      casSession = config.repotalk?.auth?.cas_session_cookie;
-      if (casSession) {
-        source = 'user-config';
+      const config = loadUserConfig();
+      if (config) {
+        casSession = config.repotalk?.auth?.cas_session_cookie;
+        if (casSession) {
+          source = 'user-config';
+        }
       }
     } catch (error) {
       // Parse error, use null
     }
   }
 
-  // Read .mcp.json or create default structure
-  let mcpConfig = { mcpServers: {} };
-
-  if (fs.existsSync(mcpConfigPath)) {
-    try {
-      mcpConfig = JSON.parse(fs.readFileSync(mcpConfigPath, 'utf-8'));
-    } catch (error) {
-      // Parse error, use default
-    }
-  }
+  // Load .mcp.json or create default structure (cached)
+  let mcpConfig = loadMcpConfig();
 
   // Ensure mcpServers structure exists
   if (!mcpConfig.mcpServers) {
@@ -197,7 +269,7 @@ function syncCasSessionToMcpConfig() {
     }
 
     // Write updated .mcp.json
-    fs.writeFileSync(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
+    saveMcpConfig(mcpConfig);
     sync = true;
   }
 
@@ -208,6 +280,14 @@ function syncCasSessionToMcpConfig() {
   };
 }
 
+/**
+ * Check if config was modified during this session
+ * @returns {boolean} True if config was modified
+ */
+function wasConfigModified() {
+  return configModified;
+}
+
 module.exports = {
   ensureBytecodingDirs,
   ensureGitignoreHasBytecoding,
@@ -215,4 +295,8 @@ module.exports = {
   getPluginRootDir,
   getMcpConfigPath,
   syncCasSessionToMcpConfig,
+  loadUserConfig,
+  loadMcpConfig,
+  clearCache,
+  wasConfigModified,
 };

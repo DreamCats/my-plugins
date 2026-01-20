@@ -34,41 +34,54 @@ function handleSessionStart(input) {
   // Check Repotalk Cookie
   const cookieTip = repotalkAuth.checkRepotalkAuth();
 
-  // Check Serena status and auto-install if needed
-  const serenaStatus = serenaInstaller.checkSerenaStatus();
+  // Check Serena status and auto-install if needed (non-blocking)
+  const serenaStatus = serenaInstaller.checkSerenaStatusSync();
   let serenaTip = '';
 
-  if (!serenaStatus.installed && serenaStatus.needsInstall) {
-    // Try to auto-install serena
-    const installResult = serenaInstaller.installSerena();
+  if (!serenaStatus.installed && serenaStatus.needsInstall && !serenaStatus.installing) {
+    // Start serena installation in background (non-blocking)
+    const bgInstallResult = serenaInstaller.startSerenaInstallBackground();
 
-    if (installResult.success) {
-      // Installation succeeded, recheck status
-      const newStatus = serenaInstaller.checkSerenaStatus();
-      if (newStatus.installed) {
-        serenaTip = `
+    if (bgInstallResult.started) {
+      // Installation started in background
+      serenaTip = `
 ---
-**🎉 Serena 自动安装成功！**
+**⏳ Serena 正在后台安装中...**
 
-Serena 已成功安装并缓存，现在可以使用语义代码分析功能了。
-如需验证，可以运行：\`uvx serena --help\`
+Serena 安装已启动，正在后台下载和缓存。
+安装完成后，下次会话启动时即可使用语义代码分析功能。
+安装过程通常需要 1-2 分钟，不会阻塞当前会话。
+
+**验证安装**：
+\`\`\`bash
+uvx serena --help
+\`\`\`
 ---
 `;
-      } else {
-        serenaTip = serenaInstaller.getSerenaSetupTip();
-      }
     } else {
-      // Installation failed, show manual instructions
+      // Installation couldn't be started, show manual instructions
       serenaTip = serenaInstaller.getSerenaSetupTip();
-      serenaTip = serenaTip.replace(
-        '**自动安装**（推荐）：',
-        '**自动安装失败**：\n' + installResult.message + '\n\n**手动安装**：'
-      );
+      if (bgInstallResult.message) {
+        serenaTip = serenaTip.replace(
+          '**自动安装**（推荐）：',
+          `**自动安装**：${bgInstallResult.message}\n\n**手动安装**（如果自动安装失败）：`
+        );
+      }
     }
+  } else if (serenaStatus.installing) {
+    // Installation is already in progress
+    serenaTip = `
+---
+**⏳ Serena 正在后台安装中...**
+
+安装进程已在运行，预计还需 1-2 分钟完成。
+请稍后重启 Claude Code 以使用 Serena 功能。
+---
+`;
   }
 
-  // Build welcome message
-  const welcomeMsg = welcomeMessage.buildWelcomeMessage(lspCheckResult);
+  // Build welcome message (pass cached serenaStatus to avoid re-checking)
+  const welcomeMsg = welcomeMessage.buildWelcomeMessage(lspCheckResult, serenaStatus);
 
   // Build output
   const output = {

@@ -24,6 +24,14 @@ function getSerenaInstallFlagPath() {
 }
 
 /**
+ * Get serena installing flag path (used for background installation tracking)
+ * @returns {string} Path to serena installing flag file
+ */
+function getSerenaInstallingFlagPath() {
+  return path.join(getUserBytecodingDir(), '.serena_installing');
+}
+
+/**
  * Get user plans directory
  * @returns {string} Path to ~/.bytecoding/changes
  */
@@ -58,6 +66,7 @@ function getProjectBytecodingDir() {
 module.exports = {
   getUserBytecodingDir,
   getSerenaInstallFlagPath,
+  getSerenaInstallingFlagPath,
   getUserPlansDir,
   getUserArchiveDir,
   getUserConfigPath,

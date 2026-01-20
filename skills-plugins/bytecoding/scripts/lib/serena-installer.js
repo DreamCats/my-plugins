@@ -2,18 +2,76 @@
  * Serena Installation Module
  *
  * Handles Serena installation checking and auto-installation.
+ * Optimized to avoid blocking the session start hook.
  */
 
 const fs = require('fs');
-const { spawnSync } = require('child_process');
+const { spawn } = require('child_process');
 const pathUtils = require('./path-utils');
 
+// Cache for checkSerenaInstalled result to avoid repeated slow checks
+let cachedCheckResult = null;
+
 /**
- * Check if serena can be run via uvx
+ * Asynchronously check if serena can be run via uvx
+ * Returns cached result if available to avoid repeated slow operations
+ * @returns {Promise<boolean>} true if serena is available
+ */
+async function checkSerenaInstalled() {
+  // Return cached result if available
+  if (cachedCheckResult !== null) {
+    return cachedCheckResult;
+  }
+
+  return new Promise((resolve) => {
+    let uvxResolved = false;
+
+    // Check uvx first
+    const uvxProcess = spawn('uvx', ['--help'], {
+      stdio: ['ignore', 'pipe', 'ignore'],
+      timeout: 5000
+    });
+
+    uvxProcess.on('close', (code) => {
+      if (code !== 0) {
+        cachedCheckResult = false;
+        resolve(false);
+        return;
+      }
+
+      // uvx is available, now check serena
+      const serenaProcess = spawn('uvx', ['serena', '--help'], {
+        stdio: ['ignore', 'pipe', 'ignore'],
+        timeout: 30000
+      });
+
+      serenaProcess.on('close', (serenaCode) => {
+        const result = serenaCode === 0;
+        cachedCheckResult = result;
+        resolve(result);
+      });
+
+      serenaProcess.on('error', () => {
+        cachedCheckResult = false;
+        resolve(false);
+      });
+    });
+
+    uvxProcess.on('error', () => {
+      cachedCheckResult = false;
+      resolve(false);
+    });
+  });
+}
+
+/**
+ * Synchronously check if serena can be run via uvx
+ * This version uses spawnSync for synchronous checking (for backward compatibility)
  * @returns {boolean} true if serena is available
  */
-function checkSerenaInstalled() {
+function checkSerenaInstalledSync() {
   try {
+    const { spawnSync } = require('child_process');
     const result = spawnSync('uvx', ['--help'], {
       stdio: ['ignore', 'pipe', 'ignore'],
       timeout: 5000
@@ -36,12 +94,81 @@ function checkSerenaInstalled() {
 }
 
 /**
- * Install serena using uvx
- * This will download and cache serena for future use
+ * Start serena installation in the background
+ * This does not block the hook execution
+ * @returns {Object} { started: boolean, message: string }
+ */
+function startSerenaInstallBackground() {
+  try {
+    const installFlagPath = pathUtils.getSerenaInstallFlagPath();
+    const installingFlagPath = pathUtils.getSerenaInstallingFlagPath();
+
+    // Check if already installing
+    if (fs.existsSync(installingFlagPath)) {
+      return {
+        started: false,
+        message: 'Serena 正在后台安装中...'
+      };
+    }
+
+    // Check if already installed
+    if (fs.existsSync(installFlagPath)) {
+      return {
+        started: false,
+        message: 'Serena 已安装'
+      };
+    }
+
+    // Mark as installing
+    fs.writeFileSync(installingFlagPath, new Date().toISOString());
+
+    // Start installation in background (detached)
+    const process = spawn('uvx', [
+      '--from', 'git+https://github.com/oraios/serena',
+      'serena',
+      '--help'
+    ], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      detached: true
+    });
+
+    process.unref();
+
+    // Handle installation completion in background
+    process.on('close', (code) => {
+      // Remove installing flag
+      try {
+        fs.unlinkSync(installingFlagPath);
+      } catch (e) {
+        // Ignore errors
+      }
+
+      if (code === 0) {
+        // Mark as installed
+        fs.writeFileSync(installFlagPath, new Date().toISOString());
+      }
+    });
+
+    return {
+      started: true,
+      message: 'Serena 已在后台开始安装，请稍后...'
+    };
+  } catch (error) {
+    return {
+      started: false,
+      message: `启动 Serena 安装失败: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Install serena using uvx (synchronous - may block up to 120s)
+ * NOTE: This is kept for backward compatibility. Consider using startSerenaInstallBackground instead.
  * @returns {Object} { success: boolean, message: string }
  */
-function installSerena() {
+function installSerenaSync() {
   try {
+    const { spawnSync } = require('child_process');
     // Use uvx to install serena from GitHub
     const result = spawnSync(
       'uvx',
@@ -73,15 +200,29 @@ function installSerena() {
 }
 
 /**
- * Check serena status and provide installation guidance
- * @returns {Object} { installed: boolean, message: string, needsInstall: boolean }
+ * Install serena using uvx (backward compatible wrapper)
+ * NOTE: For non-blocking behavior, use startSerenaInstallBackground instead.
+ * @returns {Object} { success: boolean, message: string }
  */
-function checkSerenaStatus() {
+function installSerena() {
+  return installSerenaSync();
+}
+
+/**
+ * Check serena status and provide installation guidance
+ * @param {boolean} useAsyncCheck - Use async check (slower but more accurate)
+ * @returns {Promise<Object>|Object} { installed: boolean, message: string, needsInstall: boolean, installing: boolean }
+ */
+async function checkSerenaStatus(useAsyncCheck = false) {
   const flagPath = pathUtils.getSerenaInstallFlagPath();
+  const installingFlagPath = pathUtils.getSerenaInstallingFlagPath();
   const wasInstalled = fs.existsSync(flagPath);
+  const isInstalling = fs.existsSync(installingFlagPath);
 
   // Check if serena is currently available
-  const isAvailable = checkSerenaInstalled();
+  const isAvailable = useAsyncCheck
+    ? await checkSerenaInstalled()
+    : checkSerenaInstalledSync();
 
   if (isAvailable) {
     // Update flag if it was missing
@@ -91,7 +232,18 @@ function checkSerenaStatus() {
     return {
       installed: true,
       needsInstall: false,
+      installing: false,
       message: '✅ Serena 已就绪'
+    };
+  }
+
+  // Check if installation is in progress
+  if (isInstalling) {
+    return {
+      installed: false,
+      needsInstall: false,
+      installing: true,
+      message: '⏳ Serena 正在后台安装中...'
     };
   }
 
@@ -100,6 +252,7 @@ function checkSerenaStatus() {
     return {
       installed: false,
       needsInstall: true,
+      installing: false,
       message: '⚠️ Serena 缓存可能已失效，需要重新安装'
     };
   }
@@ -108,54 +261,81 @@ function checkSerenaStatus() {
   return {
     installed: false,
     needsInstall: true,
+    installing: false,
     message: 'ℹ️ Serena 尚未安装'
   };
 }
 
 /**
- * Get Serena setup instructions
- * @returns {string} Setup instructions in markdown format
+ * Synchronous version of checkSerenaStatus for backward compatibility
+ * @returns {Object} { installed: boolean, message: string, needsInstall: boolean, installing: boolean }
  */
-function getSerenaSetupTip() {
-  return `
----
-**🔧 Serena MCP 未就绪**
+function checkSerenaStatusSync() {
+  const flagPath = pathUtils.getSerenaInstallFlagPath();
+  const installingFlagPath = pathUtils.getSerenaInstallingFlagPath();
+  const wasInstalled = fs.existsSync(flagPath);
+  const isInstalling = fs.existsSync(installingFlagPath);
 
-Serena 是一个强大的代码语义分析工具，可以提升 Claude Code 的代码理解能力。
+  // Check if serena is currently available
+  const isAvailable = checkSerenaInstalledSync();
 
-**自动安装**（推荐）：
-- Hook 会在下次会话启动时自动尝试安装 Serena
-- 确保你的网络可以访问 GitHub
-- 安装过程可能需要 1-2 分钟
+  if (isAvailable) {
+    // Update flag if it was missing
+    if (!wasInstalled) {
+      fs.writeFileSync(flagPath, new Date().toISOString());
+    }
+    return {
+      installed: true,
+      needsInstall: false,
+      installing: false,
+      message: '✅ Serena 已就绪'
+    };
+  }
 
-**手动安装**（如果自动安装失败）：
-\`\`\`bash
-# 方法1: 使用 uvx（推荐）
-uvx --from git+https://github.com/oraios/serena serena --help
+  // Check if installation is in progress
+  if (isInstalling) {
+    return {
+      installed: false,
+      needsInstall: false,
+      installing: true,
+      message: '⏳ Serena 正在后台安装中...'
+    };
+  }
 
-# 方法2: 安装到 Python 环境
-uv pip install --user git+https://github.com/oraios/serena
-\`\`\`
+  // Serena was installed before but not available now
+  if (wasInstalled) {
+    return {
+      installed: false,
+      needsInstall: true,
+      installing: false,
+      message: '⚠️ Serena 缓存可能已失效，需要重新安装'
+    };
+  }
 
-**网络问题？**
-- 如果在公司网络环境无法访问 GitHub，可以：
-  1. 使用代理或 VPN
-  2. 在网络良好的环境提前运行上述命令
-  3. 暂时禁用 Serena（编辑 .mcp.json）
+  // Serena never installed
+  return {
+    installed: false,
+    needsInstall: true,
+    installing: false,
+    message: 'ℹ️ Serena 尚未安装'
+  };
+}
 
-**验证安装**：
-\`\`\`bash
-uvx serena --help
-\`\`\`
-
-安装完成后，重启 Claude Code 即可生效。
----
-`;
+/**
+ * Clear the cached check result
+ * Useful when serena status may have changed
+ */
+function clearCache() {
+  cachedCheckResult = null;
 }
 
 module.exports = {
   checkSerenaInstalled,
+  checkSerenaInstalledSync,
   installSerena,
+  installSerenaSync,
+  startSerenaInstallBackground,
   checkSerenaStatus,
-  getSerenaSetupTip,
+  checkSerenaStatusSync,
+  clearCache,
 };

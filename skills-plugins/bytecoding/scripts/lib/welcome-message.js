@@ -44,9 +44,10 @@ ${commandsList}
 /**
  * Build welcome message with status information
  * @param {Object} lspCheckResult - LSP guidelines check result
+ * @param {Object} serenaStatus - Cached Serena status to avoid re-checking
  * @returns {string} Complete welcome message
  */
-function buildWelcomeMessage(lspCheckResult = null) {
+function buildWelcomeMessage(lspCheckResult = null, serenaStatus = null) {
   // Ensure directories and config exist (auto-initialize)
   const dirsCreated = configManager.ensureBytecodingDirs();
   const configCreated = configManager.ensureDefaultConfig();
@@ -55,49 +56,48 @@ function buildWelcomeMessage(lspCheckResult = null) {
   // Sync CAS_SESSION to .mcp.json
   const cookieSync = configManager.syncCasSessionToMcpConfig();
   const gitIdentity = gitUtils.getGitIdentity();
-  const serenaStatus = serenaInstaller.checkSerenaStatus();
+  // Use cached serenaStatus if provided, otherwise check (fallback)
+  const finalSerenaStatus = serenaStatus || serenaInstaller.checkSerenaStatus();
 
-  // Check configuration
+  // Check configuration (use cached config from config-manager)
   const configPath = pathUtils.getUserConfigPath();
   let statusInfo = '';
 
-  if (fs.existsSync(configPath)) {
-    try {
-      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-      const cookie = config.repotalk?.auth?.cas_session_cookie;
-      const cookieValid = repotalkAuth.isValidCasSessionCookie(cookie);
+  // Use cached user config to avoid repeated file reads
+  const userConfig = configManager.loadUserConfig();
 
-      // Configuration status
-      const preferLocal = config.repo_plan?.prefer_local ?? true;
-      const verifyMode = config.repo_plan?.verify_mode ?? 'smart';
-      statusInfo += `\n⚙️ 配置: prefer_local=${preferLocal}, verify_mode=${verifyMode}`;
+  if (userConfig) {
+    const cookie = userConfig.repotalk?.auth?.cas_session_cookie;
+    const cookieValid = repotalkAuth.isValidCasSessionCookie(cookie);
 
-      // Cookie status with helpful messages
-      if (cookieSync.sync) {
-        statusInfo += `\n🍪 Repotalk Cookie: ✅ 已同步到 .mcp.json`;
-      } else if (cookieValid) {
-        statusInfo += `\n🍪 Repotalk Cookie: ✅ 已配置`;
-      } else {
-        statusInfo += `\n🍪 Repotalk Cookie: ❌ 未配置`;
-        statusInfo += `\n   💡 提示: 配置 Cookie 以启用字节内部代码库搜索`;
-        statusInfo += `\n   📝 配置方法: 编辑 \`~/.bytecoding/config.json\``;
-        statusInfo += `\n   🔗 获取 Cookie: 登录 https://cloud.bytedance.net`;
-      }
+    // Configuration status
+    const preferLocal = userConfig.repo_plan?.prefer_local ?? true;
+    const verifyMode = userConfig.repo_plan?.verify_mode ?? 'smart';
+    statusInfo += `\n⚙️ 配置: prefer_local=${preferLocal}, verify_mode=${verifyMode}`;
 
-      if (gitIdentity.status === 'local' || gitIdentity.status === 'global') {
-        const scopeLabel = gitIdentity.status === 'local' ? 'local' : 'global';
-        statusInfo += `\n👤 Git 用户: ${gitUtils.formatGitIdentity(gitIdentity)} (${scopeLabel})`;
-      } else if (gitIdentity.status === 'missing') {
-        statusInfo += `\n👤 Git 用户: ❌ 未配置`;
-      }
+    // Cookie status with helpful messages
+    if (cookieSync.sync) {
+      statusInfo += `\n🍪 Repotalk Cookie: ✅ 已同步到 .mcp.json`;
+    } else if (cookieValid) {
+      statusInfo += `\n🍪 Repotalk Cookie: ✅ 已配置`;
+    } else {
+      statusInfo += `\n🍪 Repotalk Cookie: ❌ 未配置`;
+      statusInfo += `\n   💡 提示: 配置 Cookie 以启用字节内部代码库搜索`;
+      statusInfo += `\n   📝 配置方法: 编辑 \`~/.bytecoding/config.json\``;
+      statusInfo += `\n   🔗 获取 Cookie: 登录 https://cloud.bytedance.net`;
+    }
 
-      // Serena status
-      statusInfo += `\n🔧 Serena: ${serenaStatus.message}`;
-      if (!serenaStatus.installed && serenaStatus.needsInstall) {
-        statusInfo += `\n   💡 提示: Serena 需要安装才能使用语义代码分析功能`;
-      }
-    } catch (e) {
-      // Ignore config parse errors
+    if (gitIdentity.status === 'local' || gitIdentity.status === 'global') {
+      const scopeLabel = gitIdentity.status === 'local' ? 'local' : 'global';
+      statusInfo += `\n👤 Git 用户: ${gitUtils.formatGitIdentity(gitIdentity)} (${scopeLabel})`;
+    } else if (gitIdentity.status === 'missing') {
+      statusInfo += `\n👤 Git 用户: ❌ 未配置`;
+    }
+
+    // Serena status
+    statusInfo += `\n🔧 Serena: ${finalSerenaStatus.message}`;
+    if (!finalSerenaStatus.installed && finalSerenaStatus.needsInstall) {
+      statusInfo += `\n   💡 提示: Serena 需要安装才能使用语义代码分析功能`;
     }
   }
 
