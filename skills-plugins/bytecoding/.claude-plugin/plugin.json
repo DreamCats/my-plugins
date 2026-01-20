@@ -1,6 +1,6 @@
 {
   "name": "bytecoding",
-  "version": "0.6.8",
+  "version": "0.6.9",
   "description": "Spec-driven development workflow with PlanSpec generation, repotalk MCP integration, and automated change execution",
   "author": {
     "name": "Maifeng"
