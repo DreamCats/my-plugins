@@ -11,7 +11,7 @@ description: Use when converting design documents into executable task lists. Th
 
 ## 工作流程检查清单（强制执行）
 
-**复制或者 使用 "TodoWrite" 以下检查清单并跟踪进度：**
+使用 "TodoWrite" 跟踪以下 4 步：
 
 ```
 Writing Plans Progress:
@@ -21,7 +21,7 @@ Writing Plans Progress:
 - [ ] 步骤 4: 验证完成 - 确认任务列表完整
 ```
 
-**重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
+**规则**：不可跳过步骤。
 
 ---
 
@@ -46,7 +46,7 @@ Read: .bytecoding/changes/$CHANGE_ID/design.md
 - [ ] 安全考虑事项
 - [ ] 验证策略（默认不写单元测试）
 
-**在继续下一步之前，确认已完全理解设计文档。**
+继续前：确认已覆盖以上要点。
 
 ---
 
@@ -66,9 +66,9 @@ Read: .bytecoding/changes/$CHANGE_ID/design.md
 
 **必须生成 tasks.md 文件**
 
-文档模板详见：
-- `references/task_template.md`（单个任务模板）
-- `references/tasks_md_template.md`（tasks.md 完整结构）
+注意：如果 `.bytecoding/changes/$CHANGE_ID/tasks.md` 已存在，直接在该文件上继续补充/更新即可；无需再读取模板（除非需要对齐结构）。
+
+模板：`references/task_template.md`、`references/tasks_md_template.md`
 
 **重要**：
 - 任务粒度必须控制在 2-5 分钟

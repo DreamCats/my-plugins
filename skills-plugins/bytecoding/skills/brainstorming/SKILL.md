@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Use when discussing requirements, exploring implementation approaches, or designing solutions that require code analysis. This skill enforces a mandatory 6-step workflow: understand requirements → Repotalk MCP search (optional) → local targeted search → comprehensive analysis & solution design → generate 2 documents (proposal.md, design.md) → verify completion. BEFORE any code modification.
+description: Turn vague requirements into a concrete design via a mandatory 6-step workflow. Docs must be done before any code changes.
 ---
 
 # Brainstorming 技能
@@ -9,7 +9,7 @@ description: Use when discussing requirements, exploring implementation approach
 
 ## 工作流程检查清单（强制执行）
 
-**复制或者使用 "TodoWrite" 以下检查清单并跟踪进度：**
+使用 "TodoWrite" 跟踪以下 6 步；可跳过步骤需注明原因：
 
 ```
 Brainstorming Progress:
@@ -21,7 +21,6 @@ Brainstorming Progress:
 - [ ] 步骤 6: 验证完成 - 确认所有文档已生成
 ```
 
-**重要**：完成每个步骤后，更新检查清单。对允许跳过的步骤必须标注原因。
 
 ---
 
@@ -38,16 +37,7 @@ Brainstorming Progress:
 3. 是否需要考虑向后兼容性？
 4. 预期的性能或安全要求？
 
-**提问原则**：
-
-- 使用开放式问题（避免是/否回答）
-- 聚焦于"为什么"而非"是什么"
-- 探索边界条件和约束
-- **单轮提问**：最多 1 轮，用户回答后不得再次追问
-- **若用户已提供路径/函数/语言/范围信息，减少问题数量，直接进入步骤 2**
-- **若回答中出现"需要搜索/不确定"，视为允许搜索，直接进入步骤 2**
-
-**禁止重复提问**：除非关键前置条件缺失（例如无法确定仓库或语言），否则不得发起第二轮提问。
+**规则**：最多 1 轮澄清（<=4 问）；需求已清晰则不提问直接进入步骤 2；用户回答后不再追问。
 
 ---
 
@@ -89,9 +79,11 @@ cat ~/.bytecoding/config.json
 
 **目标**：基于 Repotalk 产出的候选路径/术语（或用户已明确的范围）做**定向验证**，避免全仓库关键词搜索。
 
-**硬性约束**：若选择执行步骤 2，未完成 Repotalk 搜索前，禁止使用本地搜索工具。若跳过步骤 2，需说明原因后再执行本地搜索。
+**约束**：若执行步骤 2，需先完成 Repotalk；若跳过需说明原因。
 
-工具选择优先级和搜索策略见：`references/local_search_strategy.md`
+**优先级**：Serena/LSP（符号/引用链清晰） > bcindex（语义定位） > Glob/Grep/Read（兜底）。详细策略见：`references/local_search_strategy.md`
+
+**注意**：使用 Serena/LSP 前需先执行 Activate（激活项目），之后才能使用其他 LSP 能力。
 
 ---
 
@@ -109,9 +101,7 @@ cat ~/.bytecoding/config.json
 
 **必须生成以下文件**：
 
-文档模板详见：
-- `references/proposal_template.md`（变更提案）
-- `references/design_template.md`（设计文档）
+模板：`references/proposal_template.md`、`references/design_template.md`；若 `.bytecoding/changes/$CHANGE_ID/` 下的 `proposal.md` / `design.md` 已存在，则直接使用现有文件，无需再读取模板。
 
 **职责划分**：
 
@@ -140,7 +130,8 @@ cat ~/.bytecoding/config.json
 
 ## 禁止行为
 
-- ❌ **需求模糊仍跳过澄清提问** - 必须先提问再进入搜索
+- ❌ **需求不清晰未澄清就搜索** - 必须显式使用 "use ask question"
+- ❌ **超过 1 轮澄清提问**
 - ❌ **repo_names 格式错误** - 必须使用 `org/repo` 格式
 - ❌ **盲目全仓库关键词搜索** - 必须先收敛范围
 - ❌ **跳过本地定向搜索** - 必须在完成 Repotalk 或明确跳过后执行
@@ -149,22 +140,15 @@ cat ~/.bytecoding/config.json
 - ❌ **生成 tasks.md** - 应由 writing-plans 技能负责
 - ❌ **生成 planspec.yaml** - 应由 repo-plan 命令负责
 - ❌ **综合分析与方案设计分离输出** - 应一次性输出，保持逻辑连贯
-- ❌ **需求不清晰却不提问就进入搜索** - 必须显式使用 "use ask question"
-- ❌ **重复提问** - 只允许一轮澄清提问
 - ❌ **未确认就扩展到 service/biz 层** - 需保持在用户指定范围
 - ❌ **方案没有基于已收集证据** - 必须基于 Repotalk 或本地搜索结果
 - ❌ **在生成文档前修改代码** - 文档必须先于代码修改
 
 ---
 
-## MCP 工具使用
-
-- Repotalk MCP：见 `references/repotalk_workflow.md`
-- 本地工具：见 `references/local_search_strategy.md`
-
----
-
 ## 参考资源
 
+- `references/repotalk_workflow.md`
+- `references/local_search_strategy.md`
 - [Repotalk MCP 工具使用说明](../../scripts/session-start-hook.js)
 - [writing-plans 技能](../writing-plans/SKILL.md)
