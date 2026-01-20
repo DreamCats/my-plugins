@@ -21,7 +21,6 @@ Brainstorming Progress:
 - [ ] 步骤 6: 验证完成 - 确认所有文档已生成
 ```
 
-
 ---
 
 ## 步骤 1: 理解需求（必要时提问并确认）
@@ -81,9 +80,9 @@ cat ~/.bytecoding/config.json
 
 **约束**：若执行步骤 2，需先完成 Repotalk；若跳过需说明原因。
 
-**优先级**：Serena/LSP（符号/引用链清晰） > bcindex（语义定位） > Glob/Grep/Read（兜底）。详细策略见：`references/local_search_strategy.md`
+**优先级**：Serena MCP/LSP（符号/引用链清晰） > bcindex mcp（语义定位） > Glob/Grep/Read（兜底）。详细策略见：`references/local_search_strategy.md`
 
-**注意**：使用 Serena/LSP 前需先执行 Activate（激活项目），之后才能使用其他 LSP 能力。
+**注意**：使用 Serena MCP/LSP 前需先执行 Activate（激活项目），之后才能使用其他 LSP 能力。
 
 ---
 
