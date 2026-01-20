@@ -329,6 +329,24 @@ function clearCache() {
   cachedCheckResult = null;
 }
 
+function getSerenaSetupTip() {
+  return `
+---
+**🔧 Serena 未就绪**
+
+**自动安装**（推荐）：
+\`\`\`bash
+uvx --from git+https://github.com/oraios/serena serena --help
+\`\`\`
+
+**验证安装**：
+\`\`\`bash
+uvx serena --help
+\`\`\`
+---
+`;
+}
+
 module.exports = {
   checkSerenaInstalled,
   checkSerenaInstalledSync,
@@ -337,5 +355,6 @@ module.exports = {
   startSerenaInstallBackground,
   checkSerenaStatus,
   checkSerenaStatusSync,
+  getSerenaSetupTip,
   clearCache,
 };
