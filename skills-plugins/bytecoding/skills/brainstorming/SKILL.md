@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Use when discussing requirements, exploring implementation approaches, or designing solutions that require code analysis. This skill enforces a mandatory workflow: Repotalk MCP search (to narrow scope) → local targeted search → comprehensive analysis → generate 2 documents (proposal.md, design.md) BEFORE any code modification.
+description: Use when discussing requirements, exploring implementation approaches, or designing solutions that require code analysis. This skill enforces a mandatory 6-step workflow: understand requirements → Repotalk MCP search (optional) → local targeted search → comprehensive analysis & solution design → generate 2 documents (proposal.md, design.md) → verify completion. BEFORE any code modification.
 ---
 
 # Brainstorming 技能
@@ -16,10 +16,9 @@ Brainstorming Progress:
 - [ ] 步骤 1: 理解需求 - 需求不清晰时用 "use ask question" 单轮提问并等待确认；需求明确时可直接确认理解
 - [ ] 步骤 2: Repotalk MCP 搜索 - 复杂/模糊需求优先执行；简单明确可跳过并说明原因（repo_names=org/repo）
 - [ ] 步骤 3: 本地定向搜索 - 基于候选路径/术语验证与补充
-- [ ] 步骤 4: 综合分析 - 结合 Repotalk 和本地搜索结果
-- [ ] 步骤 5: 方案设计 - 提出 2-3 种方案，分节呈现并给出推荐方案
-- [ ] 步骤 6: 生成文档 - 必须生成 proposal.md 和 design.md
-- [ ] 步骤 7: 验证完成 - 确认所有文档已生成
+- [ ] 步骤 4: 综合分析与方案设计 - 结合搜索结果，提出 2-3 种方案并给出推荐方案
+- [ ] 步骤 5: 生成文档 - 必须生成 proposal.md 和 design.md
+- [ ] 步骤 6: 验证完成 - 确认所有文档已生成
 ```
 
 **重要**：完成每个步骤后，更新检查清单。对允许跳过的步骤必须标注原因。
@@ -155,15 +154,15 @@ Grep: "Register.*Handler" path/to/candidate/dir
 
 ---
 
-## 步骤 4: 综合分析
+## 步骤 4: 综合分析与方案设计
 
-**目标**：结合 Repotalk 和本地搜索结果，识别最佳实践。
+**目标**：结合 Repotalk 和本地搜索结果，进行综合分析并提出 2-3 种具体方案，给出推荐方案。
 
-**输出格式**：对比分析表
+### 综合分析
+
+结合搜索结果，识别最佳实践：
 
 ```markdown
-## 综合分析
-
 ### Repotalk 搜索结果（字节内部参考）
 
 | 项目      | 方案                  | 亮点       |
@@ -186,26 +185,49 @@ Grep: "Register.*Handler" path/to/candidate/dir
 3. **注意**：已有 email_verified 字段
 ```
 
+### 方案设计
+
+基于综合分析，提出 2-3 种具体方案：
+
+```markdown
+### 方案一：[方案名称]
+
+**实现方式**：
+- 具体实现步骤
+
+**优点**：
+- 优势 1
+- 优势 2
+
+**缺点**：
+- 劣势 1
+- 劣势 2
+
+### 方案二：[方案名称]
+
+**实现方式**：
+- 具体实现步骤
+
+**优点**：
+- 优势 1
+- 优势 2
+
+**缺点**：
+- 劣势 1
+- 劣势 2
+
+### ✅ 推荐方案：[方案名称]
+
+**理由**：基于综合分析，推荐 [方案名称]，因为：
+- 理由 1
+- 理由 2
+```
+
+**重要**：综合分析与方案设计应一次性输出，保持逻辑连贯性。
+
 ---
 
-## 步骤 5: 方案设计（分节呈现并给出推荐）
-
-**目标**：提出 2-3 种具体方案，**分节呈现**，并给出推荐方案。
-
-**呈现顺序**：
-
-1. 需求确认摘要
-2. Repotalk 搜索结果摘要
-3. 本地搜索结果摘要
-4. 综合分析
-5. 逐个展示方案（实现方式 + 优缺点）
-6. **最终推荐方案**（带理由，无需用户选择）
-
-**重要**：可以一次性输出所有内容，但必须保持分节清晰。
-
----
-
-## 步骤 6: 生成文档（强制要求）
+## 步骤 5: 生成文档（强制要求）
 
 **必须生成以下文件**：
 
@@ -267,7 +289,7 @@ Grep: "Register.*Handler" path/to/candidate/dir
 
 ---
 
-## 步骤 7: 验证完成
+## 步骤 6: 验证完成
 
 **完成标志检查清单**：
 
@@ -275,8 +297,7 @@ Grep: "Register.*Handler" path/to/candidate/dir
 ✓ 需求理解已确认（若有提问）
 ✓ 若执行 Repotalk MCP 搜索，已产出候选路径/术语
 ✓ 完成本地定向搜索（基于候选范围验证）
-✓ 产出综合分析表（结合两者结果）
-✓ 提出 2-3 种方案并推荐其一
+✓ 完成综合分析与方案设计（提出 2-3 种方案并推荐其一）
 ✓ 生成 proposal.md
 ✓ 生成 design.md
 ```
@@ -291,11 +312,11 @@ Grep: "Register.*Handler" path/to/candidate/dir
 - ❌ **repo_names 格式错误** - 必须使用 `org/repo` 格式
 - ❌ **盲目全仓库关键词搜索** - 必须先收敛范围
 - ❌ **跳过本地定向搜索** - 必须在完成 Repotalk 或明确跳过后执行
-- ❌ **跳过综合分析** - 必须结合两者结果
+- ❌ **跳过综合分析与方案设计** - 必须结合搜索结果并提出方案
 - ❌ **跳过文档生成** - 必须生成 proposal.md 和 design.md
 - ❌ **生成 tasks.md** - 应由 writing-plans 技能负责
 - ❌ **生成 planspec.yaml** - 应由 repo-plan 命令负责
-- ❌ **不分节呈现方案** - 必须清晰分节展示
+- ❌ **综合分析与方案设计分离输出** - 应一次性输出，保持逻辑连贯
 - ❌ **需求不清晰却不提问就进入搜索** - 必须显式使用 "use ask question"
 - ❌ **重复提问** - 只允许一轮澄清提问
 - ❌ **未确认就扩展到 service/biz 层** - 需保持在用户指定范围
