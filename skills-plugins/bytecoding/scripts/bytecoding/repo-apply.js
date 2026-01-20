@@ -25,6 +25,30 @@ function printUsage() {
 
 function syncTaskState(changeId, tasksPath, statePath) {
   const markdown = fs.readFileSync(tasksPath, 'utf8');
+
+  const violations = [];
+  if (markdown.includes('编译整个项目')) {
+    violations.push('contains forbidden phrase: 编译整个项目');
+  }
+  if (/\bgo\s+build\s+-v\s+\.\/\.\.\./i.test(markdown)) {
+    violations.push('contains forbidden command: go build -v ./...');
+  }
+  if (/\bgo\s+build\s+\.\/\.\.\./i.test(markdown)) {
+    violations.push('contains forbidden command: go build ./...');
+  }
+  if (/\bgo\s+test\s+\.\/\.\.\./i.test(markdown)) {
+    violations.push('contains forbidden command: go test ./...');
+  }
+  if (violations.length) {
+    die(
+      [
+        `tasks.md violates verification policy: ${violations.join('; ')}`,
+        'Policy: tasks.md must not instruct compiling the whole project.',
+        'Fix: replace with package-scoped verification (e.g. go build ./path/to/pkg/... or the smallest affected target).',
+      ].join('\n')
+    );
+  }
+
   const tasks = parseTasksFromMarkdown(markdown);
   const previous = loadTaskState(statePath);
   const nextState = mergeTaskState(changeId, tasks, previous);

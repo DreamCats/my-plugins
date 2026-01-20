@@ -48,17 +48,6 @@ Brainstorming Progress:
 
 **顺序约束**：若执行 Repotalk，在完成前禁止任何本地 Search/Glob/Grep/Read。
 
-### 2.1 检查 Cookie 配置
-
-```bash
-# 检查 CAS Session Cookie 是否已配置
-cat ~/.bytecoding/config.json
-```
-
-如果 Cookie 未配置或过期，在输出中明确标注，但仍继续执行本地搜索。
-
-### 2.2 Repotalk MCP 搜索策略
-
 **重要**：使用正确的 `repo_names` 参数格式（`org/repo`）
 
 详细工作流程和代码示例见：`references/repotalk_workflow.md`
@@ -79,6 +68,16 @@ cat ~/.bytecoding/config.json
 **目标**：基于 Repotalk 产出的候选路径/术语（或用户已明确的范围）做**定向验证**，避免全仓库关键词搜索。
 
 **约束**：若执行步骤 2，需先完成 Repotalk；若跳过需说明原因。
+
+| 用户需求示例                       | 使用工具   | 原因               |
+| ---------------------------------- | ---------- | ------------------ |
+| "FindAllReferences 在哪里被调用？" | serena/LSP | 精确引用链         |
+| "IUserHandler 接口有哪些实现？"    | serena/LSP | 符号/实现关系      |
+| "所有叫 `HandleUpdate` 的函数"     | serena/LSP | 符号搜索，更快更准 |
+| "查找处理用户认证的代码"           | bcindex    | 自然语言语义检索   |
+| "这个项目有哪些 HTTP handler？"    | bcindex    | 按职责定位模块     |
+| "xxx.go 文件里的具体实现"          | Read       | 已知具体路径       |
+| "所有包含 'update' 关键词的代码"   | Grep       | 泛化关键词搜索     |
 
 **优先级**：Serena MCP/LSP（符号/引用链清晰） > bcindex mcp（语义定位） > Glob/Grep/Read（兜底）。详细策略见：`references/local_search_strategy.md`
 
