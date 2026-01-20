@@ -14,8 +14,8 @@ description: Turn vague requirements into a concrete design via a mandatory 6-st
 ```
 Brainstorming Progress:
 - [ ] 步骤 1: 理解需求 - 需求不清晰时用 "use ask question" 单轮提问并等待确认；需求明确时可直接确认理解
-- [ ] 步骤 2: Repotalk MCP 搜索 - 复杂/模糊需求优先执行；简单明确可跳过并说明原因（repo_names=org/repo）
-- [ ] 步骤 3: 本地定向搜索 - 基于候选路径/术语验证与补充
+- [ ] 步骤 2: Repotalk MCP 搜索 - 复杂/模糊需求优先执行；简单明确可跳过该步骤并说明原因（repo_names=org/repo）
+- [ ] 步骤 3: 本地定向搜索 - 基于候选路径/术语验证与补充；必须判断本地定向搜索优先级（serena/LSP > bcindex > Glob/Grep/Read）
 - [ ] 步骤 4: 综合分析与方案设计 - 结合搜索结果，提出 2-3 种方案并给出推荐方案
 - [ ] 步骤 5: 生成文档 - 必须生成 proposal.md 和 design.md
 - [ ] 步骤 6: 验证完成 - 确认所有文档已生成
