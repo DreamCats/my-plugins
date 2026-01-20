@@ -70,11 +70,6 @@ function buildWelcomeMessage(lspCheckResult = null, serenaStatus = null) {
     const cookie = userConfig.repotalk?.auth?.cas_session_cookie;
     const cookieValid = repotalkAuth.isValidCasSessionCookie(cookie);
 
-    // Configuration status
-    const preferLocal = userConfig.repo_plan?.prefer_local ?? true;
-    const verifyMode = userConfig.repo_plan?.verify_mode ?? 'smart';
-    statusInfo += `\n⚙️ 配置: prefer_local=${preferLocal}, verify_mode=${verifyMode}`;
-
     // Cookie status with helpful messages
     if (cookieSync.sync) {
       statusInfo += `\n🍪 Repotalk Cookie: ✅ 已同步到 .mcp.json`;
