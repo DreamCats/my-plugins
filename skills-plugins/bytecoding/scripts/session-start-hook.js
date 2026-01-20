@@ -54,7 +54,7 @@ Serena 安装已启动，正在后台下载和缓存。
 
 **验证安装**：
 \`\`\`bash
-uvx serena --help
+uv tool run serena --help
 \`\`\`
 ---
 `;
@@ -63,8 +63,8 @@ uvx serena --help
       serenaTip = serenaInstaller.getSerenaSetupTip();
       if (bgInstallResult.message) {
         serenaTip = serenaTip.replace(
-          '**自动安装**（推荐）：',
-          `**自动安装**：${bgInstallResult.message}\n\n**手动安装**（如果自动安装失败）：`
+          '**安装**（推荐）：',
+          `**安装**：${bgInstallResult.message}\n\n**手动安装**（如果自动安装失败）：`
         );
       }
     }

@@ -24,40 +24,30 @@ async function checkSerenaInstalled() {
   }
 
   return new Promise((resolve) => {
-    let uvxResolved = false;
-
-    // Check uvx first
-    const uvxProcess = spawn('uvx', ['--help'], {
+    const listProcess = spawn('uv', ['tool', 'list'], {
       stdio: ['ignore', 'pipe', 'ignore'],
-      timeout: 5000
+      timeout: 10000
     });
 
-    uvxProcess.on('close', (code) => {
+    let stdout = '';
+
+    listProcess.stdout.on('data', (chunk) => {
+      stdout += chunk;
+    });
+
+    listProcess.on('close', (code) => {
       if (code !== 0) {
         cachedCheckResult = false;
         resolve(false);
         return;
       }
 
-      // uvx is available, now check serena
-      const serenaProcess = spawn('uvx', ['serena', '--help'], {
-        stdio: ['ignore', 'pipe', 'ignore'],
-        timeout: 30000
-      });
-
-      serenaProcess.on('close', (serenaCode) => {
-        const result = serenaCode === 0;
-        cachedCheckResult = result;
-        resolve(result);
-      });
-
-      serenaProcess.on('error', () => {
-        cachedCheckResult = false;
-        resolve(false);
-      });
+      const installed = /(^|\s)serena(\s|$)/m.test(stdout);
+      cachedCheckResult = installed;
+      resolve(installed);
     });
 
-    uvxProcess.on('error', () => {
+    listProcess.on('error', () => {
       cachedCheckResult = false;
       resolve(false);
     });
@@ -72,22 +62,17 @@ async function checkSerenaInstalled() {
 function checkSerenaInstalledSync() {
   try {
     const { spawnSync } = require('child_process');
-    const result = spawnSync('uvx', ['--help'], {
+    const result = spawnSync('uv', ['tool', 'list'], {
       stdio: ['ignore', 'pipe', 'ignore'],
-      timeout: 5000
+      timeout: 10000
     });
 
     if (result.status !== 0) {
       return false;
     }
 
-    // Check if serena is in uvx cache or can be fetched
-    const serenaCheck = spawnSync('uvx', ['serena', '--help'], {
-      stdio: ['ignore', 'pipe', 'ignore'],
-      timeout: 30000
-    });
-
-    return serenaCheck.status === 0;
+    const stdout = result.stdout ? result.stdout.toString() : '';
+    return /(^|\s)serena(\s|$)/m.test(stdout);
   } catch (error) {
     return false;
   }
@@ -123,10 +108,10 @@ function startSerenaInstallBackground() {
     fs.writeFileSync(installingFlagPath, new Date().toISOString());
 
     // Start installation in background (detached)
-    const process = spawn('uvx', [
-      '--from', 'git+https://github.com/oraios/serena',
-      'serena',
-      '--help'
+    const process = spawn('uv', [
+      'tool',
+      'install',
+      'git+https://github.com/oraios/serena'
     ], {
       stdio: ['ignore', 'pipe', 'pipe'],
       detached: true
@@ -169,28 +154,22 @@ function startSerenaInstallBackground() {
 function installSerenaSync() {
   try {
     const { spawnSync } = require('child_process');
-    // Use uvx to install serena from GitHub
-    const result = spawnSync(
-      'uvx',
-      ['--from', 'git+https://github.com/oraios/serena', 'serena', '--help'],
-      {
-        stdio: ['ignore', 'pipe', 'pipe'],
-        timeout: 120000 // 2 minutes timeout
-      }
-    );
+    const result = spawnSync('uv', ['tool', 'install', 'git+https://github.com/oraios/serena'], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 120000 // 2 minutes timeout
+    });
 
     if (result.status === 0) {
-      // Mark as installed
       const flagPath = pathUtils.getSerenaInstallFlagPath();
       fs.writeFileSync(flagPath, new Date().toISOString());
       return { success: true, message: 'Serena 安装成功' };
-    } else {
-      const error = result.stderr ? result.stderr.toString() : '未知错误';
-      return {
-        success: false,
-        message: `Serena 安装失败: ${error}`
-      };
     }
+
+    const error = result.stderr ? result.stderr.toString() : '未知错误';
+    return {
+      success: false,
+      message: `Serena 安装失败: ${error}`
+    };
   } catch (error) {
     return {
       success: false,
@@ -334,14 +313,14 @@ function getSerenaSetupTip() {
 ---
 **🔧 Serena 未就绪**
 
-**自动安装**（推荐）：
+**安装**（推荐）：
 \`\`\`bash
-uvx --from git+https://github.com/oraios/serena serena --help
+uv tool install git+https://github.com/oraios/serena
 \`\`\`
 
 **验证安装**：
 \`\`\`bash
-uvx serena --help
+uv tool run serena --help
 \`\`\`
 ---
 `;
