@@ -131,6 +131,7 @@ Brainstorming Progress:
 ```
 
 **当且仅当所有上述条件满足时，本技能完成。**
+**自动衔接**：若用户未明确要求“只做 brainstorming/只产出 proposal+design”，完成后应**自动触发 `writing-plans` 技能**生成 `tasks.md`，无需用户手动指令。
 
 ---
 
@@ -149,6 +150,7 @@ Brainstorming Progress:
 - ❌ **未确认就扩展到 service/biz 层** - 需保持在用户指定范围
 - ❌ **方案没有基于已收集证据** - 必须基于 Repotalk 或本地搜索结果
 - ❌ **在生成文档前修改代码** - 文档必须先于代码修改
+- ❌ **让用户手动触发 writing-plans** - 除非用户明确只需要 brainstorming 产出，否则应自动衔接
 
 ---
 

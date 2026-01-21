@@ -50,6 +50,7 @@ Skills 可以独立调用或通过 Commands 自动触发：
 - 需要了解代码库现状
 
 **输出**：`proposal.md` + `design.md`
+**自动衔接**：若用户未明确要求“只做 brainstorming/只要设计文档”，完成后应自动触发 `bytecoding:writing-plans` 生成 `tasks.md`。
 
 ### 2. 生成方案 → `/repo-plan` 命令
 

@@ -197,6 +197,17 @@
       "source": "./skills-plugins/image-vision",
       "category": "image-analysis",
       "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/image-vision"
+    },
+    {
+      "name": "feishu-group-summary",
+      "description": "飞书群聊消息总结工具，支持搜索群聊、获取历史消息、智能分析并生成结构化报告",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills-plugins/feishu-group-summary",
+      "category": "productivity",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/feishu-group-summary"
     }
   ]
 }
