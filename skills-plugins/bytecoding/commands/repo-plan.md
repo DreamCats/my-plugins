@@ -20,7 +20,7 @@ Repo-Plan Progress:
 - [ ] 步骤 4: 生成飞书文档并发送摘要 - 转换 Markdown 并发送消息
 ```
 
-**重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
+**重要**：完成每个步骤后，继续执行下一步骤，不能停止，不要跳过任何步骤。
 
 ## 步骤 1: 运行脚本初始化（必须）
 
@@ -39,35 +39,45 @@ node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
 
 **必须先执行完此脚本再进入下一步**。脚本会创建 `planspec.yaml` 以及 `proposal.md`/`design.md`/`tasks.md` 模板（含变更标题与固定章节）。记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。若脚本失败，先排查报错原因，不要直接进入 brainstorming。
 
-## 步骤 2: 使用 brainstorming skill（必须）
+## 步骤 2: brainstorming - 需求精化与方案设计（必须）
 
-现在使用 **brainstorming skill** 开始需求精化和方案设计。
+**在步骤 1 完成后立即执行此步骤，不要停止。**
 
-**如果用户提供了变更描述**，直接告知用户：
+基于用户的变更描述 `$ARGUMENTS` 和生成的 change-id，开始需求精化和方案设计。
 
-```
-请使用 brainstorming skill 来完成需求澄清和方案设计。
+**工作目录**：`.bytecoding/changes/$CHANGE_ID/`
 
-用户需求：$ARGUMENTS
-工作目录：.bytecoding/changes/$CHANGE_ID/
+**需要完成**：
 
-产出文件：
-- proposal.md - 变更提案
-- design.md - 设计文档
+1. 理解用户需求（必要时使用 AskUserQuestion 澄清）
+2. 执行 Repotalk MCP 搜索（复杂需求）或本地搜索（简单需求）
+3. 综合分析并提出 1-2 种方案
+4. 生成 `proposal.md` 和 `design.md`
 
-重要：brainstorming skill 完成后会自动触发 writing-plans skill 生成 tasks.md。
-```
+**注意**：完成 proposal.md 和 design.md 后，继续进入步骤 3。
 
-## 步骤 3: 使用 writing-plans skill（必须）
+## 步骤 3: writing-plans - 生成任务列表（必须）
 
-```
-请使用 writing-plans skill 来将设计文档转化为任务列表。
+**在步骤 2 完成后立即执行此步骤，不要停止。**
 
-工作目录：.bytecoding/changes/$CHANGE_ID/
+基于生成的 `design.md`，将其转化为可执行的任务列表。
 
-产出文件：
-- tasks.md - 可执行任务列表（含依赖关系和验证标准）
-```
+**工作目录**：`.bytecoding/changes/$CHANGE_ID/`
+
+**需要完成**：
+
+1. 完全理解 `design.md` 内容
+2. 将设计拆分为 2-5 分钟可完成的任务
+3. 生成 `tasks.md`（包含依赖关系和验证标准）
+
+**重要约束**：
+- 任务粒度必须控制在 2-5 分钟
+- 必须标注依赖关系
+- 必须明确验证标准
+- 禁止 "编译整个项目" 或 "go build ./..."
+- 验证范围必须最小化
+
+**注意**：完成 tasks.md 后，继续进入步骤 4。
 
 ## 步骤 4: 生成飞书文档并发送摘要
 
