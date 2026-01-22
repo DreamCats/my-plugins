@@ -9,16 +9,15 @@ description: Turn vague requirements into a concrete design via a mandatory 6-st
 
 ## 工作流程检查清单（强制执行）
 
-使用 "TodoWrite" 跟踪以下 6 步；可跳过步骤需注明原因：
+使用 "TodoWrite" 跟踪以下 5 步；可跳过步骤需注明原因：
 
 ```
 Brainstorming Progress:
 - [ ] 步骤 1: 理解需求 - 需求不清晰时用 "use ask question" 单轮提问并等待确认；需求明确时可直接确认理解
 - [ ] 步骤 2: Repotalk MCP 搜索 - 复杂/模糊需求优先执行；简单明确可跳过该步骤并说明原因（repo_names=org/repo）
-- [ ] 步骤 3: 本地定向搜索 - 基于候选路径/术语验证与补充；必须判断本地定向搜索优先级（符号名可靠时 serena/LSP > bcindex > Glob/Grep/Read；术语不可靠时 bcindex/grep 先行）
+- [ ] 步骤 3: 本地定向搜索 - 基于候选路径/术语验证与补充；必须判断本地定向搜索优先级（符号名可靠时 LSP > bcindex > Glob/Grep/Read；术语不可靠时 bcindex/grep 先行）
 - [ ] 步骤 4: 综合分析与方案设计 - 结合搜索结果，提出 1-2 种方案并给出推荐方案
 - [ ] 步骤 5: 生成文档 - 必须生成 proposal.md 和 design.md
-- [ ] 步骤 6: 验证完成 - 确认所有文档已生成
 ```
 
 ---
@@ -72,9 +71,8 @@ Brainstorming Progress:
 
 | 用户需求示例                       | 使用工具     | 原因               |
 | ---------------------------------- | ------------ | ------------------ |
-| "FindAllReferences 在哪里被调用？" | serena/LSP   | 精确引用链         |
-| "IUserHandler 接口有哪些实现？"    | serena/LSP   | 符号/实现关系      |
-| "所有叫 `HandleUpdate` 的函数"     | serena/LSP   | 符号搜索，更快更准 |
+| "IUserHandler 接口有哪些实现？"    | LSP          | 符号/实现关系      |
+| "所有叫 `HandleUpdate` 的函数"     | LSP          | 符号搜索，更快更准 |
 | "查找处理用户认证的代码"           | bcindex      | 自然语言语义检索   |
 | "这个项目有哪些 HTTP handler？"    | bcindex      | 按职责定位模块     |
 | "xxx.go 文件里的具体实现"          | Read         | 已知具体路径       |
@@ -83,13 +81,11 @@ Brainstorming Progress:
 
 **优先级**：
 
-- 符号名可靠时：Serena MCP/LSP（符号/引用链清晰） > bcindex mcp（语义定位） > Glob/Grep/Read（兜底）
-- 术语不可靠时：bcindex mcp（语义定位） > Grep（关键词变体） > Serena MCP/LSP（在收敛到稳定术语后再用）
+- 符号名可靠时：LSP（符号/引用链清晰） > bcindex mcp（语义定位） > Glob/Grep/Read（兜底）
+- 术语不可靠时：bcindex mcp（语义定位） > Grep（关键词变体） > LSP（在收敛到稳定术语后再用）
 
-**建议流程**：先用 bcindex/grep 变体收敛“真实术语/模块名/日志关键字”，再切换 LSP 做引用链与实现定位。
+**建议流程**：先用 bcindex/grep 变体收敛"真实术语/模块名/日志关键字"，再切换 LSP 做引用链与实现定位。
 详细策略见：`references/local_search_strategy.md`
-
-**注意**：使用 Serena MCP/LSP 前需先执行 Activate（激活项目），之后才能使用其他 LSP 能力。
 
 ---
 
@@ -117,21 +113,7 @@ Brainstorming Progress:
 
 ---
 
-## 步骤 6: 验证完成
-
-**完成标志检查清单**：
-
-```
-✓ 需求理解已确认（若有提问）
-✓ 若执行 Repotalk MCP 搜索，已产出候选路径/术语
-✓ 完成本地定向搜索（基于候选范围验证）
-✓ 完成综合分析与方案设计（提出 1-2 种方案并推荐其一）
-✓ 生成 proposal.md
-✓ 生成 design.md
-```
-
-**当且仅当所有上述条件满足时，本技能完成。**
-**自动衔接**：若用户未明确要求“只做 brainstorming/只产出 proposal+design”，完成后应**自动触发 `writing-plans` 技能**生成 `tasks.md`，无需用户手动指令。
+**自动衔接**：若用户未明确要求"只做 brainstorming/只产出 proposal+design"，完成后应**自动触发 `writing-plans` 技能**生成 `tasks.md`，无需用户手动指令。
 
 ---
 

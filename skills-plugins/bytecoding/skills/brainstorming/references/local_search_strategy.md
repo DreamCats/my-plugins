@@ -4,15 +4,14 @@
 
 | 用户需求示例 | 使用工具 | 原因 |
 |------------|---------|------|
-| "FindAllReferences 在哪里被调用？" | serena/LSP | 精确引用链 |
-| "IUserHandler 接口有哪些实现？" | serena/LSP | 符号/实现关系 |
-| "所有叫 `HandleUpdate` 的函数" | serena/LSP | 符号搜索，更快更准 |
+| "IUserHandler 接口有哪些实现？" | LSP | 符号/实现关系 |
+| "所有叫 `HandleUpdate` 的函数" | LSP | 符号搜索，更快更准 |
 | "查找处理用户认证的代码" | bcindex | 自然语言语义检索 |
 | "这个项目有哪些 HTTP handler？" | bcindex | 按职责定位模块 |
 | "xxx.go 文件里的具体实现" | Read | 已知具体路径 |
 | "所有包含 'update' 关键词的代码" | Grep | 泛化关键词搜索 |
 
-**优先级**：serena/LSP（符号/引用链清晰） > bcindex（语义定位） > Glob/Grep/Read（兜底）
+**优先级**：LSP（符号/引用链清晰） > bcindex（语义定位） > Glob/Grep/Read（兜底）
 
 ## 搜索策略
 

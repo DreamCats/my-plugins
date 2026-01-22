@@ -39,75 +39,35 @@ node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
 
 **必须先执行完此脚本再进入下一步**。脚本会创建 `planspec.yaml` 以及 `proposal.md`/`design.md`/`tasks.md` 模板（含变更标题与固定章节）。记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。若脚本失败，先排查报错原因，不要直接进入 brainstorming。
 
-## 步骤 2: 使用 brainstorming agent
+## 步骤 2: 使用 brainstorming skill（必须）
 
-现在使用 **brainstorming agent** 开始需求精化和方案设计。
+现在使用 **brainstorming skill** 开始需求精化和方案设计。
 
-**如果用户提供了变更描述**，使用 Task 工具调用 brainstorming agent：
-
-```
-使用 Task 工具启动 brainstorming agent：
-
-{
-  "subagent_type": "brainstorming",
-  "description": "完成需求澄清和方案设计",
-  "prompt": "你正在执行 brainstorming 工作流，遵循 agents/brainstorming.md 中定义的强制流程。\n\n用户需求：$ARGUMENTS\n\n工作目录：.bytecoding/changes/$CHANGE_ID/\n\n请严格按照 brainstorming agent 的 5 步流程执行，最终产出 proposal.md 和 design.md。"
-}
-```
-
-**agent 将遵循 `agents/brainstorming.md` 的 5 步强制流程**：
-
-1. 理解需求（需求不清晰时用 "use ask question" 单轮提问并等待确认；需求明确时可直接确认理解）
-2. Repotalk MCP 搜索（复杂/模糊需求优先执行；简单明确可跳过该步骤并说明原因）
-3. 本地定向搜索（基于候选路径/术语验证与补充）
-4. 综合分析与方案设计（结合搜索结果，提出 1-2 种方案并给出推荐方案）
-5. 生成文档（必须生成 proposal.md 和 design.md）
-
-**agent 工作目录**: `.bytecoding/changes/$CHANGE_ID/`
-
-**产出文件**：
-
-- `proposal.md` - 变更提案
-- `design.md` - 设计文档
-
-**重要**: brainstorming agent 完成后会自动触发 writing-plans agent 生成 tasks.md。
-
-## 步骤 3: 使用 writing-plans agent
-
-**注意**: brainstorming agent 会自动触发此步骤。但如果需要单独执行，使用以下方式：
-
-在完成 `design.md` 后，使用 **writing-plans agent** 将设计文档转化为可执行任务列表。
+**如果用户提供了变更描述**，直接告知用户：
 
 ```
-使用 Task 工具启动 writing-plans agent：
+请使用 brainstorming skill 来完成需求澄清和方案设计。
 
-{
-  "subagent_type": "writing-plans",
-  "description": "将设计文档转化为任务列表",
-  "prompt": "你正在执行 writing-plans 工作流，遵循 agents/writing-plans.md 中定义的强制流程。\n\n工作目录：.bytecoding/changes/$CHANGE_ID/\n\n请严格按照 writing-plans agent 的 4 步流程执行，读取 design.md 并生成 tasks.md。\n\n重要约束：\n- 任务粒度必须控制在 2-5 分钟\n- 必须标注依赖关系\n- 必须明确验证标准\n- 禁止 \"编译整个项目\" 或 \"go build ./...\"\n- 验证范围必须最小化"
-}
+用户需求：$ARGUMENTS
+工作目录：.bytecoding/changes/$CHANGE_ID/
+
+产出文件：
+- proposal.md - 变更提案
+- design.md - 设计文档
+
+重要：brainstorming skill 完成后会自动触发 writing-plans skill 生成 tasks.md。
 ```
 
-**agent 将遵循 `agents/writing-plans.md` 的 4 步强制流程**：
+## 步骤 3: 使用 writing-plans skill（必须）
 
-1. 分析设计文档（完全理解）
-2. 细粒度任务拆分（2-5 分钟/任务）
-3. 为每个任务找本地参考（使用搜索工具）
-4. 生成任务列表（创建 tasks.md）
+```
+请使用 writing-plans skill 来将设计文档转化为任务列表。
 
-**agent 工作目录**: `.bytecoding/changes/$CHANGE_ID/`
+工作目录：.bytecoding/changes/$CHANGE_ID/
 
-**产出文件**：
-
-- `tasks.md` - 可执行任务列表（含依赖关系和验证标准）
-
-**重要约束**：
-
-- 任务粒度必须控制在 2-5 分钟
-- 必须标注依赖关系
-- 必须明确验证标准
-- 禁止 "编译整个项目" 或 "go build ./..."
-- 验证范围必须最小化
+产出文件：
+- tasks.md - 可执行任务列表（含依赖关系和验证标准）
+```
 
 ## 步骤 4: 生成飞书文档并发送摘要
 
@@ -160,8 +120,8 @@ node "$SCRIPT_DIR/repo-plan-send.js" \
 当以下条件满足时，本命令完成：
 
 - [x] 项目级变更目录已创建 `.bytecoding/changes/$CHANGE_ID/`
-- [x] brainstorming 技能已完成，产出 `proposal.md` 和 `design.md`
-- [x] writing-plans 技能已完成，产出 `tasks.md`
+- [x] brainstorming skill 已完成，产出 `proposal.md` 和 `design.md`
+- [x] writing-plans skill 已完成，产出 `tasks.md`
 - [x] PlanSpec 文件已创建
 - [x] 已创建飞书文档（proposal/design/tasks）
 - [x] 已执行 `lark-cli send-message` 发送飞书摘要（如 git 邮箱可用）

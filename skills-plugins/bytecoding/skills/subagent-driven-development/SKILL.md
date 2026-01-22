@@ -45,11 +45,9 @@ Read: .bytecoding/changes/$CHANGE_ID/tasks.md
 - 参考实现位置
 - 技术栈和框架
 - 验收标准
-- 关键入口符号与引用链（优先使用 serena）
+- 关键入口符号与引用链
 
 **在继续下一步之前，确认任务定义清晰。**
-
-**若任务涉及入口定位或调用链**：优先使用 serena 明确符号与影响面，并将结果写入派发 prompt 的“参考”部分。
 
 ### 1.3 确定 Worktree 根目录（必须）
 
@@ -172,16 +170,12 @@ TaskOutput({
 - [ ] 遵循了设计文档
 - [ ] 参考了推荐的实现
 - [ ] 符合验收标准（包含编译/构建通过）
-- [ ] 若涉及接口/调用链，已用 serena 复核引用链影响
 
 ### 4.2 审查方法
 
 ```bash
 # 读取实现的代码
 Read: $WORKTREE_ROOT/src/services/EmailVerificationService.ts
-
-# 可选：使用 serena 复核符号/引用链影响范围
-# （示例：find_referencing_symbols 或 find_symbol）
 
 # 运行编译/构建（确保在 worktree 中执行，优先最小化范围）
 # 注意：除非用户明确要求，否则禁止执行 go build ./...
@@ -229,8 +223,6 @@ npm run lint
 **编译验证**：构建通过
 
 **编译范围**：优先最小化范围；除非用户明确要求，禁止使用 `go build ./...`
-
-**引用链复核**：涉及公共接口/调用链的改动，使用 serena 复核调用方影响范围
 
 ### 5.3 审查方法
 
@@ -408,7 +400,6 @@ BUILD SUCCESS
 - `TaskOutput` - 获取子代理产出
 - `Read` - 审查代码
 - `Bash` - 运行编译/构建、Lint
-- `serena` - 入口符号/引用链定位与复核（按需）
 
 ### 子代理使用
 
@@ -416,7 +407,6 @@ BUILD SUCCESS
 - `Glob`/`Grep` - 搜索代码
 - `Write`/`Edit` - 编写代码
 - `Bash` - 运行编译/构建
-- `serena` - 符号级定位与引用分析（按需）
 
 ---
 

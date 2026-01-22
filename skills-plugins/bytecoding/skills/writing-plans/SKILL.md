@@ -11,14 +11,13 @@ description: Use when converting design documents into executable task lists. Th
 
 ## 工作流程检查清单（强制执行）
 
-使用 "TodoWrite" 跟踪以下 4 步：
+使用 "TodoWrite" 跟踪以下 3 步：
 
 ```
 Writing Plans Progress:
 - [ ] 步骤 1: 分析设计文档 - 完全理解 design.md 内容
 - [ ] 步骤 2: 细粒度任务拆分 - 2-5 分钟/任务
 - [ ] 步骤 3: 生成任务列表 - 创建 tasks.md
-- [ ] 步骤 4: 验证完成 - 确认任务列表完整
 ```
 
 **规则**：不可跳过步骤。
@@ -76,25 +75,7 @@ Read: .bytecoding/changes/$CHANGE_ID/design.md
 
 ---
 
-## 步骤 4: 验证完成
-
-**完成标志检查清单**：
-
-```
-
-✓ 完整分析 design.md
-✓ 任务粒度合适（2-5 分钟/任务）
-✓ 依赖关系清晰
-✓ 验证标准明确
-✓ 生成 tasks.md
-
-```
-
-**当且仅当所有上述条件满足时，本技能完成。**
-
----
-
-## 禁止行为
+## 重要约束
 
 - ❌ **任务粒度过大** - 超过 5 分钟的任务需要拆分
 - ❌ **任务粒度过小** - 小于 2 分钟的任务需要合并
