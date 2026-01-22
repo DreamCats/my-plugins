@@ -190,9 +190,9 @@ git push -u origin feature/email-verification
 
 ## 与 Bytecoding 集成
 
-### 与 /repo-apply 集成
+### 与 /apply 集成
 
-**当使用 `/repo-apply` 命令时**：
+**当使用 `/apply` 命令时**：
 
 1. **自动提示创建 Worktree**
    ```
@@ -213,7 +213,7 @@ git push -u origin feature/email-verification
 
 3. **在 Worktree 中执行任务**
    ```bash
-   # 执行 /repo-apply 的任务
+   # 执行 /apply 的任务
    # 所有操作在 worktree 中进行
    ```
 

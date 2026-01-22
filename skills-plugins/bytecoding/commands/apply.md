@@ -1,10 +1,10 @@
 ---
-description: 执行落地（触发 git-worktrees + dispatching-parallel-agents + subagent-dev + 编译验证驱动）
+description: 执行落地
 argument-hint: [change-id]
 allowed-tools: Bash(bash*), Bash(node*), Bash(git*), Bash(mkdir*), Bash(cd*), Bash(pwd*), Bash(npm*), Bash(pnpm*), Bash(bun*), Bash(go*), Bash(lark-cli*), Read, Write, Edit, Glob, Grep, Task, TaskOutput
 ---
 
-# /repo-apply 命令
+# /apply 命令
 
 本命令引导你完成执行阶段，通过触发技能链来实施变更。
 
@@ -324,4 +324,4 @@ node "$SCRIPT_DIR/repo-apply-lark.js" \
 
 ## 下一步
 
-先使用 `/compact` 命令压缩变更目录，然后再使用 `/bytecoding:repo-archive $CHANGE_ID` 命令来归档已完成的变更。
+先使用 `/compact` 命令压缩变更目录，然后再使用 `/bytecoding:archive $CHANGE_ID` 命令来归档已完成的变更。

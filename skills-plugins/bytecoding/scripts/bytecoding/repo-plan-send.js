@@ -21,7 +21,7 @@ function printUsage() {
       '  --receive-id-type <type>   email|open_id|user_id|union_id|chat_id (default: email)',
       '  --msg-type <type>          text|post (default: post)',
       '  --title <text>             Post title (default: Repo Plan Summary: <change-id>)',
-      '  --next-step <text>         Override next step (default: /repo-apply <change-id>)',
+      '  --next-step <text>         Override next step (default: /bytecoding:apply <change-id>)',
       '  --dry-run                  Print command without sending',
       '  --verbose                  Verbose lark-cli output',
     ].join('\n')
@@ -117,7 +117,7 @@ function main() {
     die(`unsupported msg-type: ${msgType}`);
   }
 
-  const nextStep = flags['next-step'] || `/repo-apply ${changeId}`;
+  const nextStep = flags['next-step'] || `/bytecoding:apply ${changeId}`;
   const summary = {
     changeId,
     description: planspec.description || '',

@@ -6,7 +6,6 @@
  * This hook runs when a Claude Code session starts and provides:
  * - Welcome message with plugin status
  * - Checks Repotalk Cookie configuration
- * - Auto-installs Serena if needed
  * - Lists available commands
  * - User and project configuration status
  *
@@ -14,8 +13,8 @@
  */
 
 const lspGuidelines = require('./lib/lsp-guidelines');
+const codingGuidelines = require('./lib/coding-guidelines');
 const repotalkAuth = require('./lib/repotalk-auth');
-const serenaInstaller = require('./lib/serena-installer');
 const welcomeMessage = require('./lib/welcome-message');
 
 // ============================================================================
@@ -31,57 +30,14 @@ function handleSessionStart(input) {
   // Check and ensure LSP guidelines in CLAUDE.md
   const lspCheckResult = lspGuidelines.checkAndEnsureLspGuidelines();
 
+  // Check and ensure coding guidelines in CLAUDE.md
+  const codingCheckResult = codingGuidelines.checkAndEnsureCodingGuidelines();
+
   // Check Repotalk Cookie
   const cookieTip = repotalkAuth.checkRepotalkAuth();
 
-  // Check Serena status and auto-install if needed (non-blocking)
-  const serenaStatus = serenaInstaller.checkSerenaStatusSync();
-  let serenaTip = '';
-
-  if (!serenaStatus.installed && serenaStatus.needsInstall && !serenaStatus.installing) {
-    // Start serena installation in background (non-blocking)
-    const bgInstallResult = serenaInstaller.startSerenaInstallBackground();
-
-    if (bgInstallResult.started) {
-      // Installation started in background
-      serenaTip = `
----
-**⏳ Serena 正在后台安装中...**
-
-Serena 安装已启动，正在后台下载和缓存。
-安装完成后，下次会话启动时即可使用语义代码分析功能。
-安装过程通常需要 1-2 分钟，不会阻塞当前会话。
-
-**验证安装**：
-\`\`\`bash
-uv tool run serena --help
-\`\`\`
----
-`;
-    } else {
-      // Installation couldn't be started, show manual instructions
-      serenaTip = serenaInstaller.getSerenaSetupTip();
-      if (bgInstallResult.message) {
-        serenaTip = serenaTip.replace(
-          '**安装**（推荐）：',
-          `**安装**：${bgInstallResult.message}\n\n**手动安装**（如果自动安装失败）：`
-        );
-      }
-    }
-  } else if (serenaStatus.installing) {
-    // Installation is already in progress
-    serenaTip = `
----
-**⏳ Serena 正在后台安装中...**
-
-安装进程已在运行，预计还需 1-2 分钟完成。
-请稍后重启 Claude Code 以使用 Serena 功能。
----
-`;
-  }
-
-  // Build welcome message (pass cached serenaStatus to avoid re-checking)
-  const welcomeMsg = welcomeMessage.buildWelcomeMessage(lspCheckResult, serenaStatus);
+  // Build welcome message
+  const welcomeMsg = welcomeMessage.buildWelcomeMessage(lspCheckResult, codingCheckResult);
 
   // Build output
   const output = {
@@ -93,10 +49,6 @@ uv tool run serena --help
 
   if (cookieTip) {
     additionalContextParts.push(cookieTip);
-  }
-
-  if (serenaTip) {
-    additionalContextParts.push(serenaTip);
   }
 
   if (additionalContextParts.length > 0) {

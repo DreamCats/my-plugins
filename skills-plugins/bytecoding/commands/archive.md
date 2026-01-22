@@ -4,7 +4,7 @@ argument-hint: [change-id]
 allowed-tools: Bash(bash*), Bash(node*), Bash(git*), Bash(mv*), Bash(rm*), Bash(pwd*), Bash(lark-cli*), Read, Glob, Grep
 ---
 
-# /repo-archive 命令
+# /archive 命令
 
 本命令将已完成的变更归档到 archive 目录，并清理 Worktree。
 

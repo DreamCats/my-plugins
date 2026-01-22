@@ -21,9 +21,9 @@ Commands 是批量触发技能的顶层命令，用于完整工作流：
 
 | Command | 触发的技能链 | 用途 |
 |---------|-------------|------|
-| `/repo-plan` | `brainstorming` + `writing-plans` → `repo-plan-lark.js` → `repo-plan-send.js` | 生成方案与 PlanSpec |
-| `/repo-apply` | `using-git-worktrees` → `dispatching-parallel-agents`（可并行时）→ `subagent-driven-development` → `test-driven-development` → `repo-apply-lark.js` | 执行落地 |
-| `/repo-archive` | `repo-archive.js` | 归档已完成的变更 |
+| `/plan` | `brainstorming` + `writing-plans` → `repo-plan-lark.js` → `repo-plan-send.js` | 方案调研与设计 |
+| `/apply` | `using-git-worktrees` → `dispatching-parallel-agents`（可并行时）→ `subagent-driven-development` → `test-driven-development` → `repo-apply-lark.js` | 执行落地 |
+| `/archive` | `repo-archive.js` | 归档已完成的变更 |
 
 ### Skills（可独立调用）
 
@@ -52,13 +52,13 @@ Skills 可以独立调用或通过 Commands 自动触发：
 **输出**：`proposal.md` + `design.md`
 **自动衔接**：若用户未明确要求“只做 brainstorming/只要设计文档”，完成后应自动触发 `bytecoding:writing-plans` 生成 `tasks.md`。
 
-### 2. 生成方案 → `/repo-plan` 命令
+### 2. 生成方案 → `/plan` 命令
 
 **自动触发**：`brainstorming` → `writing-plans`
 
 **输出**：`proposal.md` + `design.md` + `tasks.md`
 
-### 3. 执行变更 → `/repo-apply` 命令
+### 3. 执行变更 → `/apply` 命令
 
 **自动触发技能链**：
 1. `using-git-worktrees` - 创建隔离工作环境
@@ -76,7 +76,7 @@ Skills 可以独立调用或通过 Commands 自动触发：
 ### 5. 发送摘要 → `repo-plan-send.js`/`repo-apply-lark.js`/`repo-archive.js`
 
 **触发条件**：
-- `/repo-plan`、`/repo-apply`、`/repo-archive` 结束后
+- `/plan`、`/apply`、`/archive` 结束后
 - 需要发送飞书摘要/通知
 
 **附加规则**：

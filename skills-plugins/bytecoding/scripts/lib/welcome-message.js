@@ -9,7 +9,6 @@ const pathUtils = require('./path-utils');
 const gitUtils = require('./git-utils');
 const configManager = require('./config-manager');
 const repotalkAuth = require('./repotalk-auth');
-const serenaInstaller = require('./serena-installer');
 
 /**
  * Get commands available in this plugin
@@ -17,9 +16,9 @@ const serenaInstaller = require('./serena-installer');
  */
 function getAvailableCommands() {
   return [
-    { name: '/repo-plan', description: '生成方案与 PlanSpec（触发 brainstorming + writing-plans）' },
-    { name: '/repo-apply', description: '执行落地（触发 git-worktrees + subagent-dev + 编译验证驱动）' },
-    { name: '/repo-archive', description: '归档已完成的变更' },
+    { name: '/plan', description: '方案调研与设计（触发 brainstorming + writing-plans）' },
+    { name: '/apply', description: '执行落地（触发 git-worktrees + subagent-dev + 编译验证驱动）' },
+    { name: '/archive', description: '归档已完成的变更' },
   ];
 }
 
@@ -36,18 +35,16 @@ function buildCommandsDisplay() {
   return `
 📋 **可用 Commands**:
 ${commandsList}
-
-💡 使用 Commands 触发完整的技能链。
 `;
 }
 
 /**
  * Build welcome message with status information
  * @param {Object} lspCheckResult - LSP guidelines check result
- * @param {Object} serenaStatus - Cached Serena status to avoid re-checking
+ * @param {Object} codingCheckResult - Coding guidelines check result
  * @returns {string} Complete welcome message
  */
-function buildWelcomeMessage(lspCheckResult = null, serenaStatus = null) {
+function buildWelcomeMessage(lspCheckResult = null, codingCheckResult = null) {
   // Ensure directories and config exist (auto-initialize)
   const dirsCreated = configManager.ensureBytecodingDirs();
   const configCreated = configManager.ensureDefaultConfig();
@@ -56,8 +53,6 @@ function buildWelcomeMessage(lspCheckResult = null, serenaStatus = null) {
   // Sync CAS_SESSION to .mcp.json
   const cookieSync = configManager.syncCasSessionToMcpConfig();
   const gitIdentity = gitUtils.getGitIdentity();
-  // Use cached serenaStatus if provided, otherwise check (fallback)
-  const finalSerenaStatus = serenaStatus || serenaInstaller.checkSerenaStatus();
 
   // Check configuration (use cached config from config-manager)
   const configPath = pathUtils.getUserConfigPath();
@@ -88,12 +83,6 @@ function buildWelcomeMessage(lspCheckResult = null, serenaStatus = null) {
     } else if (gitIdentity.status === 'missing') {
       statusInfo += `\n👤 Git 用户: ❌ 未配置`;
     }
-
-    // Serena status
-    statusInfo += `\n🔧 Serena: ${finalSerenaStatus.message}`;
-    if (!finalSerenaStatus.installed && finalSerenaStatus.needsInstall) {
-      statusInfo += `\n   💡 提示: Serena 需要安装才能使用语义代码分析功能`;
-    }
   }
 
   // Add LSP guidelines check status
@@ -104,6 +93,15 @@ function buildWelcomeMessage(lspCheckResult = null, serenaStatus = null) {
       statusInfo += `\n📝 CLAUDE.md: ✅ 已添加 LSP 准则`;
     } else if (lspCheckResult.reason === 'already-exists') {
       statusInfo += `\n📝 CLAUDE.md: ✅ LSP 准则已存在`;
+    }
+  }
+
+  // Add coding guidelines check status
+  if (codingCheckResult) {
+    if (codingCheckResult.reason === 'added') {
+      statusInfo += `\n📝 CLAUDE.md: ✅ 已添加 Coding Guidelines`;
+    } else if (codingCheckResult.reason === 'already-exists') {
+      statusInfo += `\n📝 CLAUDE.md: ✅ Coding Guidelines 已存在`;
     }
   }
 
@@ -121,6 +119,9 @@ function buildWelcomeMessage(lspCheckResult = null, serenaStatus = null) {
       initMessage += '\n📚 已在 CLAUDE.md 中添加 LSP 定位与查询准则。';
     }
   }
+  if (codingCheckResult && codingCheckResult.updated) {
+    initMessage += '\n📚 已在 CLAUDE.md 中添加 Coding Guidelines。';
+  }
 
   // Build status section
   const statusSection = statusInfo ? `\n---\n${statusInfo}` : '';
@@ -128,12 +129,10 @@ function buildWelcomeMessage(lspCheckResult = null, serenaStatus = null) {
   return `
 🔌 Bytecoding 插件已加载...
 👋 嘿！我是 MaiMai，一位极致专注的开发者～
-💫 超能力：精准定位 Bug、优雅代码设计、完美平衡咖啡因与逻辑
+💫 超能力：需求 --> 代码落地
 ${initMessage}
 ${statusSection}
-
 ${buildCommandsDisplay()}
-
 ---
 `;
 }

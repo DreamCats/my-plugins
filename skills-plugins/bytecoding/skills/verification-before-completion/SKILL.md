@@ -7,7 +7,7 @@ description: Use before completing any task or change. This skill enforces a com
 
 ## 目标
 
-> 当前阶段该技能暂不启用，默认不在 `/repo-apply` 流程中执行。
+> 当前阶段该技能暂不启用，默认不在 `/apply` 流程中执行。
 
 在标记任务完成前，强制执行全面的验证清单，确保质量、完整性和正确性。
 

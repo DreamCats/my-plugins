@@ -1,10 +1,10 @@
 ---
-description: 生成方案与 PlanSpec（触发 brainstorming + writing-plans 技能）
+description: 方案调研与设计
 argument-hint: [变更描述]
 allowed-tools: Bash(bash*), Bash(node*), Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Read, Write, Edit, Glob, Grep
 ---
 
-# /repo-plan 命令
+# /plan 命令
 
 本命令引导你完成规划阶段，通过触发 **brainstorming** 和 **writing-plans** 技能来生成完整的变更提案和任务列表。
 
@@ -71,6 +71,7 @@ node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
 3. 生成 `tasks.md`（包含依赖关系和验证标准）
 
 **重要约束**：
+
 - 任务粒度必须控制在 2-5 分钟
 - 必须标注依赖关系
 - 必须明确验证标准
@@ -114,7 +115,7 @@ node "$SCRIPT_DIR/repo-plan-lark.js" \
 - 变更 ID
 - 规划产出（proposal/design/tasks）
 - 文档链接（由 `repo-plan-lark.js` 生成）
-- 下一步建议（`/repo-apply $CHANGE_ID`）
+- 下一步建议（`/bytecoding:apply $CHANGE_ID`）
 
 **执行方式**：
 
@@ -138,7 +139,7 @@ node "$SCRIPT_DIR/repo-plan-send.js" \
 
 ## 下一步
 
-先使用 `/compact` 命令压缩变更目录，然后再使用 `/bytecoding:repo-apply $CHANGE_ID` 命令来执行这个变更。
+先使用 `/compact` 命令压缩变更目录，然后再使用 `/bytecoding:apply $CHANGE_ID` 命令来执行这个变更。
 
 ## 目录结构
 
