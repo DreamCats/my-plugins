@@ -10,7 +10,7 @@ allowed-tools: Bash(bash*), Bash(node*), Bash(mkdir*), Bash(git*), Bash(pwd*), B
 
 ## 工作流程检查清单（强制执行）
 
-**使用 "TodoWrite" 以下检查清单并跟踪进度：**
+**复制或者使用 "TodoWrite" 以下检查清单并跟踪进度：**
 
 ```
 Repo-Plan Progress:
@@ -41,77 +41,55 @@ node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
 
 **必须先执行完此脚本再进入下一步**。脚本会创建 `planspec.yaml` 以及 `proposal.md`/`design.md`/`tasks.md` 模板（含变更标题与固定章节）。记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。若脚本失败，先排查报错原因，不要直接进入 brainstorming。
 
-## 步骤 2: 使用 brainstorming agent
+## 步骤 2: 使用 brainstorming 技能
 
-现在使用 **brainstorming agent** 开始需求精化和方案设计。
+现在使用 **bytecoding:brainstorming** 技能开始需求精化和方案设计。
 
-**如果用户提供了变更描述**，使用 Task 工具调用 brainstorming agent：
+**注意**：必须通过 **Skill 工具**调用（`/bytecoding:brainstorming` 或 `Skill(bytecoding:brainstorming)`），不要用子代理/agent 调用语法。
 
-```
-使用 Task 工具启动 brainstorming agent：
+**如果用户提供了变更描述**，使用：
 
-{
-  "subagent_type": "brainstorming",
-  "description": "完成需求澄清和方案设计",
-  "prompt": "你正在执行 brainstorming 工作流，遵循 agents/brainstorming.md 中定义的强制流程。\n\n用户需求：$ARGUMENTS\n\n工作目录：.bytecoding/changes/$CHANGE_ID/\n\n请严格按照 brainstorming agent 的 6 步流程执行，最终产出 proposal.md 和 design.md。"
-}
-```
+> 请使用 **bytecoding:brainstorming** 技能来讨论以下变更需求：
+>
+> ```
+> $ARGUMENTS
+> ```
 
-**agent 将遵循 `agents/brainstorming.md` 的 6 步强制流程**：
+**如果用户没有提供描述**，询问：
 
-1. 理解需求（需求不清晰时用 "use ask question" 单轮提问并等待确认；需求明确时可直接确认理解）
-2. Repotalk MCP 搜索（复杂/模糊需求优先执行；简单明确可跳过该步骤并说明原因）
-3. 本地定向搜索（基于候选路径/术语验证与补充）
-4. 综合分析与方案设计（结合搜索结果，提出 1-2 种方案并给出推荐方案）
-5. 生成文档（必须生成 proposal.md 和 design.md）
-6. 验证完成（确认所有文档已生成）
+> 请描述你想要实现的变更需求，我将使用 **bytecoding:brainstorming** 技能帮助你进行需求精化和方案设计。
 
-**agent 工作目录**: `.bytecoding/changes/$CHANGE_ID/`
+**brainstorming 技能将引导你**：
 
-**产出文件**：
+1. **理解需求** - 苏格拉底式提问澄清需求
+2. **多源搜索** - 本地搜索（Glob/Grep）+ Repotalk MCP 搜索
+3. **综合分析** - 结合搜索结果识别最佳实践
+4. **方案设计** - 提出 2-3 种方案供选择
+5. **分节呈现** - 逐步确认，避免信息过载
+
+**产出文件**（保存到 `$PROJECT_ROOT/.bytecoding/changes/$CHANGE_ID/`）：
 
 - `proposal.md` - 变更提案
 - `design.md` - 设计文档
 
-**重要**: brainstorming agent 完成后会自动触发 writing-plans agent 生成 tasks.md。
+## 步骤 3: 使用 writing-plans 技能
 
-## 步骤 3: 使用 writing-plans agent
+在完成 `design.md` 后，使用 **bytecoding:writing-plans** 技能将设计文档转化为可执行任务列表。
 
-**注意**: brainstorming agent 会自动触发此步骤。但如果需要单独执行，使用以下方式：
+**注意**：必须通过 **Skill 工具**调用（`/bytecoding:writing-plans` 或 `Skill(bytecoding:writing-plans)`），不要用子代理/agent 调用语法。
 
-在完成 `design.md` 后，使用 **writing-plans agent** 将设计文档转化为可执行任务列表。
+> 请使用 **bytecoding:writing-plans** 技能来分析设计文档并生成任务列表。
 
-```
-使用 Task 工具启动 writing-plans agent：
+**writing-plans 技能将引导你**：
 
-{
-  "subagent_type": "writing-plans",
-  "description": "将设计文档转化为任务列表",
-  "prompt": "你正在执行 writing-plans 工作流，遵循 agents/writing-plans.md 中定义的强制流程。\n\n工作目录：.bytecoding/changes/$CHANGE_ID/\n\n请严格按照 writing-plans agent 的 5 步流程执行，读取 design.md 并生成 tasks.md。\n\n重要约束：\n- 任务粒度必须控制在 2-5 分钟\n- 必须标注依赖关系\n- 必须明确验证标准\n- 禁止 \"编译整个项目\" 或 \"go build ./...\"\n- 验证范围必须最小化"
-}
-```
+1. **分析设计文档** - 理解架构和组件
+2. **本地参考搜索** - 为每个任务找到本地参考
+3. **细粒度任务拆分** - 2-5 分钟/任务
+4. **生成任务列表** - 包含依赖关系和验证标准
 
-**agent 将遵循 `agents/writing-plans.md` 的 5 步强制流程**：
+**产出文件**（保存到 `~/.bytecoding/changes/$CHANGE_ID/`）：
 
-1. 分析设计文档（完全理解）
-2. 细粒度任务拆分（2-5 分钟/任务）
-3. 为每个任务找本地参考（使用搜索工具）
-4. 生成任务列表（创建 tasks.md）
-5. 验证完成（确认任务列表完整）
-
-**agent 工作目录**: `.bytecoding/changes/$CHANGE_ID/`
-
-**产出文件**：
-
-- `tasks.md` - 可执行任务列表（含依赖关系和验证标准）
-
-**重要约束**：
-
-- 任务粒度必须控制在 2-5 分钟
-- 必须标注依赖关系
-- 必须明确验证标准
-- 禁止 "编译整个项目" 或 "go build ./..."
-- 验证范围必须最小化
+- `tasks.md` - 可执行任务列表
 
 ## 步骤 4: 确认 PlanSpec
 
