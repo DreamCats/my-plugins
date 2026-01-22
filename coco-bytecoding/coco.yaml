@@ -1,0 +1,24 @@
+mcp_servers:
+  - name: "bcindex"
+    type: "stdio"
+    command: "bcindex"
+    args: ["mcp"]
+  - name: "byte-lsp-mcp"
+    type: "stdio"
+    command: "byte-lsp-mcp"
+  - name: "repotalk-stdio"
+    type: "stdio"
+    command: "node"
+    args: [
+      "scripts/repotalk-server/stdio/repotalk-index.js"
+    ]
+    env:
+      - key: "CAS_SESSION"
+        value: "188c6d3260bb6877459ef2725ff727e8"
+
+hooks:
+  - type: "command"
+    commands: "node \"scripts/session-start-hook.js\""
+    matchers:
+      - event: "start"
+        
