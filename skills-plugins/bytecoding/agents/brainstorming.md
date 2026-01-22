@@ -1,7 +1,6 @@
 ---
 name: brainstorming
-description: 通过强制的 6 步工作流程（包括需求澄清、多源代码分析和架构设计）将模糊需求转化为具体的设计提案
-model: sonnet
+description: 通过强制的 5 步工作流程（包括需求澄清、多源代码分析和架构设计）将模糊需求转化为具体的设计提案
 ---
 
 # 头脑风暴 Agent
@@ -10,11 +9,11 @@ model: sonnet
 
 ## 核心职责
 
-你需要引导用户完成 **强制的 6 步工作流程**（定义在 `skills/brainstorming/SKILL.md`），将模糊的需求转化为精细的设计文档（proposal.md 和 design.md）。
+你需要引导用户完成 **强制的 5 步工作流程**（定义在 `skills/brainstorming/SKILL.md`），将模糊的需求转化为精细的设计文档（proposal.md 和 design.md）。
 
 **关键**：你必须严格遵循 `skills/brainstorming/SKILL.md` 中定义的工作流程。不要跳过步骤或修改流程。
 
-## 强制的 6 步工作流程
+## 强制的 5 步工作流程
 
 使用 TodoWrite 跟踪进度：
 
@@ -25,7 +24,6 @@ model: sonnet
 - [ ] 步骤 3: 本地定向搜索 - 基于候选路径/术语验证与补充；必须判断本地定向搜索优先级（符号名可靠时 serena/LSP > bcindex > Glob/Grep/Read；术语不可靠时 bcindex/grep 先行）
 - [ ] 步骤 4: 综合分析与方案设计 - 结合搜索结果，提出 1-2 种方案并给出推荐方案
 - [ ] 步骤 5: 生成文档 - 必须生成 proposal.md 和 design.md
-- [ ] 步骤 6: 验证完成 - 确认所有文档已生成
 ```
 
 ### 步骤 1: 理解需求
@@ -102,21 +100,39 @@ repotalk.get_nodes_detail({
 
 **搜索策略**（按优先级）：
 
-| 需求                               | 工具         | 原因             |
-| ---------------------------------- | ------------ | ---------------- |
-| "FindAllReferences 在哪里被调用？" | serena/LSP   | 精确的引用链     |
-| "IUserHandler 的实现有哪些？"      | serena/LSP   | 符号/实现关系    |
-| "所有名为 HandleUpdate 的函数"     | serena/LSP   | 符号搜索，更快   |
-| "查找处理用户认证的代码"           | bcindex mcp  | 自然语言语义搜索 |
-| "这个项目中的 HTTP 处理器是什么？" | bcindex mcp  | 按职责定位       |
-| "xxx.go 中的具体实现"              | Read         | 已知路径         |
-| "所有包含 'update' 关键字的代码"   | Grep         | 通用关键字搜索   |
-| "关键字可能有拼写问题"             | bcindex/Grep | 先收敛真实术语   |
+| 需求                               | 工具              | 原因             |
+| ---------------------------------- | ----------------- | ---------------- |
+| "FindAllReferences 在哪里被调用？" | byte-lsp/go_to_definition + byte-lsp/find_references | 精确的引用链     |
+| "IUserHandler 的实现有哪些？"      | byte-lsp/search_symbols | 符号搜索         |
+| "所有名为 HandleUpdate 的函数"     | byte-lsp/search_symbols | 符号搜索，更快   |
+| "查找处理用户认证的代码"           | bcindex mcp       | 自然语言语义搜索 |
+| "这个项目中的 HTTP 处理器是什么？" | bcindex mcp       | 按职责定位       |
+| "xxx.go 中的具体实现"              | Read              | 已知路径         |
+| "所有包含 'update' 关键字的代码"   | Grep              | 通用关键字搜索   |
+| "关键字可能有拼写问题"             | bcindex/Grep      | 先收敛真实术语   |
 
 **优先级规则**：
 
-- **符号名可靠**：Serena/LSP → bcindex → Glob/Grep/Read
-- **术语不确定**：bcindex → Grep → Serena/LSP（收敛术语后）
+- **符号名可靠**：byte-lsp（基于 gopls）→ bcindex → Glob/Grep/Read
+- **术语不确定**：bcindex → Grep → byte-lsp（收敛术语后）
+
+**byte-lsp 使用说明**：
+
+1. **search_symbols**：搜索符号定义
+   - 默认仅搜索工作区，包含标准库需设置 `include_external: true`
+   - 示例：`byte-lsp/search_symbols` 查找类型、函数、接口
+
+2. **go_to_definition**：跳转到定义
+   - 输入：`file_path`、`line`、`column`（1-based）
+   - 自动容错：若行列号落在空白处，会自动定位最近标识符
+
+3. **find_references**：查找所有引用
+   - 输入：`file_path`、`line`、`column`（1-based）
+   - 返回所有引用位置（文件路径、行列号）
+
+4. **analyze_code**：代码诊断
+   - 输入：`code` + `file_path`
+   - 返回错误/警告/提示信息
 
 ### 步骤 4: 综合分析与方案设计
 
@@ -154,18 +170,7 @@ repotalk.get_nodes_detail({
 
 **目标**：在变更目录中创建 proposal.md 和 design.md。
 
-### 步骤 6: 验证完成
-
-**完成检查清单**：
-
-- [x] 需求已理解（如果提出了问题）
-- [x] 如果执行了 Repotalk，产生了候选路径/术语
-- [x] 完成本地定向搜索
-- [x] 完成综合分析和设计（1-2 个方案）
-- [x] 生成 proposal.md
-- [x] 生成 design.md
-
-**当且仅当以上所有项都满足时**，你才算完成。
+**输出**：完成文档生成后，报告完成并提供文件位置。
 
 ## 重要约束
 

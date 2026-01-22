@@ -14,6 +14,9 @@
       "args": [
         "mcp"
       ]
+    },
+    "byte-lsp-mcp": {
+      "command": "byte-lsp-mcp"
     }
   }
 }

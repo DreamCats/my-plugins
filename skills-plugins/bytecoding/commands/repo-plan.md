@@ -17,9 +17,7 @@ Repo-Plan Progress:
 - [ ] 步骤 1: 运行脚本初始化 - 创建 change 目录与 PlanSpec
 - [ ] 步骤 2: brainstorming - 需求精化与方案设计
 - [ ] 步骤 3: writing-plans - 生成任务列表
-- [ ] 步骤 4: 确认 PlanSpec - 核对 change-id 与产出文件
-- [ ] 步骤 5: repo-plan-lark.js - 转换 proposal/design/tasks 并获取链接
-- [ ] 步骤 6: repo-plan-send.js - 发送飞书摘要
+- [ ] 步骤 4: 生成飞书文档并发送摘要 - 转换 Markdown 并发送消息
 ```
 
 **重要**：完成每个步骤后，更新检查清单。不要跳过任何步骤。
@@ -53,18 +51,17 @@ node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
 {
   "subagent_type": "brainstorming",
   "description": "完成需求澄清和方案设计",
-  "prompt": "你正在执行 brainstorming 工作流，遵循 agents/brainstorming.md 中定义的强制流程。\n\n用户需求：$ARGUMENTS\n\n工作目录：.bytecoding/changes/$CHANGE_ID/\n\n请严格按照 brainstorming agent 的 6 步流程执行，最终产出 proposal.md 和 design.md。"
+  "prompt": "你正在执行 brainstorming 工作流，遵循 agents/brainstorming.md 中定义的强制流程。\n\n用户需求：$ARGUMENTS\n\n工作目录：.bytecoding/changes/$CHANGE_ID/\n\n请严格按照 brainstorming agent 的 5 步流程执行，最终产出 proposal.md 和 design.md。"
 }
 ```
 
-**agent 将遵循 `agents/brainstorming.md` 的 6 步强制流程**：
+**agent 将遵循 `agents/brainstorming.md` 的 5 步强制流程**：
 
 1. 理解需求（需求不清晰时用 "use ask question" 单轮提问并等待确认；需求明确时可直接确认理解）
 2. Repotalk MCP 搜索（复杂/模糊需求优先执行；简单明确可跳过该步骤并说明原因）
 3. 本地定向搜索（基于候选路径/术语验证与补充）
 4. 综合分析与方案设计（结合搜索结果，提出 1-2 种方案并给出推荐方案）
 5. 生成文档（必须生成 proposal.md 和 design.md）
-6. 验证完成（确认所有文档已生成）
 
 **agent 工作目录**: `.bytecoding/changes/$CHANGE_ID/`
 
@@ -87,17 +84,16 @@ node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
 {
   "subagent_type": "writing-plans",
   "description": "将设计文档转化为任务列表",
-  "prompt": "你正在执行 writing-plans 工作流，遵循 agents/writing-plans.md 中定义的强制流程。\n\n工作目录：.bytecoding/changes/$CHANGE_ID/\n\n请严格按照 writing-plans agent 的 5 步流程执行，读取 design.md 并生成 tasks.md。\n\n重要约束：\n- 任务粒度必须控制在 2-5 分钟\n- 必须标注依赖关系\n- 必须明确验证标准\n- 禁止 \"编译整个项目\" 或 \"go build ./...\"\n- 验证范围必须最小化"
+  "prompt": "你正在执行 writing-plans 工作流，遵循 agents/writing-plans.md 中定义的强制流程。\n\n工作目录：.bytecoding/changes/$CHANGE_ID/\n\n请严格按照 writing-plans agent 的 4 步流程执行，读取 design.md 并生成 tasks.md。\n\n重要约束：\n- 任务粒度必须控制在 2-5 分钟\n- 必须标注依赖关系\n- 必须明确验证标准\n- 禁止 \"编译整个项目\" 或 \"go build ./...\"\n- 验证范围必须最小化"
 }
 ```
 
-**agent 将遵循 `agents/writing-plans.md` 的 5 步强制流程**：
+**agent 将遵循 `agents/writing-plans.md` 的 4 步强制流程**：
 
 1. 分析设计文档（完全理解）
 2. 细粒度任务拆分（2-5 分钟/任务）
 3. 为每个任务找本地参考（使用搜索工具）
 4. 生成任务列表（创建 tasks.md）
-5. 验证完成（确认任务列表完整）
 
 **agent 工作目录**: `.bytecoding/changes/$CHANGE_ID/`
 
@@ -113,44 +109,34 @@ node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
 - 禁止 "编译整个项目" 或 "go build ./..."
 - 验证范围必须最小化
 
-## 步骤 4: 确认 PlanSpec
+## 步骤 4: 生成飞书文档并发送摘要
 
-脚本已创建 PlanSpec，进入下一步即可。
+本步骤将完成两个任务：将 Markdown 文档转换为飞书文档，并发送飞书摘要消息。
 
-## 步骤 5: 转换 Markdown 文档（使用 repo-plan-lark.js）
+### 4.1 转换 Markdown 文档（使用 repo-plan-lark.js）
 
-当摘要包含 Markdown 文档时（本命令固定包含 `proposal.md`/`design.md`/`tasks.md`），使用 **repo-plan-lark.js** 批量渲染并记录文档链接。脚本会调用插件内渲染器，避免技能重名冲突。
+使用 **repo-plan-lark.js** 批量渲染并记录文档链接。脚本会调用插件内渲染器，避免技能重名冲突，并自动开通协作权限。
 
 **标题规范**：`[repo-plan] $CHANGE_ID <文档名>`（如 `proposal`/`design`/`tasks`）。
 
 **执行方式**：
 
-使用批量脚本渲染并回写 PlanSpec（示例）：
-
-```bash
-node "$SCRIPT_DIR/repo-plan-lark.js" \
-  --change-id "$CHANGE_ID" \
-  --title-prefix "[repo-plan] $CHANGE_ID"
-```
-
-该脚本会批量渲染 `proposal.md`/`design.md`/`tasks.md` 并回写 `planspec.yaml` 的 `lark_docs` 字段（包含 `doc_id` 与 `url`）。
-
-**可选：自动开通协作权限（示例）**：
-
 ```bash
 node "$SCRIPT_DIR/repo-plan-lark.js" \
   --change-id "$CHANGE_ID" \
   --title-prefix "[repo-plan] $CHANGE_ID" \
-  --share-email "user@example.com" \
+  --share-email "$(grep 'lark_email' ${CHANGE_DIR}/planspec.yaml | awk '{print $2}')" \
   --share-perm edit \
   --share-notify
 ```
 
-## 步骤 6: 发送飞书摘要（使用 repo-plan-send.js）
+该脚本会批量渲染 `proposal.md`/`design.md`/`tasks.md` 并回写 `planspec.yaml` 的 `lark_docs` 字段（包含 `doc_id` 与 `url`），同时自动给用户开通文档编辑权限并发送飞书通知。
 
-在命令结束后，使用 **repo-plan-send.js** 发送飞书摘要。
+### 4.2 发送飞书摘要（使用 repo-plan-send.js）
 
-**接收人**：默认使用 `planspec.yaml` 的 `lark_email`（初始化时取 Git 用户邮箱）。  
+在生成飞书文档后，使用 **repo-plan-send.js** 发送飞书摘要。
+
+**接收人**：默认使用 `planspec.yaml` 的 `lark_email`（初始化时取 Git 用户邮箱）。
 **如果未配置邮箱**：提示用户补充邮箱或使用 `--receive-id` 覆盖。
 
 **摘要内容建议**：
@@ -160,7 +146,7 @@ node "$SCRIPT_DIR/repo-plan-lark.js" \
 - 文档链接（由 `repo-plan-lark.js` 生成）
 - 下一步建议（`/repo-apply $CHANGE_ID`）
 
-**执行方式**（示例）：
+**执行方式**：
 
 ```bash
 node "$SCRIPT_DIR/repo-plan-send.js" \
