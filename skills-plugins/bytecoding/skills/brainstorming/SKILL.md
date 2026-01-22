@@ -48,7 +48,7 @@ Brainstorming Progress:
 **顺序约束**：若执行 Repotalk，在完成前禁止任何本地 Search/Glob/Grep/Read。
 **例外**：当关键词可能拼写错误/断词混乱且用户已给出明确范围时，允许在该范围内做一次**轻量的术语校准搜索**（bcindex，避免全仓库盲搜），用于收敛真实术语后再进入 Repotalk。
 
-**重要**：使用正确的 `repo_names` 参数格式（`org/repo`）
+**重要**：使用正确的 `repo_names` 参数格式（`org/repo`，或者从 go.mod 中提取 module）
 
 详细工作流程和代码示例见：`references/repotalk_workflow.md`
 
@@ -69,15 +69,15 @@ Brainstorming Progress:
 
 **约束**：若执行步骤 2，需先完成 Repotalk；若跳过需说明原因。
 
-| 用户需求示例                       | 使用工具     | 原因               |
-| ---------------------------------- | ------------ | ------------------ |
-| "IUserHandler 接口有哪些实现？"    | LSP          | 符号/实现关系      |
-| "所有叫 `HandleUpdate` 的函数"     | LSP          | 符号搜索，更快更准 |
-| "查找处理用户认证的代码"           | bcindex      | 自然语言语义检索   |
-| "这个项目有哪些 HTTP handler？"    | bcindex      | 按职责定位模块     |
-| "xxx.go 文件里的具体实现"          | Read         | 已知具体路径       |
-| "所有包含 'update' 关键词的代码"   | Grep         | 泛化关键词搜索     |
-| "关键词可能拼写/断词不准"          | bcindex/Grep | 先收敛真实术语     |
+| 用户需求示例                     | 使用工具     | 原因               |
+| -------------------------------- | ------------ | ------------------ |
+| "IUserHandler 接口有哪些实现？"  | LSP          | 符号/实现关系      |
+| "所有叫 `HandleUpdate` 的函数"   | LSP          | 符号搜索，更快更准 |
+| "查找处理用户认证的代码"         | bcindex      | 自然语言语义检索   |
+| "这个项目有哪些 HTTP handler？"  | bcindex      | 按职责定位模块     |
+| "xxx.go 文件里的具体实现"        | Read         | 已知具体路径       |
+| "所有包含 'update' 关键词的代码" | Grep         | 泛化关键词搜索     |
+| "关键词可能拼写/断词不准"        | bcindex/Grep | 先收敛真实术语     |
 
 **优先级**：
 
