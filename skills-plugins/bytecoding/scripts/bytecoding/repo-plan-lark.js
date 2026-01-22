@@ -117,7 +117,17 @@ function addPermission(docId, share) {
     args.push('--notification');
   }
   args.push(docId);
-  execFileSync('lark-cli', args, { stdio: 'inherit' });
+
+  try {
+    execFileSync('lark-cli', args, { stdio: 'inherit' });
+    console.log(`✅ 权限添加成功: ${docId}`);
+  } catch (error) {
+    console.error(`⚠️  权限添加失败: ${docId}`);
+    console.error(`   错误: ${error.message}`);
+    console.error(`   提示: 文档已创建，但未能自动添加协作者权限`);
+    console.error(`   建议: 手动在飞书中打开文档，添加协作者权限`);
+    // 不抛出异常，继续处理其他文档
+  }
 }
 
 function buildShareConfig(flags) {
