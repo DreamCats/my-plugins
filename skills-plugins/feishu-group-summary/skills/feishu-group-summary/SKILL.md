@@ -1,13 +1,13 @@
 ---
 name: feishu-group-summary
-description: 当用户要求"总结飞书群聊"、"分析群消息"、"群聊回顾报告"或需要分析飞书群聊历史消息并生成结构化报告时使用此技能。
+description: 当用户要求"拉取飞书群聊"、"查看群消息"、"导出群聊记录"或需要获取飞书群聊历史消息时使用此技能。
 ---
 
-# 飞书群聊消息总结
+# 飞书群聊消息拉取
 
 ## 概览
 
-自动搜索飞书群聊,获取指定时间范围内的历史消息,进行智能分析,并生成结构化的总结报告。
+搜索飞书群聊,拉取指定时间范围内的历史消息,输出为易读的 Markdown 格式,供 LLM 进一步分析。
 
 ## 工作流程
 
@@ -24,225 +24,56 @@ description: 当用户要求"总结飞书群聊"、"分析群消息"、"群聊�
    - "本周"、"上周"
    - "YYYY-MM-DD至YYYY-MM-DD" → 如 "2026-01-01至2026-01-07"
 
-3. **报告语言** (可选,默认中文): 中文或英文
+3. **输出方式** (可选,默认输出到终端): 可选择保存为文件
 
 ### 步骤 2: 搜索群聊
 
 使用命令行脚本搜索匹配的群聊:
 
 ```bash
-python3 scripts/chat_operations.py search "关键词"
+python3 scripts/fetch_chat_messages.py search "关键词"
 ```
 
 返回群列表后,让用户确认选择哪个群。
 
-### 步骤 3: 获取消息
+### 步骤 3: 拉取消息
 
 使用命令行脚本获取历史消息:
 
 ```bash
-python3 scripts/get_messages_cli.py \
+python3 scripts/fetch_chat_messages.py fetch \
   --chat-id oc_xxxxxxxxxxxxx \
+  --chat-name "群名称" \
   --time-range "近3天" \
-  --output messages.json
+  --output messages.md
 ```
 
 脚本会:
 - 解析时间范围
 - 自动处理分页
 - 获取完整消息列表
-- 保存为 JSON 格式
+- 输出为 Markdown 格式
 
-### 步骤 4: 统计分析
+### 步骤 4: LLM 分析 (可选)
 
-使用命令行脚本进行统计分析:
-
-```bash
-python3 scripts/analyze_messages_cli.py \
-  --messages messages.json \
-  --top-keywords 20 \
-  --output analysis.json
-```
-
-统计内容包括:
-- 消息总数、参与人数
-- 消息类型分布
-- 活跃用户排行
-- 热门关键词
-- 时间分布
-- 行动项
-- 讨论主题
-
-### 步骤 5: LLM 智能分析 (关键步骤)
-
-将消息内容发送给 Claude 进行深度分析:
-
-**提示词模板**:
-
-```
-请分析以下飞书群聊消息,提取关键信息:
-
-群聊名称: {群名称}
-时间范围: {时间范围}
-消息总数: {消息数}
-
-消息内容:
-{消息内容列表(按时间分组)}
-
-请提取:
-1. 核心讨论主题 (至少3个)
-   - 主题名称
-   - 讨论概要
-   - 主要观点 (2-3个)
-   - 参与人员
-
-2. 重要行动项
-   - 行动描述
-   - 相关人员 (@mentions)
-   - 时间背景
-
-3. 关键决策或共识
-
-请以 JSON 格式返回:
-{
-  "topics": [...],
-  "action_items": [...],
-  "decisions": [...]
-}
-```
-
-**注意事项**:
-- 消息太多时,按时间段分批分析
-- 每批不超过 50 条消息
-- 汇总各批次的分析结果
-
-### 步骤 6: 生成报告
-
-使用命令行脚本生成最终报告:
-
-```bash
-python3 scripts/generate_report_cli.py \
-  --chat-name "群名称" \
-  --statistics analysis.json \
-  --output report.md
-```
-
-如果包含 LLM 分析结果:
-
-```bash
-python3 scripts/generate_report_cli.py \
-  --chat-name "群名称" \
-  --statistics analysis.json \
-  --analysis llm_analysis.json \
-  --output report.md
-```
-
-## 一键生成报告 (推荐)
-
-使用完整工作流脚本,一键完成所有步骤:
-
-```bash
-python3 scripts/summary_chat.py \
-  --query "项目群" \
-  --time-range "近3天" \
-  --output report.md
-```
-
-或者指定 chat_id:
-
-```bash
-python3 scripts/summary_chat.py \
-  --chat-id oc_xxxxxxxxxxxxx \
-  --chat-name "项目群" \
-  --time-range "近7天" \
-  --output report.md
-```
-
-## 脚本使用说明
-
-### 命令行脚本 (推荐)
-
-#### get_messages_cli.py - 获取消息
-
-```bash
-# 使用时间范围描述
-python3 scripts/get_messages_cli.py \
-  --chat-id oc_xxx \
-  --time-range "近3天" \
-  --output messages.json
-
-# 使用时间戳
-python3 scripts/get_messages_cli.py \
-  --chat-id oc_xxx \
-  --start-time 1642723200 \
-  --end-time 1642992000 \
-  --output messages.json
-```
-
-#### analyze_messages_cli.py - 分析消息
-
-```bash
-python3 scripts/analyze_messages_cli.py \
-  --messages messages.json \
-  --top-keywords 20 \
-  --output analysis.json
-```
-
-#### generate_report_cli.py - 生成报告
-
-```bash
-# 基础报告
-python3 scripts/generate_report_cli.py \
-  --chat-name "项目群" \
-  --statistics analysis.json \
-  --output report.md
-
-# 包含 LLM 分析
-python3 scripts/generate_report_cli.py \
-  --chat-name "项目群" \
-  --statistics analysis.json \
-  --analysis llm_analysis.json \
-  --output report.md
-```
-
-#### summary_chat.py - 完整工作流 (一键生成)
-
-```bash
-# 交互式搜索群聊
-python3 scripts/summary_chat.py \
-  --query "项目群" \
-  --time-range "近3天" \
-  --output report.md
-
-# 直接指定群聊
-python3 scripts/summary_chat.py \
-  --chat-id oc_xxx \
-  --chat-name "项目群" \
-  --time-range "近7天" \
-  --output report.md
-
-# 跳过 LLM 分析
-python3 scripts/summary_chat.py \
-  --chat-id oc_xxx \
-  --chat-name "项目群" \
-  --no-llm \
-  --output report.md
-```
+拉取到的消息已按时间顺序组织为易读的 Markdown 格式,可以直接:
+- 展示给用户查看
+- 提供给 Claude 进行总结分析
+- 保存为文件供后续使用
 
 ## 完整使用示例
 
-**用户**: "帮我总结项目群最近 3 天的讨论"
+**用户**: "帮我拉取项目群最近 3 天的聊天记录"
 
 **Claude** 执行步骤:
 
 1. **确认输入**:
    - 群名称: "项目"
    - 时间范围: "近3天"
-   - 语言: "中文"
 
 2. **搜索群聊**:
    ```bash
-   python3 scripts/chat_operations.py search "项目"
+   python3 scripts/fetch_chat_messages.py search "项目"
    ```
    返回: 找到 3 个群聊
    - "XX项目开发群" (oc_xxx)
@@ -251,38 +82,82 @@ python3 scripts/summary_chat.py \
 
 3. **用户选择**: "XX项目开发群" (chat_id: oc_xxx)
 
-4. **获取消息**:
+4. **拉取消息**:
    ```bash
-   python3 scripts/get_messages_cli.py \
+   python3 scripts/fetch_chat_messages.py fetch \
      --chat-id oc_xxx \
-     --time-range "近3天" \
-     --output messages.json
-   ```
-
-5. **统计分析**:
-   ```bash
-   python3 scripts/analyze_messages_cli.py \
-     --messages messages.json \
-     --output analysis.json
-   ```
-
-6. **LLM 分析**: 将消息内容分批发送给 Claude,获取深度分析
-
-7. **生成报告**:
-   ```bash
-   python3 scripts/generate_report_cli.py \
      --chat-name "XX项目开发群" \
-     --statistics analysis.json \
-     --output ./群聊总结报告.md
+     --time-range "近3天" \
+     --output messages.md
    ```
 
-8. **输出报告**: 显示报告内容,并保存到文件
+5. **展示结果**: 将消息内容展示给用户,或根据用户需求进行进一步分析
+
+## 脚本使用说明
+
+### fetch_chat_messages.py - 核心脚本
+
+#### 搜索群聊
+
+```bash
+python3 scripts/fetch_chat_messages.py search "关键词"
+```
+
+#### 拉取消息
+
+```bash
+# 使用时间范围描述
+python3 scripts/fetch_chat_messages.py fetch \
+  --chat-id oc_xxx \
+  --chat-name "群名称" \
+  --time-range "近3天" \
+  --output messages.md
+
+# 使用时间戳
+python3 scripts/fetch_chat_messages.py fetch \
+  --chat-id oc_xxx \
+  --start-time 1642723200 \
+  --end-time 1642992000 \
+  --output messages.md
+
+# 输出到终端(不保存文件)
+python3 scripts/fetch_chat_messages.py fetch \
+  --chat-id oc_xxx \
+  --time-range "近3天"
+```
+
+## 输出格式
+
+拉取的消息会按以下格式组织:
+
+```markdown
+# 群名称 - 聊天记录
+
+**时间范围**: 近3天
+**时间段**: 2026-01-20 10:00 至 2026-01-23 10:00
+**消息总数**: 156 条
+
+---
+
+## 2026-01-23
+
+### 10:30 张三
+@李四 你看一下这个 bug
+
+---
+
+### 10:32 李四
+好的,我马上处理
+
+---
+
+...
+```
 
 ## 技术依赖
 
 - **lark-cli**: 全局安装的飞书命令行工具
 - **Python 3**: 脚本运行环境
-- **Claude Code**: LLM 智能分析
 
 ## 注意事项
 
@@ -290,7 +165,6 @@ python3 scripts/summary_chat.py \
 2. **消息限制**: 最多拉取 10,000 条历史消息
 3. **时间范围**: 部分群聊可能限制历史消息查看时长
 4. **API 限流**: lark-cli 可能存在速率限制,大量消息需分批获取
-5. **工作目录**: 所有脚本必须在技能目录外的工作目录执行
 
 ## 故障排除
 
@@ -312,10 +186,3 @@ lark-cli --version
 - 检查时间范围是否过大
 - 确认群聊历史消息保留时长
 - 查看是否有 API 限流
-
-### 问题: LLM 分析超时
-
-**解决**:
-- 减少单批次消息数量 (建议 30-50 条)
-- 分多个时间段分别分析
-- 汇总各批次结果

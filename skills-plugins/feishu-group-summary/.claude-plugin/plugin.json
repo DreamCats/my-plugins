@@ -1,6 +1,6 @@
 {
   "name": "feishu-group-summary",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "飞书群聊消息总结工具 - 搜索群聊,获取历史消息,智能分析并生成结构化报告",
   "author": {
     "name": "Maifeng",
