@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Turn vague requirements into a concrete design via a mandatory 6-step workflow. Docs must be done before any code changes.
+description: Turn vague requirements into a concrete design via a mandatory 5-step workflow. Docs must be done before any code changes.
 ---
 
 # Brainstorming 技能
@@ -103,7 +103,7 @@ Brainstorming Progress:
 
 **必须生成以下文件**：
 
-模板：`references/proposal_template.md`、`references/design_template.md`；若 `.bytecoding/changes/$CHANGE_ID/` 下的 `proposal.md` / `design.md` 已存在，则直接使用现有文件，无需再读取模板。
+若 `.bytecoding/changes/$CHANGE_ID/` 下的 `proposal.md` / `design.md` 已存在，则直接使用现有文件，无需再读取模板。
 
 **职责划分**：
 
@@ -140,5 +140,4 @@ Brainstorming Progress:
 
 - `references/repotalk_workflow.md`
 - `references/local_search_strategy.md`
-- [Repotalk MCP 工具使用说明](../../scripts/session-start-hook.js)
 - [writing-plans 技能](../writing-plans/SKILL.md)
