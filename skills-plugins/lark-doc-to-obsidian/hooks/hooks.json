@@ -1,0 +1,17 @@
+{
+  "description": "Lark Doc to Obsidian hooks",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/check-config.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 ---
 name: lark-doc-to-obsidian
-description: 阅读飞书文档，或者将飞书云文档导出为 Obsidian 格式的 Markdown，基于 lark-cli get-blocks 解析块结构，下载图片/画板缩略图到 assets/ 并生成 Obsidian 格式引用。
+description: 阅读飞书文档，或者将飞书云文档导出为 Obsidian 格式的 Markdown，基于 lark-cli get-blocks 解析块结构，下载图片/画板缩略图到 assets/ 并生成 Obsidian 格式引用。支持画板自动转换为 Mermaid 代码。
 ---
 
 # Lark Doc to Obsidian Markdown
@@ -8,9 +8,11 @@ description: 阅读飞书文档，或者将飞书云文档导出为 Obsidian 格
 ## 概览
 
 从飞书云文档导出 Obsidian 格式的 Markdown：
+
 - 通过 `get-blocks` 拉取块结构（保持 children 顺序）。
 - 解析块类型并转换为 Obsidian 格式的 Markdown。
 - 图片与画板缩略图下载到 `assets/`，使用 Obsidian 格式引用。
+- **画板转 Mermaid**：可选使用火山 LLM 将画板/流程图/图表转换为 Mermaid 代码（需配置）。
 
 ## 依赖命令
 
@@ -27,7 +29,6 @@ description: 阅读飞书文档，或者将飞书云文档导出为 Obsidian 格
 1. 不能 cd 到技能目录，必须在工作/仓库目录下执行。
 2. 输出文档与 `assets/` 必须写入工作/仓库目录，禁止写入技能目录（例如 `~/.xxx/skills/...`）。
 
-
 ```bash
 
 # 使用 doc_id 导出
@@ -43,6 +44,58 @@ python3 scripts/lark_doc_to_obsidian.py --doc-id <DOC_ID> --out ./output.md --as
 python3 scripts/lark_doc_to_obsidian.py --doc-id <DOC_ID> --out ./output.md --language-map ./language_map.json
 ```
 
+## 画板转 Mermaid 功能（可选）
+
+### 配置火山 LLM API
+
+要启用画板转 Mermaid 功能，需要配置火山方舟的 API：
+
+```bash
+# 设置 Model ID（Endpoint ID）
+node scripts/config.js set volcano.model_id ep-xxx-xxx
+
+# 设置 API Key
+node scripts/config.js set volcano.api_key xxxx
+
+# 查看当前配置
+node scripts/config.js get
+```
+
+配置文件位置：`~/.my-plugins/lark-doc-to-obsidian.json`
+
+### 转换规则
+
+当配置了火山 LLM API 后，画板处理逻辑如下：
+
+1. **自动转换**：尝试将画板缩略图发送给 LLM 转换为 Mermaid 代码
+2. **支持的图表类型**：
+   - 流程图 (flowchart)
+   - 时序图 (sequence)
+   - 状态图 (state)
+   - ER图 (er)
+   - 思维导图 (mindmap)
+3. **降级处理**：如果图表过于复杂（自由绘制、节点过多等），保留原图片引用
+
+### 输出示例
+
+成功转换为 Mermaid：
+
+````markdown
+```mermaid
+graph TD
+    A[开始] --> B[处理]
+    B --> C[结束]
+```
+
+<!-- 原画板: ![[assets/xxx.png]] -->
+````
+
+无法转换时：
+
+```markdown
+![[assets/xxx.png]]
+```
+
 ## 转换规则（核心）
 
 - **文档标题**：page 块的 title 会输出为首行一级标题（如首个子块已是同名标题则不重复）。
@@ -50,7 +103,9 @@ python3 scripts/lark_doc_to_obsidian.py --doc-id <DOC_ID> --out ./output.md --la
 - **@用户**：解析为 `@名字`；如失败则回退为 `@user_id`。
 - **Callout**：转为 Markdown 引用块，首行带 `**提示**`。
 - **图片**：`download-media` 下载到 `assets/`，文件名使用 token，Obsidian 格式引用 `![[图片路径]]`。
-- **画板/流程图/图表**：`get-board-image` 下载缩略图到 `assets/`，Obsidian 格式引用 `![[图片路径]]`。
+- **画板/流程图/图表**：
+  - **优先**：尝试使用 LLM 转换为 Mermaid 代码（需配置）
+  - **降级**：无法转换时使用 `get-board-image` 下载缩略图，Obsidian 格式引用 `![[图片路径]]`。
 - **表格**：
   - 简单表格 → Markdown 表格
   - 复杂表格（`row_span/col_span > 1`）→ HTML table

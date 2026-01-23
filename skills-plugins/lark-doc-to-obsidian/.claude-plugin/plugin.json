@@ -1,10 +1,11 @@
 {
   "name": "lark-doc-to-obsidian",
-  "version": "1.0.0",
-  "description": "阅读飞书文档，或者将飞书云文档导出为 Obsidian 格式的 Markdown，基于 lark-cli get-blocks 解析块结构，下载图片/画板缩略图到 assets/ 并生成 Obsidian 格式引用。",
+  "version": "2.0.0",
+  "description": "阅读飞书文档，或者将飞书云文档导出为 Obsidian 格式的 Markdown，基于 lark-cli get-blocks 解析块结构，下载图片/画板缩略图到 assets/ 并生成 Obsidian 格式引用。支持画板自动转换为 Mermaid 代码（可选）。",
   "author": {
     "name": "DreamCats",
     "email": "maifeng@bytedance.com"
   },
-  "skills": ["./skills/lark-doc-to-obsidian"]
+  "skills": ["./skills/lark-doc-to-obsidian"],
+  "hooks": "./hooks"
 }

@@ -1,12 +1,24 @@
 import json
 import os
 import subprocess
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from html import escape as html_escape
 
 from lark_cli import get_user_info, run_cmd
 from md_utils import detect_image_ext, escape_md_table_cell, text_from_elements, IMAGE_EXTS
 
 TABLE_IMAGE_MAX_WIDTH = 160
+
+# 尝试导入火山 LLM 模块
+try:
+    from volcano_llm import create_client_from_config
+    VOLCANO_LLM_AVAILABLE = True
+except ImportError:
+    VOLCANO_LLM_AVAILABLE = False
+
+# 画板并发转换数
+MAX_CONCURRENT_BOARD_CONVERSION = 10
 
 
 class ObsidianLarkDocRenderer:
@@ -21,6 +33,17 @@ class ObsidianLarkDocRenderer:
         self.user_cache = {}
         self.user_info_cache = {}
 
+        # 初始化火山 LLM 客户端（如果可用）
+        self.llm_client = None
+        if VOLCANO_LLM_AVAILABLE:
+            try:
+                self.llm_client = create_client_from_config()
+                if self.llm_client:
+                    print(f"[Info] Volcano LLM client initialized successfully")
+            except Exception as e:
+                print(f"[Warning] Failed to initialize Volcano LLM client: {e}")
+                self.llm_client = None
+
     def find_root(self):
         for it in self.items:
             if it.get("block_type") == 1 and not it.get("parent_id"):
@@ -31,6 +54,14 @@ class ObsidianLarkDocRenderer:
         root = self.find_root()
         if not root:
             return ""
+
+        # 预先收集所有画板 token，准备并发转换
+        board_tokens = self._collect_board_tokens(root)
+        if board_tokens and self.llm_client:
+            print(f"[Info] Found {len(board_tokens)} board(s), starting concurrent conversion (max_workers={MAX_CONCURRENT_BOARD_CONVERSION})...")
+            self._convert_boards_concurrent(board_tokens)
+
+        # 正常渲染流程
         lines = []
         title = self.get_page_title(root)
         if title:
@@ -40,6 +71,87 @@ class ObsidianLarkDocRenderer:
         lines.extend(self.render_children(children, list_level=0))
         content = "\n".join(lines).rstrip() + "\n"
         return content
+
+    def _collect_board_tokens(self, root):
+        """收集所有画板 token"""
+        tokens = []
+
+        def traverse_blocks(blocks):
+            for block in blocks:
+                block_type = block.get("block_type")
+
+                # 收集画板类型
+                if block_type == 43:  # board
+                    token = block.get("board", {}).get("token")
+                    if token:
+                        tokens.append(token)
+                elif block_type == 21:  # diagram
+                    token = block.get("diagram", {}).get("token")
+                    if token:
+                        tokens.append(token)
+
+                # 递归遍历子块
+                children = block.get("children", [])
+                if children:
+                    traverse_children(children)
+
+        def traverse_children(child_ids):
+            for cid in child_ids:
+                block = self.index.get(cid)
+                if block:
+                    traverse_blocks([block])
+
+        traverse_children(root.get("children", []))
+        return tokens
+
+    def _convert_boards_concurrent(self, tokens):
+        """并发转换所有画板"""
+        if not tokens:
+            return
+
+        # 确保所有画板都已下载
+        for token in tokens:
+            abs_path = os.path.join(self.assets_dir, f"{token}.png")
+            if not os.path.exists(abs_path):
+                self.download_board(token)
+
+        # 并发转换
+        results = {}
+        with ThreadPoolExecutor(max_workers=MAX_CONCURRENT_BOARD_CONVERSION) as executor:
+            future_to_token = {
+                executor.submit(self._convert_single_board, token): token
+                for token in tokens
+            }
+
+            completed = 0
+            for future in as_completed(future_to_token):
+                token = future_to_token[future]
+                try:
+                    result = future.result()
+                    results[token] = result
+                    completed += 1
+                    print(f"[Progress] {completed}/{len(tokens)} boards processed")
+                except Exception as e:
+                    print(f"[Warning] Board {token} conversion failed: {e}")
+                    results[token] = None
+                    completed += 1
+
+        # 缓存结果
+        self._board_conversion_cache = results
+
+    def _convert_single_board(self, token):
+        """转换单个画板（线程安全）"""
+        abs_path = os.path.join(self.assets_dir, f"{token}.png")
+
+        if not os.path.exists(abs_path):
+            return None
+
+        try:
+            mermaid_code = self.llm_client.convert_to_mermaid(abs_path)
+            return mermaid_code
+        except Exception as e:
+            print(f"[Warning] Failed to convert board {token}: {e}")
+            return None
 
     def get_page_title(self, root):
         page = root.get("page") or {}
@@ -196,18 +308,12 @@ class ObsidianLarkDocRenderer:
         if block_type == 43:
             token = block["board"].get("token")
             if token:
-                rel_path = self.download_board(token)
-                if rel_path:
-                    return [f"![[{rel_path}]]"], block_type
-                return [f"<!-- image download failed: {token} -->"], block_type
+                return self.render_board(token), block_type
             return [], block_type
         if block_type == 21:
             token = block.get("diagram", {}).get("token")
             if token:
-                rel_path = self.download_board(token)
-                if rel_path:
-                    return [f"![[{rel_path}]]"], block_type
-                return [f"<!-- image download failed: {token} -->"], block_type
+                return self.render_board(token), block_type
             return [], block_type
         if block_type in (24, 25, 34):
             children = block.get("children", [])
@@ -261,6 +367,54 @@ class ObsidianLarkDocRenderer:
         if attempted_download and not os.path.exists(abs_path):
             return None
         return os.path.join(self.assets_rel, filename)
+
+    def render_board(self, token):
+        """
+        渲染画板/图表块
+        尝试使用 LLM 转换为 Mermaid，如果失败则使用图片引用
+        """
+        # 1. 下载缩略图到 assets/
+        rel_path = self.download_board(token)
+        if not rel_path:
+            return [f"<!-- image download failed: {token} -->"]
+
+        # 2. 检查并发转换缓存
+        if hasattr(self, '_board_conversion_cache') and token in self._board_conversion_cache:
+            mermaid_code = self._board_conversion_cache[token]
+            if mermaid_code:
+                print(f"[Info] Using cached Mermaid for board {token}")
+                return [
+                    "```mermaid",
+                    mermaid_code,
+                    "```",
+                    f"<!-- 原画板: ![[{rel_path}]] -->"
+                ]
+            else:
+                print(f"[Info] Board {token} conversion failed, using image")
+                return [f"![[{rel_path}]]"]
+
+        # 3. 如果 LLM 客户端可用但没有缓存（可能只有单个画板），尝试转换
+        abs_path = os.path.join(self.assets_dir, f"{token}.png")
+        if self.llm_client and os.path.exists(abs_path):
+            try:
+                print(f"[Info] Attempting to convert board {token} to Mermaid...")
+                mermaid_code = self.llm_client.convert_to_mermaid(abs_path)
+
+                if mermaid_code:
+                    print(f"[Info] Successfully converted board {token} to Mermaid")
+                    return [
+                        "```mermaid",
+                        mermaid_code,
+                        "```",
+                        f"<!-- 原画板: ![[{rel_path}]] -->"
+                    ]
+                else:
+                    print(f"[Info] Board {token} cannot be converted to Mermaid, using image")
+            except Exception as e:
+                print(f"[Warning] Failed to convert board {token} to Mermaid: {e}")
+
+        # 4. 无法转换时，使用图片引用
+        return [f"![[{rel_path}]]"]
 
     def render_table(self, block):
         table = block["table"]
