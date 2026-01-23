@@ -122,6 +122,17 @@
       "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/write-lark-markdown"
     },
     {
+      "name": "lark-doc-to-obsidian",
+      "description": "将飞书文档转换为 Obsidian 格式的 Markdown，支持下载图片和画板缩略图到 assets/ 目录并生成 Obsidian 格式引用",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills-plugins/lark-doc-to-obsidian",
+      "category": "productivity",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/lark-doc-to-obsidian"
+    },
+    {
       "name": "lark-doc-to-md",
       "description": "飞书文档转Markdown工具，将飞书文档转换为Markdown格式",
       "author": {
