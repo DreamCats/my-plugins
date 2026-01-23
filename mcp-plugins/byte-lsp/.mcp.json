@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "byte-lsp-mcp": {
+      "command": "byte-lsp-mcp"
+    }
+  }
+}
