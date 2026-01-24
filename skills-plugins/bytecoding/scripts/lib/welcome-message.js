@@ -19,6 +19,7 @@ function getAvailableCommands() {
     { name: '/plan', description: '方案调研与设计（触发 brainstorming + writing-plans）' },
     { name: '/apply', description: '执行落地（触发 git-worktrees + subagent-dev + 编译验证驱动）' },
     { name: '/archive', description: '归档已完成的变更' },
+    { name: '/quick', description: '快速修复（触发 quick-fixer）'}
   ];
 }
 
@@ -62,6 +63,13 @@ function buildWelcomeMessage(lspCheckResult = null, codingCheckResult = null) {
   const userConfig = configManager.loadUserConfig();
 
   if (userConfig) {
+    if (gitIdentity.status === 'local' || gitIdentity.status === 'global') {
+      const scopeLabel = gitIdentity.status === 'local' ? 'local' : 'global';
+      statusInfo += `\n👤 Git 用户: ${gitUtils.formatGitIdentity(gitIdentity)} (${scopeLabel})`;
+    } else if (gitIdentity.status === 'missing') {
+      statusInfo += `\n👤 Git 用户: ❌ 未配置`;
+    }
+    
     const cookie = userConfig.repotalk?.auth?.cas_session_cookie;
     const cookieValid = repotalkAuth.isValidCasSessionCookie(cookie);
 
@@ -75,13 +83,6 @@ function buildWelcomeMessage(lspCheckResult = null, codingCheckResult = null) {
       statusInfo += `\n   💡 提示: 配置 Cookie 以启用字节内部代码库搜索`;
       statusInfo += `\n   📝 配置方法: 编辑 \`~/.bytecoding/config.json\``;
       statusInfo += `\n   🔗 获取 Cookie: 登录 https://cloud.bytedance.net`;
-    }
-
-    if (gitIdentity.status === 'local' || gitIdentity.status === 'global') {
-      const scopeLabel = gitIdentity.status === 'local' ? 'local' : 'global';
-      statusInfo += `\n👤 Git 用户: ${gitUtils.formatGitIdentity(gitIdentity)} (${scopeLabel})`;
-    } else if (gitIdentity.status === 'missing') {
-      statusInfo += `\n👤 Git 用户: ❌ 未配置`;
     }
   }
 
@@ -110,7 +111,6 @@ function buildWelcomeMessage(lspCheckResult = null, codingCheckResult = null) {
     initMessage = '\n✅ Bytecoding 目录结构已自动创建。';
   }
   if (gitignoreStatus.status === 'added' || gitignoreStatus.status === 'created') {
-    initMessage += '\n🧹 已更新 .gitignore（添加 .bytecoding，避免误提交）。';
   }
   if (lspCheckResult && lspCheckResult.updated) {
     if (lspCheckResult.reason === 'created') {
@@ -124,12 +124,10 @@ function buildWelcomeMessage(lspCheckResult = null, codingCheckResult = null) {
   }
 
   // Build status section
-  const statusSection = statusInfo ? `\n---\n${statusInfo}` : '';
+  const statusSection = statusInfo ? `---\n${statusInfo}` : '';
 
   return `
 🔌 Bytecoding 插件已加载...
-👋 嘿！我是 MaiMai，一位极致专注的开发者～
-💫 超能力：需求 --> 代码落地
 ${initMessage}
 ${statusSection}
 ${buildCommandsDisplay()}
