@@ -31,7 +31,7 @@ python3 skills-plugins/cninfo-announcement-search/skills/cninfo-announcement-sea
   --pdf-keywords 回购 \
   --markets sz,sh,bj
 
-# 指定日期，只查深交所，返回 JSON 到文件
+# 指定日期，只查深交所，返回 JSON 到文件（自动拉全分页）
 python3 skills-plugins/cninfo-announcement-search/skills/cninfo-announcement-search/scripts/cninfo_announcement_search.py \
   --date 2026-01-26 \
   --title-keywords 重大事项 \
@@ -44,6 +44,14 @@ python3 skills-plugins/cninfo-announcement-search/skills/cninfo-announcement-sea
   --end-date 2026-01-31 \
   --title-keywords 股票激励,回购 \
   --markets sz,sh,bj
+
+# 并发分页加速（默认 6 并发，可省略 --page-workers），并保持 200ms 节奏
+python3 skills-plugins/cninfo-announcement-search/skills/cninfo-announcement-search/scripts/cninfo_announcement_search.py \
+  --date 2026-01-26 \
+  --title-keywords 股票激励 \
+  --markets sz,sh,bj \
+  --page-workers 6 \
+  --page-sleep 0.2
 
 # 使用服务端 searchkey 过滤（可选；如结果为空建议关闭）
 python3 skills-plugins/cninfo-announcement-search/skills/cninfo-announcement-search/scripts/cninfo_announcement_search.py \
@@ -110,6 +118,8 @@ python3 skills-plugins/cninfo-announcement-search/skills/cninfo-announcement-sea
 - PDF 关键词匹配为“无依赖的最佳努力”：对压缩流/编码文本仅做基础解码，可能存在漏检。
 - 若需更高准确度，可在你本地安装 `pdftotext` 等工具后，再扩展脚本逻辑。
 - 如果接口策略变化，需更新请求参数或请求头。
+- 分页默认自动拉全（`--max-pages <= 0`）。如需限流/加速，可显式指定 `--max-pages`。
+- 可用 `--page-workers` 并发拉取分页（默认 6），`--page-sleep` 控制每页请求前的间隔，避免触发限流。
 - 若提供 PDF 关键词将自动下载 PDF；如需无关键词也下载，可用 `--download-pdf`。
 - 日期范围会按公告日期分目录下载到 `/tmp/cninfo-announcement-search/<date>/`。
 - 默认并发下载/解析为 6，可用 `--workers` 调整。

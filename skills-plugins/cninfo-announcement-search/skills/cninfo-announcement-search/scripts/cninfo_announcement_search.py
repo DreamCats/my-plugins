@@ -183,7 +183,9 @@ def main():
     parser.add_argument("--pdf-match", choices=["any", "all"], default=None, help="PDF keyword match mode.")
     parser.add_argument("--markets", default="sz,sh,bj", help="Comma-separated markets: sz,sh,bj,szse,sse,bse,all")
     parser.add_argument("--page-size", type=int, default=30, help="Page size for query.")
-    parser.add_argument("--max-pages", type=int, default=1, help="Max pages to query per market.")
+    parser.add_argument("--max-pages", type=int, default=0, help="Max pages to query per market (<=0 means all pages).")
+    parser.add_argument("--page-workers", type=int, default=6, help="Concurrent page fetch workers (1 means no concurrency).")
+    parser.add_argument("--page-sleep", type=float, default=0.2, help="Sleep seconds before each page request.")
     parser.add_argument("--download-root", default=DEFAULT_DOWNLOAD_ROOT, help="PDF download root directory.")
     parser.add_argument("--timeout", type=int, default=20, help="Timeout seconds.")
     parser.add_argument("--cookie", default="", help="Optional cookie for cninfo requests.")
@@ -219,6 +221,8 @@ def main():
             headers=headers,
             timeout=args.timeout,
             server_search=args.server_search,
+            page_workers=args.page_workers,
+            page_sleep=args.page_sleep,
         )
         errors.extend(errs)
         all_items.extend(raw_items)

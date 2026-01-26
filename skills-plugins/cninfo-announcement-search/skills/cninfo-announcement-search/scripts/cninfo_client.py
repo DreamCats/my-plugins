@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import json
+import math
 import time
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
 CNINFO_QUERY_URL = "https://www.cninfo.com.cn/new/hisAnnouncement/query"
@@ -73,13 +75,25 @@ def post_query(params: dict, headers: dict, timeout: int):
         return json.loads(raw)
 
 
-# 拉取公告列表（支持分页）
+# 拉取公告列表（支持分页 + 可并发）
 
-def fetch_announcements(date_range: str, keyword: str, market: str, page_size: int, max_pages: int, headers: dict, timeout: int, server_search: bool):
+def fetch_announcements(
+    date_range: str,
+    keyword: str,
+    market: str,
+    page_size: int,
+    max_pages: int,
+    headers: dict,
+    timeout: int,
+    server_search: bool,
+    page_workers: int = 1,
+    page_sleep: float = 0.2,
+):
     items = []
     errors = []
-    for page_num in range(1, max_pages + 1):
-        params = {
+
+    def build_params(page_num: int):
+        return {
             "pageNum": page_num,
             "pageSize": page_size,
             "column": market,
@@ -95,22 +109,89 @@ def fetch_announcements(date_range: str, keyword: str, market: str, page_size: i
             "sortType": "",
             "isHLtitle": "true",
         }
+
+    def extract_announcements(data: dict):
+        return data.get("announcements") or data.get("announcement") or []
+
+    def fetch_page(page_num: int, sleep_first: bool = True):
+        if sleep_first and page_sleep > 0:
+            time.sleep(page_sleep)
+        params = build_params(page_num)
         try:
             data = post_query(params, headers, timeout)
         except Exception as exc:
-            errors.append(f"query_failed[{market}][page={page_num}]: {exc}")
-            break
+            return None, f"query_failed[{market}][page={page_num}]: {exc}"
+        return data, None
 
-        announcements = data.get("announcements") or data.get("announcement") or []
+    def get_total_pages(data: dict):
+        total_records = None
+        for key in ("totalRecordNum", "totalAnnouncement", "totalAnnouncements", "totalRecord"):
+            val = data.get(key)
+            if isinstance(val, (int, float)) and val > 0:
+                total_records = int(val)
+                break
+        if not total_records:
+            return None
+        return int(math.ceil(total_records / float(page_size)))
+
+    first_data, err = fetch_page(1, sleep_first=False)
+    if err:
+        errors.append(err)
+        return items, errors
+
+    first_items = extract_announcements(first_data or {})
+    if not first_items:
+        return items, errors
+
+    items.extend(first_items)
+
+    total_pages = get_total_pages(first_data or {})
+    if total_pages is not None:
+        if max_pages > 0:
+            total_pages = min(total_pages, max_pages)
+        if total_pages <= 1:
+            return items, errors
+
+        page_nums = list(range(2, total_pages + 1))
+        if page_workers and page_workers > 1 and len(page_nums) > 1:
+            with ThreadPoolExecutor(max_workers=page_workers) as executor:
+                futures = {executor.submit(fetch_page, p, True): p for p in page_nums}
+                for fut in as_completed(futures):
+                    data, err = fut.result()
+                    if err:
+                        errors.append(err)
+                        continue
+                    announcements = extract_announcements(data or {})
+                    if announcements:
+                        items.extend(announcements)
+        else:
+            for page_num in page_nums:
+                data, err = fetch_page(page_num, True)
+                if err:
+                    errors.append(err)
+                    break
+                announcements = extract_announcements(data or {})
+                if not announcements:
+                    break
+                items.extend(announcements)
+        return items, errors
+
+    page_num = 2
+    unlimited = max_pages <= 0
+    while True:
+        if not unlimited and page_num > max_pages:
+            break
+        data, err = fetch_page(page_num, True)
+        if err:
+            errors.append(err)
+            break
+        announcements = extract_announcements(data or {})
         if not announcements:
             break
-
         items.extend(announcements)
-
         if len(announcements) < page_size:
             break
-
-        time.sleep(0.2)
+        page_num += 1
 
     return items, errors
 
