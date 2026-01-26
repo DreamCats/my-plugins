@@ -1,0 +1,4 @@
+pdftotext (Poppler) - 必需
+- 使用系统命令提取 PDF 文本（默认必须使用）
+- macOS 可通过 brew 安装：brew install poppler
+- Linux 可通过包管理器安装：apt/yum/pacman 安装 poppler-utils

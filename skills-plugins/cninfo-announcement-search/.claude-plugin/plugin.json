@@ -1,0 +1,9 @@
+{
+  "name": "cninfo-announcement-search",
+  "version": "1.0.0",
+  "description": "巨潮资讯网公告查询与结构化输出工具，支持关键词过滤与 PDF 内容匹配",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  }
+}

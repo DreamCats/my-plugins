@@ -1,0 +1,10 @@
+{
+  "title": {
+    "keywords": ["股票激励"],
+    "match": "any"
+  },
+  "pdf": {
+    "keywords": ["股票归属"],
+    "match": "any"
+  }
+}

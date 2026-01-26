@@ -1,7 +1,7 @@
 {
   "name": "my-plugins",
   "description": "我的 Claude Code 插件集合，包含各种实用技能和工具",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": {
     "name": "DreamCats",
     "email": "maifeng@bytedance.com"
@@ -153,6 +153,17 @@
       "source": "./skills-plugins/lark-md-to-doc",
       "category": "productivity",
       "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/lark-md-to-doc"
+    },
+    {
+      "name": "cninfo-announcement-search",
+      "description": "巨潮资讯网公告查询与结构化输出工具，支持关键词过滤与 PDF 内容匹配",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills-plugins/cninfo-announcement-search",
+      "category": "productivity",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/cninfo-announcement-search"
     },
     {
       "name": "lark-send-msg",
