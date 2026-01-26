@@ -1,0 +1,12 @@
+{
+  "name": "github-kb",
+  "version": "1.0.0",
+  "description": "管理本地 GitHub 知识库，支持搜索、克隆、查看和删除项目",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "skills": [
+    "./skills/github-kb"
+  ]
+}
