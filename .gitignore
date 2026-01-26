@@ -3,3 +3,4 @@ reference
 docs
 .bytecoding
 __pycache__
+.venv
