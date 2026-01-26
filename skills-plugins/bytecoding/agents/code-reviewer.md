@@ -67,6 +67,8 @@ git diff --name-only | grep '\.go$'
 
 记录所有需要审查的文件列表，后续步骤只审查这些文件。
 
+---
+
 ### 步骤 3.1: 静态分析与工具检查（3 分钟）
 
 运行 Go 静态检查工具，发现基础问题：
@@ -92,64 +94,13 @@ go run -race ./...
 - ⚠️ **警告**（Warning）：建议修复
 - 💡 **提示**（Info）：优化建议
 
+---
+
 ### 步骤 3.2: 正确性与安全性审查（5 分钟）
 
-使用 LSP 和 bcindex 工具理解代码上下文，审查以下维度：
+**使用 LSP 和 bcindex 工具理解代码上下文**。
 
-#### 工具使用策略
-
-**优先使用 LSP 理解类型和引用关系**：
-
-```javascript
-// 查看函数定义和类型信息
-mcp__byte_lsp_mcp__go_to_definition({
-  code: fileContent,
-  file_path: "internal/service/user_service.go",
-  symbol: "GetUserByID",
-  use_disk: true,
-});
-
-// 查找 error 的所有引用，检查是否被正确处理
-mcp__byte_lsp_mcp__find_references({
-  code: fileContent,
-  file_path: "internal/handler/user_handler.go",
-  symbol: "error",
-  include_declaration: false,
-  use_disk: true,
-});
-
-// 查看接口类型定义
-mcp__byte_lsp_mcp__go_to_definition({
-  code: fileContent,
-  file_path: "internal/handler/user_handler.go",
-  symbol: "IUserService",
-  use_disk: true,
-});
-
-// 获取符号的文档信息
-mcp__byte_lsp_mcp__get_hover({
-  code: fileContent,
-  file_path: "internal/service/user_service.go",
-  symbol: "UpdateUser",
-  use_disk: true,
-});
-```
-
-**使用 bcindex 查找类似的错误处理模式**：
-
-```javascript
-// 查找项目中类似的错误处理实现
-mcp__plugin_bcindex__locate({
-  query: "错误处理 error check 验证",
-  top_k: 5,
-});
-
-// 查找用户输入验证的实现
-mcp__plugin_bcindex__locate({
-  query: "参数验证 用户输入 检查",
-  top_k: 3,
-});
-```
+📖 **详细工具使用示例**：`guides/code-reviewer-tool-usage.md#步骤-32-正确性与安全性审查`
 
 **审查要点**：
 
@@ -165,72 +116,13 @@ mcp__plugin_bcindex__locate({
 - ✅ 敏感信息不打印到日志（密码、token、密钥）
 - ✅ 文件路径验证（防止路径穿越）
 
+---
+
 ### 步骤 3.3: 性能与并发审查（3 分钟）
 
-使用 LSP 和 bcindex 工具定位并发和性能相关代码，审查以下维度：
+**使用 LSP 和 bcindex 工具定位并发和性能相关代码**。
 
-#### 工具使用策略
-
-**使用 LSP 定位并发相关代码**：
-
-```javascript
-// 查找 goroutine 的创建位置
-mcp__byte_lsp_mcp__find_references({
-  code: fileContent,
-  file_path: "internal/service/async_service.go",
-  symbol: "go",
-  include_declaration: false,
-  use_disk: true,
-});
-
-// 查找 channel 的定义和使用
-mcp__byte_lsp_mcp__go_to_definition({
-  code: fileContent,
-  file_path: "internal/queue/worker.go",
-  symbol: "chan",
-  use_disk: true,
-});
-
-// 查找 sync.Mutex 的使用
-mcp__byte_lsp_mcp__find_references({
-  code: fileContent,
-  file_path: "internal/cache/concurrent_map.go",
-  symbol: "Mutex",
-  include_declaration: false,
-  use_disk: true,
-});
-
-// 查找 context 的使用
-mcp__byte_lsp_mcp__find_references({
-  code: fileContent,
-  file_path: "internal/handler/request_handler.go",
-  symbol: "context.Context",
-  include_declaration: false,
-  use_disk: true,
-});
-```
-
-**使用 bcindex 查找性能和并发相关的实现模式**：
-
-```javascript
-// 查找缓存使用模式
-mcp__plugin_bcindex__locate({
-  query: "缓存 sync.Map redis 性能优化",
-  top_k: 5,
-});
-
-// 查找并发处理的实现
-mcp__plugin_bcindex__locate({
-  query: "并发处理 worker pool goroutine",
-  top_k: 5,
-});
-
-// 查找数据库操作的性能优化
-mcp__plugin_bcindex__locate({
-  query: "数据库 批量查询 性能优化 batch",
-  top_k: 3,
-});
-```
+📖 **详细工具使用示例**：`guides/code-reviewer-tool-usage.md#步骤-33-性能与并发审查`
 
 **审查要点**：
 
@@ -246,75 +138,13 @@ mcp__plugin_bcindex__locate({
 - ✅ 避免 data race（使用 go run -race 检查）
 - ✅ channel 使用正确（不要往 closed channel 发送）
 
+---
+
 ### 步骤 3.4: 风格与可维护性审查（4 分钟）
 
-使用 LSP 和 bcindex 搜索类似实现，对比代码风格，审查以下维度：
+**使用 LSP 和 bcindex 搜索类似实现，对比代码风格**。
 
-#### 工具使用策略
-
-**使用 LSP 查找接口实现和类型关系**：
-
-```javascript
-// 查找接口的所有实现，对比命名和结构
-mcp__byte_lsp_mcp__find_references({
-  code: fileContent,
-  file_path: "internal/handler/user_handler.go",
-  symbol: "IUserHandler",
-  include_declaration: false,
-  use_disk: true,
-});
-
-// 查看结构体的定义和字段命名
-mcp__byte_lsp_mcp__go_to_definition({
-  code: fileContent,
-  file_path: "internal/model/user.go",
-  symbol: "User",
-  use_disk: true,
-});
-
-// 查找函数的调用关系，分析函数职责
-mcp__byte_lsp_mcp__find_references({
-  code: fileContent,
-  file_path: "internal/service/user_service.go",
-  symbol: "UpdateUser",
-  include_declaration: false,
-  use_disk: true,
-});
-
-// 搜索类似命名的函数，对比命名风格
-mcp__byte_lsp_mcp__search_symbols({
-  query: "Handle",
-  file_path: "internal/handler",
-});
-```
-
-**使用 bcindex 查找类似的实现模式，对比代码风格**：
-
-```javascript
-// 查找项目中类似的 handler 实现
-mcp__plugin_bcindex__locate({
-  query: "HTTP handler 处理函数 路由注册",
-  top_k: 5,
-});
-
-// 查找 service 层的实现模式
-mcp__plugin_bcindex__locate({
-  query: "service 业务逻辑 服务层实现",
-  top_k: 5,
-});
-
-// 查找错误处理的标准模式
-mcp__plugin_bcindex__context({
-  query: "错误返回 error wrap 处理模式",
-  top_k: 3,
-});
-
-// 查找配置和初始化的实现
-mcp__plugin_bcindex__locate({
-  query: "配置初始化 config 加载",
-  top_k: 3,
-});
-```
+📖 **详细工具使用示例**：`guides/code-reviewer-tool-usage.md#步骤-34-风格与可维护性审查`
 
 **审查要点**：
 
@@ -334,6 +164,8 @@ mcp__plugin_bcindex__locate({
 - ✅ 变量名自解释（不要 `a`, `tmp`, `data`）
 - ✅ 布尔逻辑清晰（避免多重嵌套，提前 return）
 - ✅ Magic Number 提取为常量
+
+---
 
 ### 步骤 3.5: 生成审查报告（2 分钟）
 
@@ -405,12 +237,14 @@ mcp__plugin_bcindex__locate({
 3. 可选优化后续迭代（如有）
 ```
 
+---
+
 ## 约束条件
 
 **必须遵守**：
 
 - ✅ 只审查工作目录内的文件（`{{WORKTREE_ROOT}}`）
-- ✅ 使用 LSP/bcindex 理解代码上下文
+- ✅ 使用 LSP/bcindex 理解代码上下文（详见：`guides/code-reviewer-tool-usage.md`）
 - ✅ 提供具体可修复的建议（包含代码示例）
 - ✅ 区分问题严重程度（严重/警告/建议）
 
@@ -421,6 +255,8 @@ mcp__plugin_bcindex__locate({
 - ❌ 不发送飞书通知（由主 Agent 负责）
 - ❌ 不吹毛求疵（关注重要问题，不过分纠结细节）
 
+---
+
 ## 质量标准
 
 **审查原则**：
@@ -429,6 +265,8 @@ mcp__plugin_bcindex__locate({
 - **重点突出**：优先关注安全和稳定性问题
 - **建设性**：提供可操作的改进建议，不是单纯的批评
 - **权衡利弊**：理解时间和资源的限制，不追求完美
+
+---
 
 ## 执行原则
 
@@ -439,50 +277,21 @@ mcp__plugin_bcindex__locate({
 
 ---
 
-## 工具使用优先级
+## 📚 工具使用参考
 
-在代码审查过程中，按照以下优先级使用工具：
+**工具使用优先级**：
+1. **LSP (byte-lsp-mcp)** - 优先使用（精确符号级查询）
+2. **bcindex** - 次优选择（语义检索、对比风格）
+3. **Read/Grep** - 兜底方案（MCP 工具不可用时）
 
+**详细工具调用示例**：
+- 📖 完整工具使用指南：`guides/code-reviewer-tool-usage.md`
+- 📖 工具选择决策树：`guides/tool-selection-decision-tree.md`
+
+**工具选择决策流程**：
 ```
-1. LSP (byte-lsp-mcp) - 优先使用
-   适用场景：已知符号名、需要精确查找引用/实现
-
-2. bcindex - 次优选择
-   适用场景：需要查找类似实现、对比代码风格
-
-3. Read/Grep - 兜底方案
-   适用场景：MCP 工具不可用时
+需要查看定义? → LSP go_to_definition
+需要查找引用? → LSP find_references
+需要对比实现? → bcindex locate/context
+查看代码内容? → Read
 ```
-
-### 工具选择决策流程
-
-```
-开始审查
-  │
-  ├─ 需要查看函数/类型的定义？
-  │   YES → LSP go_to_definition
-  │   NO  → 下一步
-  │
-  ├─ 需要查找符号的所有引用？
-  │   YES → LSP find_references
-  │   NO  → 下一步
-  │
-  ├─ 需要对比类似的实现模式？
-  │   YES → bcindex locate/context
-  │   NO  → 下一步
-  │
-  └─ 需要查看具体的代码内容？
-      → Read
-```
-
-### 与 brainstorming 的区别
-
-| 维度 | brainstorming | code-reviewer |
-|------|--------------|---------------|
-| **目标** | 理解需求、设计方案 | 审查代码质量 |
-| **Repotalk** | ✅ 优先使用（找参考实现） | ❌ 不使用 |
-| **LSP** | ✅ 精确定位符号 | ✅ **必须使用**（理解上下文） |
-| **bcindex** | ✅ 语义检索 | ✅ **必须使用**（对比风格） |
-
-**重要**：code-reviewer 不使用 Repotalk，因为审查对象是明确的本地代码，不需要搜索字节内部代码库。
-
