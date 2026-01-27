@@ -1,106 +1,119 @@
 #!/usr/bin/env node
+'use strict';
+
+const { findGitRoot, ensureBytecodingDir } = require('./lib/paths');
+const { checkRepotalkCookie } = require('./lib/repotalk-auth');
+const { checkAndEnsureCodingGuidelines } = require('./lib/coding-guidelines');
 
 /**
- * SessionStart hook for Bytecoding
- *
- * This hook runs when a Claude Code session starts and provides:
- * - Welcome message with plugin status
- * - Checks Repotalk Cookie configuration
- * - Lists available commands
- * - User and project configuration status
- *
- * @module session-start-hook
+ * Get available commands
+ * @returns {Array} List of command objects
  */
-
-const lspGuidelines = require('./lib/lsp-guidelines');
-const codingGuidelines = require('./lib/coding-guidelines');
-const repotalkAuth = require('./lib/repotalk-auth');
-const welcomeMessage = require('./lib/welcome-message');
-
-// ============================================================================
-// Main Hook Handler
-// ============================================================================
+function getAvailableCommands() {
+  return [
+    { name: '/bytecoding:init', desc: '初始化项目配置（新项目首次使用）' },
+    { name: '/bytecoding:design', desc: '探索式方案设计（不确定怎么做时使用）' },
+    { name: '/bytecoding:plan', desc: '需求分析与任务生成（需求明确，需分析时使用）' },
+    { name: '/bytecoding:apply', desc: '执行 plan 生成的任务列表' },
+    { name: '/bytecoding:do', desc: '直接执行明确的改动（需求明确，直接干）' },
+  ];
+}
 
 /**
- * SessionStart hook handler
- * @param {Object} input - Hook input data
- * @returns {Object} Hook output with systemMessage and/or hookSpecificOutput
+ * Build welcome message
+ * @param {Object} options - Options
+ * @returns {string} Welcome message
  */
-function handleSessionStart(input) {
-  // Check and ensure LSP guidelines in CLAUDE.md
-  const lspCheckResult = lspGuidelines.checkAndEnsureLspGuidelines();
+function buildWelcomeMessage(options = {}) {
+  const { dirCreated, cookieStatus, guidelinesResult } = options;
 
-  // Check and ensure coding guidelines in CLAUDE.md
-  const codingCheckResult = codingGuidelines.checkAndEnsureCodingGuidelines();
+  const lines = [];
+  lines.push('Bytecoding 插件已加载');
+  lines.push('');
 
-  // Check Repotalk Cookie
-  const cookieTip = repotalkAuth.checkRepotalkAuth();
-
-  // Build welcome message
-  const welcomeMsg = welcomeMessage.buildWelcomeMessage(lspCheckResult, codingCheckResult);
-
-  // Build output
-  const output = {
-    systemMessage: welcomeMsg
-  };
-
-  // Add additional context for setup instructions
-  const additionalContextParts = [];
-
-  if (cookieTip) {
-    additionalContextParts.push(cookieTip);
+  // Directory status
+  if (dirCreated) {
+    lines.push('已创建 .bytecoding/ 目录');
   }
 
-  if (additionalContextParts.length > 0) {
+  // Cookie status
+  if (cookieStatus.configured) {
+    lines.push('Repotalk Cookie: 已配置');
+  } else {
+    lines.push('Repotalk Cookie: 未配置');
+  }
+
+  // Coding Guidelines status
+  if (guidelinesResult) {
+    if (guidelinesResult.reason === 'created') {
+      lines.push('CLAUDE.md: 已创建并添加 Coding Guidelines');
+    } else if (guidelinesResult.reason === 'added') {
+      lines.push('CLAUDE.md: 已添加 Coding Guidelines');
+    }
+  }
+
+  lines.push('');
+  lines.push('可用命令:');
+
+  const commands = getAvailableCommands();
+  for (const cmd of commands) {
+    lines.push(`  ${cmd.name} - ${cmd.desc}`);
+  }
+
+  lines.push('');
+  lines.push('Tips: 经常运行 `bcindex index` 可以提高代码搜索准确度');
+
+  return lines.join('\n');
+}
+
+/**
+ * Main hook handler
+ */
+function handleSessionStart() {
+  const gitRoot = findGitRoot(process.cwd());
+
+  let dirCreated = false;
+  let guidelinesResult = null;
+
+  if (gitRoot) {
+    dirCreated = ensureBytecodingDir(gitRoot);
+    guidelinesResult = checkAndEnsureCodingGuidelines();
+  }
+
+  const cookieStatus = checkRepotalkCookie();
+
+  const welcomeMsg = buildWelcomeMessage({
+    dirCreated,
+    cookieStatus,
+    guidelinesResult,
+  });
+
+  const output = {
+    systemMessage: welcomeMsg,
+  };
+
+  // Add cookie tip if not configured
+  if (!cookieStatus.configured && cookieStatus.tip) {
     output.hookSpecificOutput = {
       hookEventName: 'SessionStart',
-      additionalContext: additionalContextParts.join('\n')
-    };
-  } else {
-    output.hookSpecificOutput = {
-      hookEventName: 'SessionStart'
+      additionalContext: cookieStatus.tip,
     };
   }
 
   return output;
 }
 
-// ============================================================================
-// CLI Execution
-// ============================================================================
-
+// CLI execution
 (async () => {
-  let inputData = {};
+  // Read stdin (hook input)
+  const stdinBuffer = [];
+  process.stdin.setEncoding('utf-8');
 
-  try {
-    // Read JSON input from stdin
-    const stdinBuffer = [];
-    process.stdin.setEncoding('utf-8');
+  await new Promise((resolve) => {
+    process.stdin.on('data', (chunk) => stdinBuffer.push(chunk));
+    process.stdin.on('end', resolve);
+  });
 
-    await new Promise((resolve) => {
-      process.stdin.on('data', (chunk) => {
-        stdinBuffer.push(chunk);
-      });
-
-      process.stdin.on('end', () => {
-        resolve();
-      });
-    });
-
-    const stdinText = stdinBuffer.join('');
-    if (stdinText.trim()) {
-      try {
-        inputData = JSON.parse(stdinText);
-      } catch (e) {
-        // Parse failed, use empty object
-      }
-    }
-  } catch (error) {
-    // No stdin input or parse failed, use empty object
-  }
-
-  const output = handleSessionStart(inputData);
-
-  // Output JSON to stdout (Claude Code will parse this)
+  const output = handleSessionStart();
   console.log(JSON.stringify(output));
 })();

@@ -1,158 +1,225 @@
 ---
-description: 方案调研与设计
-argument-hint: [变更描述]
+description: 需求分析与任务生成
+argument-hint: [变更描述 或 飞书文档链接]
 allowed-tools: Bash(bash*), Bash(node*), Bash(mkdir*), Bash(git*), Bash(pwd*), Bash(lark-cli*), Read, Write, Edit, Glob, Grep
 ---
 
 # /plan 命令
 
-本命令引导你完成规划阶段，通过触发 **brainstorming** 和 **writing-plans** 技能来生成完整的变更提案和任务列表。
+将明确的需求描述转化为可执行的任务列表。
 
-## 工作流程检查清单（强制执行）
-
-**使用 "TodoWrite" 以下检查清单并跟踪进度：**
+## 工作流程
 
 ```
-Repo-Plan Progress:
-- [ ] 步骤 1: 运行脚本初始化 - 创建 change 目录与 PlanSpec
-- [ ] 步骤 2: brainstorming - 需求精化与方案设计
-- [ ] 步骤 3: writing-plans - 生成任务列表
-- [ ] 步骤 4: 生成飞书文档并发送摘要 - 转换 Markdown 并发送消息
+/plan "需求描述"
+  │
+  ├─ Step 0: 检测飞书链接（如果是）
+  │    └─ 转换为 Markdown → 继续处理
+  ├─ Step 1: 初始化 planspec.yaml
+  ├─ Step 2: 多源搜索分析
+  │    ├─ Repotalk 跨仓库搜索（可选）
+  │    ├─ bcindex 语义搜索
+  │    ├─ LSP 符号定位
+  │    └─ Glob/Grep 兜底
+  ├─ Step 3: 生成 tasks.md
+  ├─ Step 4: 飞书通知
+  │
+  └─► 提示用户：是否执行 /bytecoding:apply？
 ```
 
-**重要**：完成每个步骤后，继续执行下一步骤，不能停止，不要跳过任何步骤。
+## Step 0: 检测飞书链接
 
-## 步骤 1: 运行脚本初始化（必须）
+检查 `$ARGUMENTS` 是否为飞书/Lark 文档链接：
 
-使用脚本完成变更目录与 PlanSpec 初始化：
+**链接特征**：
+- 包含 `feishu.cn`、`larksuite.com`、`larkoffice.com` 等
+- 路径包含 `/docx/`、`/docs/`、`/wiki/` 等
+
+**如果是飞书链接**：
+
+1. 调用转换脚本：
+```bash
+node "$CLAUDE_PLUGIN_ROOT/scripts/bytecoding/lark-import.js" \
+  --url "$ARGUMENTS" \
+  --project-root "$(git rev-parse --show-toplevel)"
+```
+
+2. 脚本会：
+   - 提取文档 ID
+   - 获取文档内容
+   - 下载图片到 `assets/` 目录
+   - 生成 Markdown 文件到 `.bytecoding/imports/YYYY-MM-DD-<标题>.md`
+
+3. 输出导入结果：
+```
+飞书文档已导入！
+
+文档：<标题>
+路径：.bytecoding/imports/YYYY-MM-DD-xxx.md
+```
+
+4. 读取导入的 Markdown 文件，提取需求描述，继续 Step 1
+
+**如果不是飞书链接**：直接进入 Step 1。
+
+## Step 1: 初始化
+
+运行脚本创建 planspec.yaml：
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT}"
 SCRIPT_DIR="$PLUGIN_ROOT/scripts/bytecoding"
-# Some environments set CLAUDE_PLUGIN_ROOT to scripts/bytecoding already.
-if [ -f "$PLUGIN_ROOT/repo-plan.js" ]; then
+if [ -f "$PLUGIN_ROOT/plan.js" ]; then
   SCRIPT_DIR="$PLUGIN_ROOT"
 fi
-node "$SCRIPT_DIR/repo-plan.js" --desc "$ARGUMENTS"
+node "$SCRIPT_DIR/plan.js" --desc "$ARGUMENTS"
 ```
 
-**必须先执行完此脚本再进入下一步**。脚本会创建 `planspec.yaml` 以及 `proposal.md`/`design.md`/`tasks.md` 模板（含变更标题与固定章节）。记录输出的 `change-id`、`change-dir`、`planspec`，后续步骤使用该 `change-id`。若脚本失败，先排查报错原因，不要直接进入 brainstorming。
+记录输出的 `change-id` 和 `change-dir`，后续步骤使用。
 
-## 步骤 2: brainstorming - 需求精化与方案设计（必须）
+## Step 2: 多源搜索分析
 
-**在步骤 1 完成后立即执行此步骤，不要停止。**
+**目标**：快速定位需求涉及的代码范围，收集实现参考。
 
-基于用户的变更描述 `$ARGUMENTS` 和生成的 change-id，开始需求精化和方案设计。
+**搜索优先级（按顺序尝试，聚焦快速定位）**：
 
-**工作目录**：`.bytecoding/changes/$CHANGE_ID/`
+1. **Repotalk MCP** - 跨仓库搜索
+   - 适用：需要参考其他项目的实现方式
+   - 需求简单明确时可跳过
+   - 示例：搜索字节内部类似功能的最佳实践
 
-**需要完成**：
+2. **bcindex MCP** - 语义搜索
+   - 适用：自然语言定位代码，术语不确定时
+   - 示例："处理用户认证的代码"、"数据库连接池配置"
 
-1. 理解用户需求（必要时使用 AskUserQuestion 澄清）
-2. 执行 Repotalk MCP 搜索（复杂需求）或本地搜索（简单需求）
-3. 综合分析并提出 1-2 种方案
-4. 生成 `proposal.md` 和 `design.md`
+3. **byte-lsp MCP** - 符号定位
+   - 适用：符号名明确，查找定义、引用、实现
+   - 工具：`go_to_definition`、`find_references`、`search_symbols`
+   - 示例：查找 `IUserHandler` 接口的实现类
 
-**注意**：完成 proposal.md 和 design.md 后，继续进入步骤 3。
+4. **Glob/Grep/Read** - 兜底
+   - 适用：MCP 不可用或需要精确文本匹配
 
-## 步骤 3: writing-plans - 生成任务列表（必须）
+### RPC 依赖查询（重要）
 
-**在步骤 2 完成后立即执行此步骤，不要停止。**
+当需要查看 RPC 入参/出参定义时，**必须优先使用 byte-lsp MCP**：
 
-基于生成的 `design.md`，将其转化为可执行的任务列表。
+**byte-lsp MCP 工具**：
+- `go_to_definition` - 跳转到定义（支持外部依赖）
+- `get_hover` - 获取类型签名和注释
+- `find_references` - 查找所有引用
+- `search_symbols` - 符号搜索（`include_external: true` 可搜外部依赖）
 
-**工作目录**：`.bytecoding/changes/$CHANGE_ID/`
+**使用示例**：
+```
+场景：调用下游 RPC，需要了解 Request/Response 结构
+代码：resp, err := rpc.GetUserInfo(ctx, &userpb.GetUserInfoRequest{UserID: id})
 
-**需要完成**：
+方式 A（推荐）- 按符号名查询：
+  go_to_definition:
+    file_path: "handler/user.go"
+    symbol: "GetUserInfoRequest"
+    use_disk: true
 
-1. 完全理解 `design.md` 内容
-2. 将设计拆分为 2-5 分钟可完成的任务
-3. 生成 `tasks.md`（包含依赖关系和验证标准）
+方式 B - 按行列号查询：
+  go_to_definition:
+    file_path: "handler/user.go"
+    line: 42
+    col: 35
+    use_disk: true
 
-**重要约束**：
+快速查看类型信息：
+  get_hover:
+    file_path: "handler/user.go"
+    symbol: "GetUserInfoRequest"
+    use_disk: true
+```
 
-- 任务粒度必须控制在 2-5 分钟
-- 必须标注依赖关系
-- 必须明确验证标准
-- 禁止 "编译整个项目" 或 "go build ./..."
-- 验证范围必须最小化
+**错误做法（低效）**：
+- ❌ 在 $GOPATH/pkg/mod 下 Grep 搜索
+- ❌ 猜测 proto 文件路径
+- ❌ 手动拼接版本号路径
 
-**注意**：完成 tasks.md 后，继续进入步骤 4。
+**原因**：RPC 依赖通常在外部仓库（`$GOPATH/pkg/mod/...`），路径包含版本号，Grep 搜索效率极低且容易出错。LSP 能直接解析 import 路径并跳转。
 
-## 步骤 4: 生成飞书文档并发送摘要
+**注意**：`/plan` 聚焦快速定位，不需要深度探索。如果需求不清晰，先用 `/bytecoding:design` 探索。
 
-本步骤将完成两个任务：将 Markdown 文档转换为飞书文档，并发送飞书摘要消息。
+**产出**：
+- 需要修改的文件列表
+- 参考实现位置
+- RPC 依赖的入参/出参结构（通过 LSP 获取）
+- 实现思路
 
-### 4.1 转换 Markdown 文档（使用 repo-plan-lark.js）
+## Step 3: 生成 tasks.md
 
-使用 **repo-plan-lark.js** 批量渲染并记录文档链接。脚本会调用插件内渲染器，避免技能重名冲突，并自动开通协作权限。
+基于搜索分析结果，生成任务列表。
 
-**标题规范**：`[repo-plan] $CHANGE_ID <文档名>`（如 `proposal`/`design`/`tasks`）。
+**写入文件**：`.bytecoding/changes/$CHANGE_ID/tasks.md`
 
-**执行方式**：
+**格式要求**：
+
+```markdown
+# 任务列表：[需求描述]
+
+## 概述
+[简要说明实现思路，2-3 句话]
+
+## 涉及文件
+- path/to/file1.go（修改/新增）
+- path/to/file2.go（修改）
+
+## 任务
+
+### Task 1: [任务标题]
+- **文件**: path/to/file.go
+- **内容**: [具体做什么]
+- **验证**: [如何验证完成]
+
+### Task 2: [任务标题]
+- **文件**: path/to/file.go
+- **内容**: [具体做什么]
+- **验证**: [如何验证完成]
+
+## 验证标准
+- [ ] 编译通过：go build ./path/to/changed/package/...
+- [ ] 代码格式：go fmt
+```
+
+**任务粒度**：2-5 分钟可完成
+
+## Step 4: 飞书通知
+
+读取 planspec.yaml 中的 lark_email，发送通知：
 
 ```bash
-node "$SCRIPT_DIR/repo-plan-lark.js" \
-  --change-id "$CHANGE_ID" \
-  --title-prefix "[repo-plan] $CHANGE_ID" \
-  --share-email "$(grep 'lark_email' ${CHANGE_DIR}/planspec.yaml | awk '{print $2}')" \
-  --share-perm edit \
-  --share-notify
+CHANGE_DIR=".bytecoding/changes/$CHANGE_ID"
+lark_email=$(grep 'lark_email' "${CHANGE_DIR}/planspec.yaml" | awk '{print $2}' | tr -d '"')
+
+if [ -n "$lark_email" ]; then
+  lark-cli send-message \
+    --receive-id "$lark_email" \
+    --receive-id-type email \
+    --msg-type text \
+    --content "{\"text\":\"Plan 已生成\\n\\n变更ID：$CHANGE_ID\\n描述：$ARGUMENTS\\n\\n下一步：/apply $CHANGE_ID\"}"
+fi
 ```
-
-该脚本会批量渲染 `proposal.md`/`design.md`/`tasks.md` 并回写 `planspec.yaml` 的 `lark_docs` 字段（包含 `doc_id` 与 `url`），同时自动给用户开通文档编辑权限并发送飞书通知。
-
-### 4.2 发送飞书摘要（使用 repo-plan-send.js）
-
-在生成飞书文档后，使用 **repo-plan-send.js** 发送飞书摘要。
-
-**接收人**：默认使用 `planspec.yaml` 的 `lark_email`（初始化时取 Git 用户邮箱）。
-**如果未配置邮箱**：提示用户补充邮箱或使用 `--receive-id` 覆盖。
-
-**摘要内容建议**：
-
-- 变更 ID
-- 规划产出（proposal/design/tasks）
-- 文档链接（由 `repo-plan-lark.js` 生成）
-- 下一步建议（`/bytecoding:apply $CHANGE_ID`）
-
-**执行方式**：
-
-```bash
-node "$SCRIPT_DIR/repo-plan-send.js" \
-  --change-id "$CHANGE_ID"
-```
-
-如需自定义接收人或格式，可追加 `--receive-id`/`--receive-id-type`/`--msg-type` 等参数。
 
 ## 完成标志
 
-当以下条件满足时，本命令完成：
-
-- [x] 项目级变更目录已创建 `.bytecoding/changes/$CHANGE_ID/`
-- [x] brainstorming skill 已完成，产出 `proposal.md` 和 `design.md`
-- [x] writing-plans skill 已完成，产出 `tasks.md`
-- [x] PlanSpec 文件已创建
-- [x] 已创建飞书文档（proposal/design/tasks）
-- [x] 已执行 `lark-cli send-message` 发送飞书摘要（如 git 邮箱可用）
+- [x] planspec.yaml 已创建
+- [x] tasks.md 已生成
+- [x] 飞书通知已发送（如有 lark_email）
 
 ## 下一步
 
-先使用 `/compact` 命令压缩变更目录，然后再使用 `/bytecoding:apply $CHANGE_ID` 命令来执行这个变更。
-
-## 目录结构
+提示用户：
 
 ```
-项目根目录/
-├── .bytecoding/
-│   └── changes/
-│       ├── change-xxx/
-│       │   ├── planspec.yaml
-│       │   ├── proposal.md
-│       │   ├── design.md
-│       │   └── tasks.md
-│       └── archive/          # 已归档的变更
-│           └── change-yyy/
-└── ...
+Plan 已完成！
+
+变更目录：.bytecoding/changes/$CHANGE_ID/
+任务文件：tasks.md
+
+下一步：/bytecoding:apply $CHANGE_ID
 ```

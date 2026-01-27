@@ -1,7 +1,6 @@
 'use strict';
 
 const { execFileSync } = require('child_process');
-const { die } = require('./errors');
 
 function execGit(args, options = {}) {
   const execOptions = {
@@ -28,7 +27,8 @@ function requireGit() {
   try {
     execGit(['rev-parse', '--is-inside-work-tree'], { stdio: ['ignore', 'ignore', 'ignore'] });
   } catch (error) {
-    die('not inside a git repository');
+    console.error('error: not inside a git repository');
+    process.exit(1);
   }
 }
 
@@ -36,23 +36,9 @@ function getProjectRoot() {
   try {
     return execGit(['rev-parse', '--show-toplevel']);
   } catch (error) {
-    die('unable to resolve git project root');
+    console.error('error: unable to resolve git project root');
+    process.exit(1);
   }
-}
-
-function hasBranch(branchName) {
-  try {
-    execGit(['show-ref', '--verify', '--quiet', `refs/heads/${branchName}`], {
-      stdio: ['ignore', 'ignore', 'ignore'],
-    });
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-function listWorktreesPorcelain() {
-  return execGit(['worktree', 'list', '--porcelain']);
 }
 
 function readGitConfig(args, cwd) {
@@ -63,30 +49,27 @@ function readGitConfig(args, cwd) {
 
 function getGitIdentity(projectRoot) {
   if (!projectRoot) {
-    return { source: 'missing', name: null, email: null };
+    return { name: null, email: null };
   }
 
   const localEmail = readGitConfig(['user.email'], projectRoot);
   const localName = readGitConfig(['user.name'], projectRoot);
   if (localEmail || localName) {
-    return { source: 'local', name: localName, email: localEmail };
+    return { name: localName, email: localEmail };
   }
 
   const globalEmail = readGitConfig(['--global', 'user.email'], projectRoot);
   const globalName = readGitConfig(['--global', 'user.name'], projectRoot);
   if (globalEmail || globalName) {
-    return { source: 'global', name: globalName, email: globalEmail };
+    return { name: globalName, email: globalEmail };
   }
 
-  return { source: 'missing', name: null, email: null };
+  return { name: null, email: null };
 }
 
 module.exports = {
   execGit,
   requireGit,
   getProjectRoot,
-  hasBranch,
-  listWorktreesPorcelain,
-  readGitConfig,
   getGitIdentity,
 };

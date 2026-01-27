@@ -1,5 +1,5 @@
 {
-  "description": "Bytecoding spec-driven development workflow hooks",
+  "description": "Bytecoding 简化版开发工作流 hooks",
   "hooks": {
     "SessionStart": [
       {

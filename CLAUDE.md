@@ -206,3 +206,16 @@ lark-cli update-document --doc-id <DOC_ID> --content "内容"
 - 当 LSP 不可用时，可以降级使用传统搜索工具
 
 << ------- lsp intro end ------->>
+
+
+<< ------- coding guidelines start ------->>
+
+# Coding Guidelines
+
+- Preserve existing behavior and configuration
+- Prefer explicit if/else over nested ternaries
+- Avoid one-liners that reduce readability
+- Keep functions small and focused
+- Do not refactor architecture-level code
+
+<< ------- coding guidelines end ------->>

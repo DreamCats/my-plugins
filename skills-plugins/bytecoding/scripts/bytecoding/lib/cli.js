@@ -56,14 +56,6 @@ function parseArgs(argv) {
   return { flags, positionals };
 }
 
-function isTruthyFlag(value) {
-  if (Array.isArray(value)) {
-    return value.some((item) => item === true || item === 'true' || item === '1');
-  }
-  return value === true || value === 'true' || value === '1';
-}
-
 module.exports = {
   parseArgs,
-  isTruthyFlag,
 };

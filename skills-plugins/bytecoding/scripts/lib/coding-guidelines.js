@@ -1,88 +1,98 @@
-/**
- * Coding Guidelines Module
- *
- * Manages CLAUDE.md coding guidelines injection.
- */
+'use strict';
 
 const fs = require('fs');
 const path = require('path');
-const gitUtils = require('./git-utils');
+const { findGitRoot } = require('./paths');
+
+const GUIDELINES_START_MARKER = '<< ------- coding guidelines start ------->>';
+const GUIDELINES_END_MARKER = '<< ------- coding guidelines end ------->>';
 
 /**
- * Coding Guidelines content to be injected into CLAUDE.md
+ * Get Coding Guidelines content
  * @returns {string} Coding guidelines in markdown format
  */
 function getCodingGuidelines() {
   return `
 
-<< ------- coding guidelines start ------->>
+${GUIDELINES_START_MARKER}
 
-## Coding Guidelines
+# Coding Guidelines
 
-在编写和修改代码时，请遵循以下开发准则：
+- Preserve existing behavior and configuration
+- Prefer explicit if/else over nested ternaries
+- Avoid one-liners that reduce readability
+- Keep functions small and focused
+- Do not refactor architecture-level code
 
-- **保留现有行为和配置**: 不要随意改变现有代码的行为和配置，除非有明确需求
-- **优先使用显式 if/else**: 避免嵌套的三元运算符，使用显式的 if/else 提高可读性
-- **避免降低可读性的单行代码**: 不要为了简洁而牺牲代码的可读性
-- **保持函数小而专注**: 每个函数应该只做一件事，保持简短和专注
-- **不要重构架构级代码**: 除非有明确需求，否则不要重构架构层面的代码
+${GUIDELINES_END_MARKER}
+`;
+}
 
-<< ------- coding guidelines end ------->>
+/**
+ * Get default CLAUDE.md template
+ * @returns {string} CLAUDE.md template
+ */
+function getClaudeMdTemplate() {
+  return `# CLAUDE.md
+
+This file provides guidance to Claude Code when working with this repository.
+
+## Repository Overview
+
+[在此添加仓库概述]
+
 `;
 }
 
 /**
  * Check and ensure coding guidelines in CLAUDE.md
- * Creates CLAUDE.md if it doesn't exist
- * @returns {Object} { updated: boolean, path: string|null, reason: string }
+ * @returns {Object} { updated: boolean, reason: string }
  */
 function checkAndEnsureCodingGuidelines() {
-  const gitRoot = gitUtils.findGitRoot(process.cwd());
+  const gitRoot = findGitRoot(process.cwd());
   if (!gitRoot) {
-    return { updated: false, path: null, reason: 'no-git' };
+    return { updated: false, reason: 'no-git' };
   }
 
   const claudeMdPath = path.join(gitRoot, 'CLAUDE.md');
-  const guidelinesStartMarker = '<< ------- coding guidelines start ------->>';
-  const guidelinesEndMarker = '<< ------- coding guidelines end ------->>';
-
-  let content = '';
 
   // Check if CLAUDE.md exists
   if (!fs.existsSync(claudeMdPath)) {
-    // CLAUDE.md doesn't exist, will be created by lsp-guidelines module
-    return { updated: false, path: claudeMdPath, reason: 'claude-md-not-exists' };
+    // Create CLAUDE.md with template and guidelines
+    try {
+      const content = getClaudeMdTemplate() + getCodingGuidelines();
+      fs.writeFileSync(claudeMdPath, content);
+      return { updated: true, reason: 'created' };
+    } catch (error) {
+      return { updated: false, reason: 'create-failed' };
+    }
   }
 
   // Read existing content
+  let content;
   try {
     content = fs.readFileSync(claudeMdPath, 'utf-8');
   } catch (error) {
-    return { updated: false, path: claudeMdPath, reason: 'read-failed' };
+    return { updated: false, reason: 'read-failed' };
   }
 
-  // Check if coding guidelines already exist
-  if (content.includes(guidelinesStartMarker) && content.includes(guidelinesEndMarker)) {
-    return { updated: false, path: claudeMdPath, reason: 'already-exists' };
+  // Check if guidelines already exist
+  if (content.includes(GUIDELINES_START_MARKER) && content.includes(GUIDELINES_END_MARKER)) {
+    return { updated: false, reason: 'already-exists' };
   }
 
-  // Append coding guidelines
-  const codingGuidelines = getCodingGuidelines();
+  // Append guidelines
   let newContent = content;
-
-  // Ensure there's a newline before adding the new section
-  if (newContent && !newContent.endsWith('\n')) {
+  if (!newContent.endsWith('\n')) {
     newContent += '\n';
   }
+  newContent += getCodingGuidelines();
 
-  newContent += codingGuidelines;
-
-  // Write updated content
   try {
     fs.writeFileSync(claudeMdPath, newContent);
-    return { updated: true, path: claudeMdPath, reason: 'added' };
+    return { updated: true, reason: 'added' };
   } catch (error) {
-    return { updated: false, path: claudeMdPath, reason: 'write-failed' };
+    return { updated: false, reason: 'write-failed' };
   }
 }
 
