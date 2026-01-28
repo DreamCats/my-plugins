@@ -36,12 +36,14 @@ allowed-tools: Bash(bash*), Bash(node*), Bash(go*), Bash(git*), Bash(pwd*), Bash
 检查 `$ARGUMENTS` 是否为飞书/Lark 文档链接：
 
 **链接特征**：
+
 - 包含 `feishu.cn` 或 `larksuite.com`
 - 路径包含 `/docx/`、`/docs/`、`/wiki/` 等
 
 **如果是飞书链接**：
 
 1. 调用转换脚本：
+
 ```bash
 node "$CLAUDE_PLUGIN_ROOT/scripts/bytecoding/lark-import.js" \
   --url "$ARGUMENTS" \
@@ -55,6 +57,7 @@ node "$CLAUDE_PLUGIN_ROOT/scripts/bytecoding/lark-import.js" \
    - 生成 Markdown 文件到 `.bytecoding/imports/YYYY-MM-DD-<标题>.md`
 
 3. 输出导入结果：
+
 ```
 飞书文档已导入！
 
@@ -92,11 +95,13 @@ node "$CLAUDE_PLUGIN_ROOT/scripts/bytecoding/lark-import.js" \
 当需要查看 RPC 入参/出参定义时，**必须优先使用 byte-lsp MCP**：
 
 **byte-lsp MCP 工具**：
+
 - `go_to_definition` - 跳转到定义（支持外部依赖）
 - `get_hover` - 获取类型签名和注释
 - `find_references` - 查找所有引用
 
 **使用示例**：
+
 ```
 场景：调用下游 RPC，需要了解 Request/Response 结构
 
@@ -114,6 +119,7 @@ node "$CLAUDE_PLUGIN_ROOT/scripts/bytecoding/lark-import.js" \
 ```
 
 **错误做法（低效）**：
+
 - ❌ 在 $GOPATH/pkg/mod 下 Grep 搜索
 - ❌ 猜测 proto 文件路径
 
@@ -159,7 +165,7 @@ go build ./path/to/changed/package/...
   git diff
 
 可选：优化代码质量
-  /bytecoding:code-simplifier
+  bytecoding:code-reviewer
 
 确认无误后提交：
   /bytecoding:gcmsg

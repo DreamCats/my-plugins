@@ -68,6 +68,7 @@ ${taskContent}
 **执行模式**：自动执行完所有任务，不逐个暂停。
 
 **子代理自审**（内置在子代理 prompt 中）：
+
 1. **规范符合性**：是否按任务要求实现
 2. **代码质量**：格式、命名、错误处理
 
@@ -116,7 +117,7 @@ Apply 已完成！
   git diff
 
 可选：优化代码质量
-  /bytecoding:code-simplifier
+  bytecoding:code-reviewer
 
 确认无误后提交：
   /bytecoding:gcmsg
