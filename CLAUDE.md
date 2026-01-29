@@ -24,22 +24,16 @@ Claude Code 插件集合，包含技能插件（Skills Plugins）和 MCP 插件�
 |------|------|------|
 | `/bytecoding:init` | 新项目 | 初始化配置（目录、gitignore、CLAUDE.md） |
 | `/bytecoding:design` | 不确定怎么做 | 探索式问答，产出 design.md |
-| `/bytecoding:plan` | 需求明确，需分析 | 搜索分析 → 生成 tasks.md |
-| `/bytecoding:apply` | 承接 plan | 执行 tasks.md 中的任务 |
-| `/bytecoding:do` | 需求明确，直接干 | 跳过规划，直接执行 |
+| `/bytecoding:do` | 需求明确 | 直接执行改动 |
 
 **MCP 集成**（配置在 `.mcp.json`）：
 - `repotalk-stdio` - 跨仓库代码搜索
 - `bcindex` - 语义搜索，自然语言定位代码
 - `byte-lsp-mcp` - 符号定位，查找定义/引用（基于 gopls）
 
-**变更管理结构**：
+**目录结构**：
 ```
 .bytecoding/
-├── changes/           # 变更目录
-│   └── change-xxx/
-│       ├── planspec.yaml
-│       └── tasks.md
 ├── plans/             # 设计文档
 │   └── YYYY-MM-DD-xxx-design.md
 └── imports/           # 飞书文档导入
@@ -50,9 +44,6 @@ Claude Code 插件集合，包含技能插件（Skills Plugins）和 MCP 插件�
 ## Common Development Commands
 
 ```bash
-# 运行 Node.js 脚本
-node skills-plugins/bytecoding/scripts/bytecoding/plan.js --desc "变更描述"
-
 # 飞书文档导入
 node skills-plugins/bytecoding/scripts/bytecoding/lark-import.js --url "<飞书链接>"
 
@@ -66,32 +57,6 @@ lark-cli get-blocks <DOC_ID> --all
 - 技能文件夹名：kebab-case（如 `lark-doc-to-md`）
 - Python 脚本文件名：snake_case（如 `lark_doc_to_md.py`）
 - Commit 信息：emoji 前缀（`✨ feat:`, `🐛 fix:`, `♻️ refactor:`, `🔧 chore:`）
-
-## byte-lsp MCP 使用
-
-当需要查看 RPC 入参/出参定义或外部依赖时，**必须优先使用 byte-lsp MCP**：
-
-```yaml
-# 按符号名查询（推荐）
-go_to_definition:
-  file_path: "handler/user.go"
-  symbol: "GetUserInfoRequest"
-  use_disk: true
-
-# 快速查看类型信息
-get_hover:
-  file_path: "handler/user.go"
-  symbol: "GetUserInfoRequest"
-  use_disk: true
-```
-
-**工具列表**：
-- `go_to_definition` - 跳转定义（支持 $GOPATH/pkg/mod 外部依赖）
-- `get_hover` - 类型签名和注释
-- `find_references` - 查找所有引用
-- `search_symbols` - 符号搜索（`include_external: true` 搜外部）
-
-**避免**：在 `$GOPATH/pkg/mod` 下 Grep 搜索（路径含版本号，效率极低）
 
 ## Coding Guidelines
 

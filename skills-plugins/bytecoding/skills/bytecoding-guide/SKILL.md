@@ -17,9 +17,7 @@ Bytecoding 是一个简化版 spec-driven 开发工作流插件，帮助你高�
 |------|------|------|
 | `/bytecoding:init` | 新项目接入 | 初始化项目配置（目录、gitignore、bcindex） |
 | `/bytecoding:design` | 不确定怎么做 | 探索式问答，梳理思路，产出 design.md |
-| `/bytecoding:plan` | 需求明确，需分析 | 搜索分析 → 生成 tasks.md |
-| `/bytecoding:apply` | 承接 plan | 执行 tasks.md 中的任务 |
-| `/bytecoding:do` | 需求明确，直接干 | 跳过规划，直接执行改动 |
+| `/bytecoding:do` | 需求明确，直接干 | 直接执行改动 |
 | `/bytecoding:gcmsg` | 提交代码 | 自动生成 commit message |
 | `/bytecoding:code-simplifier` | 优化代码 | 简化和优化最近修改的代码 |
 | `/bytecoding:code-reviewer` | 代码审查 | 审查代码质量和潜在问题 |
@@ -34,13 +32,9 @@ Bytecoding 是一个简化版 spec-driven 开发工作流插件，帮助你高�
   │
   ├─ 不确定怎么实现
   │    └─► /bytecoding:design
-  │         （探索交流 → design.md → 想清楚后 /plan）
+  │         （探索交流 → design.md → 想清楚后 /do）
   │
-  ├─ 需求明确，但需要分析代码
-  │    └─► /bytecoding:plan
-  │         （搜索分析 → tasks.md → /apply 执行）
-  │
-  └─ 需求明确，知道改哪里
+  └─ 需求明确
        └─► /bytecoding:do
             （直接执行 → review → commit）
 ```
@@ -53,10 +47,8 @@ Bytecoding 是一个简化版 spec-driven 开发工作流插件，帮助你高�
 /bytecoding:design "如何实现用户认证模块"
   ↓ 多轮问答，梳理思路
   ↓ 产出 design.md
-/bytecoding:plan "实现用户认证模块"
-  ↓ 搜索分析，生成 tasks.md
-/bytecoding:apply <change-id>
-  ↓ 执行任务
+/bytecoding:do "实现用户认证模块"
+  ↓ 直接执行
 /bytecoding:code-reviewer  # 可选：审查代码
 /bytecoding:gcmsg          # 提交
 ```
@@ -64,17 +56,7 @@ Bytecoding 是一个简化版 spec-driven 开发工作流插件，帮助你高�
 ### 场景 2：明确需求开发
 
 ```
-/bytecoding:plan "在 UserService 添加 GetUserByID 方法"
-  ↓ 生成 tasks.md
-/bytecoding:apply <change-id>
-  ↓ 执行任务
-/bytecoding:gcmsg  # 提交
-```
-
-### 场景 3：快速改动（bug 修复、小功能）
-
-```
-/bytecoding:do "修复 UserHandler 空指针问题"
+/bytecoding:do "在 UserService 添加 GetUserByID 方法"
   ↓ 直接执行
 /bytecoding:code-simplifier  # 可选：优化代码
 /bytecoding:gcmsg            # 提交
@@ -99,12 +81,11 @@ Bytecoding 是一个简化版 spec-driven 开发工作流插件，帮助你高�
 
 ```
 .bytecoding/
-├── changes/           # 变更目录
-│   └── change-xxx/
-│       ├── planspec.yaml
-│       └── tasks.md
-└── plans/             # 设计文档
-    └── YYYY-MM-DD-xxx-design.md
+├── plans/             # 设计文档
+│   └── YYYY-MM-DD-xxx-design.md
+└── imports/           # 飞书文档导入
+    ├── YYYY-MM-DD-xxx.md
+    └── assets/
 ```
 
 ## Tips

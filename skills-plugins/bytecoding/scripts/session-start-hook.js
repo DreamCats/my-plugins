@@ -13,8 +13,6 @@ function getAvailableCommands() {
   return [
     { name: '/bytecoding:init', desc: '初始化项目配置（新项目首次使用）' },
     { name: '/bytecoding:design', desc: '探索式方案设计（不确定怎么做时使用）' },
-    { name: '/bytecoding:plan', desc: '需求分析与任务生成（需求明确，需分析时使用）' },
-    { name: '/bytecoding:apply', desc: '执行 plan 生成的任务列表' },
     { name: '/bytecoding:do', desc: '直接执行明确的改动（需求明确，直接干）' },
   ];
 }

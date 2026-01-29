@@ -84,48 +84,7 @@ node "$CLAUDE_PLUGIN_ROOT/scripts/bytecoding/lark-import.js" \
 
 ## Step 2: 快速定位代码
 
-**搜索优先级**（快速定位，不深度探索）：
-
-1. **bcindex MCP** - 语义搜索，自然语言定位
-2. **byte-lsp MCP** - 符号定位，查找定义/引用
-3. **Glob/Grep/Read** - 兜底
-
-### RPC 依赖查询（重要）
-
-当需要查看 RPC 入参/出参定义时，**必须优先使用 byte-lsp MCP**：
-
-**byte-lsp MCP 工具**：
-
-- `go_to_definition` - 跳转到定义（支持外部依赖）
-- `get_hover` - 获取类型签名和注释
-- `find_references` - 查找所有引用
-
-**使用示例**：
-
-```
-场景：调用下游 RPC，需要了解 Request/Response 结构
-
-方式 A（推荐）- 按符号名查询：
-  go_to_definition:
-    file_path: "handler/user.go"
-    symbol: "GetUserInfoRequest"
-    use_disk: true
-
-快速查看类型信息：
-  get_hover:
-    file_path: "handler/user.go"
-    symbol: "GetUserInfoRequest"
-    use_disk: true
-```
-
-**错误做法（低效）**：
-
-- ❌ 在 $GOPATH/pkg/mod 下 Grep 搜索
-- ❌ 猜测 proto 文件路径
-
-**原因**：RPC 依赖通常在外部仓库（`$GOPATH/pkg/mod/...`），路径包含版本号，Grep 搜索效率极低。LSP 直接解析 import 并跳转。
-
-**注意**：`/do` 聚焦快速执行，搜索只为定位，不做深度分析。
+使用可用的 MCP 工具快速定位相关代码，聚焦定位，不做深度分析。
 
 ## Step 3: 执行改动
 
@@ -175,11 +134,8 @@ go build ./path/to/changed/package/...
 
 ```
 不确定怎么做？
-  └─► /bytecoding:design 探索交流
+  └─► /bytecoding:design 探索交流 → /bytecoding:do
 
-需求明确，需要搜索分析？
-  └─► /bytecoding:plan → /bytecoding:apply
-
-需求明确，直接干？
+需求明确？
   └─► /bytecoding:do（本命令）
 ```
