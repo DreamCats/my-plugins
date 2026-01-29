@@ -1,0 +1,12 @@
+{
+  "description": "strategic-compact hooks",
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "tool == \"Edit\" || tool == \"Write\"",
+      "hooks": [{
+        "type": "command",
+        "command": "${CLAUDE_PLUGIN_ROOT}/scripts/strategic-compact/suggest-compact.sh"
+      }]
+    }]
+  }
+}

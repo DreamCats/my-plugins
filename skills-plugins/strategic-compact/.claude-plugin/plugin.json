@@ -1,0 +1,12 @@
+{
+  "name": "strategic-compact",
+  "version": "1.0.0",
+  "description": "在逻辑边界主动压缩上下文，避免自动压缩丢失重要信息",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "skills": [
+    "./skills/strategic-compact"
+  ]
+}

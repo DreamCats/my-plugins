@@ -263,6 +263,17 @@
       "source": "./skills-plugins/github-kb",
       "category": "development",
       "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/github-kb"
+    },
+    {
+      "name": "strategic-compact",
+      "description": "在逻辑边界主动压缩上下文，避免自动压缩丢失重要信息，提升长任务场景下的上下文保留质量",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills-plugins/strategic-compact",
+      "category": "productivity",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/strategic-compact"
     }
   ]
 }
