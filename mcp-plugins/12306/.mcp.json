@@ -1,8 +1,11 @@
 {
   "mcpServers": {
     "12306-mcp": {
-      "type": "http",
-      "url": "https://mcp.api-inference.modelscope.net/82a2b87f4bcd45/mcp"
+      "args": [
+        "-y",
+        "12306-mcp"
+      ],
+      "command": "npx"
     }
   }
 }
