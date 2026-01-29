@@ -12,8 +12,8 @@ const { checkAndEnsureCodingGuidelines } = require('./lib/coding-guidelines');
 function getAvailableCommands() {
   return [
     { name: '/bytecoding:init', desc: '初始化项目配置（新项目首次使用）' },
-    { name: '/bytecoding:design', desc: '探索式方案设计（不确定怎么做时使用）' },
-    { name: '/bytecoding:do', desc: '直接执行明确的改动（需求明确，直接干）' },
+    { name: '/bytecoding:brainstorming', desc: '探索式问答，将想法转化为设计' },
+    { name: '/bytecoding:do', desc: '直接执行明确的改动' },
   ];
 }
 

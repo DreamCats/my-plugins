@@ -16,7 +16,7 @@ Bytecoding 是一个简化版 spec-driven 开发工作流插件，帮助你高�
 | 命令 | 场景 | 说明 |
 |------|------|------|
 | `/bytecoding:init` | 新项目接入 | 初始化项目配置（目录、gitignore、bcindex） |
-| `/bytecoding:design` | 不确定怎么做 | 探索式问答，梳理思路，产出 design.md |
+| `/bytecoding:brainstorming` | 不确定怎么做 | 探索式问答，将想法转化为设计 |
 | `/bytecoding:do` | 需求明确，直接干 | 直接执行改动 |
 | `/bytecoding:gcmsg` | 提交代码 | 自动生成 commit message |
 | `/bytecoding:code-simplifier` | 优化代码 | 简化和优化最近修改的代码 |
@@ -31,8 +31,8 @@ Bytecoding 是一个简化版 spec-driven 开发工作流插件，帮助你高�
 你的需求是什么？
   │
   ├─ 不确定怎么实现
-  │    └─► /bytecoding:design
-  │         （探索交流 → design.md → 想清楚后 /do）
+  │    └─► /bytecoding:brainstorming
+  │         （探索问答 → design.md → 想清楚后 /do）
   │
   └─ 需求明确
        └─► /bytecoding:do
@@ -44,7 +44,7 @@ Bytecoding 是一个简化版 spec-driven 开发工作流插件，帮助你高�
 ### 场景 1：探索式开发（不确定怎么做）
 
 ```
-/bytecoding:design "如何实现用户认证模块"
+/bytecoding:brainstorming "如何实现用户认证模块"
   ↓ 多轮问答，梳理思路
   ↓ 产出 design.md
 /bytecoding:do "实现用户认证模块"

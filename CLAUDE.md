@@ -23,7 +23,7 @@ Claude Code 插件集合，包含技能插件（Skills Plugins）和 MCP 插件�
 | 命令 | 场景 | 说明 |
 |------|------|------|
 | `/bytecoding:init` | 新项目 | 初始化配置（目录、gitignore、CLAUDE.md） |
-| `/bytecoding:design` | 不确定怎么做 | 探索式问答，产出 design.md |
+| `/bytecoding:brainstorming` | 不确定怎么做 | 探索式问答，将想法转化为设计 |
 | `/bytecoding:do` | 需求明确 | 直接执行改动 |
 
 **MCP 集成**（配置在 `.mcp.json`）：
