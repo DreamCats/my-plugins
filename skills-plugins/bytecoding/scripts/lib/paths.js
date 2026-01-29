@@ -66,9 +66,37 @@ function ensureBytecodingDir(projectRoot) {
   return created;
 }
 
+/**
+ * Ensure .bytecoding is in .gitignore
+ * @param {string} projectRoot - Project root path
+ * @returns {Object} Result with added property
+ */
+function ensureGitignore(projectRoot) {
+  const gitignorePath = path.join(projectRoot, '.gitignore');
+  const entry = '# Bytecoding\n.bytecoding/';
+
+  // If .gitignore doesn't exist, create it
+  if (!fs.existsSync(gitignorePath)) {
+    fs.writeFileSync(gitignorePath, entry + '\n');
+    return { added: true, reason: 'created' };
+  }
+
+  const content = fs.readFileSync(gitignorePath, 'utf-8');
+
+  // Check if .bytecoding/ is already in .gitignore
+  if (content.includes('.bytecoding/')) {
+    return { added: false, reason: 'already_exists' };
+  }
+
+  // Append to .gitignore
+  fs.writeFileSync(gitignorePath, content + '\n' + entry + '\n');
+  return { added: true, reason: 'added' };
+}
+
 module.exports = {
   getUserConfigDir,
   getUserConfigPath,
   findGitRoot,
   ensureBytecodingDir,
+  ensureGitignore,
 };

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-const { findGitRoot, ensureBytecodingDir } = require('./lib/paths');
+const { findGitRoot, ensureBytecodingDir, ensureGitignore } = require('./lib/paths');
 const { checkRepotalkCookie } = require('./lib/repotalk-auth');
 const { checkAndEnsureCodingGuidelines } = require('./lib/coding-guidelines');
 
@@ -25,7 +25,7 @@ function getAvailableCommands() {
  * @returns {string} Welcome message
  */
 function buildWelcomeMessage(options = {}) {
-  const { dirCreated, cookieStatus, guidelinesResult } = options;
+  const { dirCreated, cookieStatus, guidelinesResult, gitignoreResult } = options;
 
   const lines = [];
   lines.push('Bytecoding 插件已加载');
@@ -34,6 +34,15 @@ function buildWelcomeMessage(options = {}) {
   // Directory status
   if (dirCreated) {
     lines.push('已创建 .bytecoding/ 目录');
+  }
+
+  // .gitignore status
+  if (gitignoreResult) {
+    if (gitignoreResult.reason === 'created') {
+      lines.push('.gitignore: 已创建并添加 .bytecoding/');
+    } else if (gitignoreResult.reason === 'added') {
+      lines.push('.gitignore: 已添加 .bytecoding/');
+    }
   }
 
   // Cookie status
@@ -74,9 +83,11 @@ function handleSessionStart() {
 
   let dirCreated = false;
   let guidelinesResult = null;
+  let gitignoreResult = null;
 
   if (gitRoot) {
     dirCreated = ensureBytecodingDir(gitRoot);
+    gitignoreResult = ensureGitignore(gitRoot);
     guidelinesResult = checkAndEnsureCodingGuidelines();
   }
 
@@ -86,6 +97,7 @@ function handleSessionStart() {
     dirCreated,
     cookieStatus,
     guidelinesResult,
+    gitignoreResult,
   });
 
   const output = {

@@ -3,4 +3,5 @@ reference
 docs
 .bytecoding
 __pycache__
-.venvskills-plugins/bytecoding.bak/
+.venv
+skills-plugins/bytecoding.bak/
