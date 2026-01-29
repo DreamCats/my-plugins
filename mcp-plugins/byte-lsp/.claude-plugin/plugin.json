@@ -1,0 +1,5 @@
+{
+  "name": "byte-lsp",
+  "description": "Byte LSP MCP，提供符号定位、跳转定义、查找引用等功能",
+  "version": "0.1.0"
+}

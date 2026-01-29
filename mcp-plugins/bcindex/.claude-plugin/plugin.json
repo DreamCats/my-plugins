@@ -1,0 +1,5 @@
+{
+  "name": "bcindex",
+  "description": "BCindex 语义搜索 MCP，支持自然语言定位代码",
+  "version": "0.1.0"
+}
