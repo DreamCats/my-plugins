@@ -23,6 +23,16 @@ ${GUIDELINES_START_MARKER}
 - Avoid one-liners that reduce readability
 - Keep functions small and focused
 - Do not refactor architecture-level code
+- **NEVER run global build commands** (e.g., \`go build ./...\`, \`go build ./...\`)
+- **NEVER run global test commands** (e.g., \`go test ./...\`, \`go test ./...\`)
+- **ALWAYS compile with minimal changes** - only build the specific package/service that was modified
+
+## Comment Guidelines
+
+- Exported functions MUST have doc comments (Go: \`// FuncName ...\`)
+- Complex logic MUST have inline comments explaining intent
+- Comments explain "why", not "what"
+- Follow existing comment style in the codebase
 
 ${GUIDELINES_END_MARKER}
 `;

@@ -131,6 +131,7 @@ node "$CLAUDE_PLUGIN_ROOT/scripts/bytecoding/lark-import.js" \
 - **日志模式**：怎么打日志，带什么字段
 - **命名风格**：函数名、变量名的命名习惯
 - **参数校验**：用什么库，怎么校验
+- **注释风格**：函数注释格式、行内注释习惯、注释语言（中/英）
 
 ### 2.4 确认理解
 
@@ -144,6 +145,7 @@ node "$CLAUDE_PLUGIN_ROOT/scripts/bytecoding/lark-import.js" \
 3. 错误处理：使用 errno.ErrXxx，用 errors.Wrap 包装
 4. 日志：使用 log.WithContext(ctx).Info()
 5. 参数校验：在 handler 层用 validate 库
+6. 注释风格：导出函数用 // FuncName ... 格式，中文注释
 
 我会按这个模式实现，对吗？
 ```
