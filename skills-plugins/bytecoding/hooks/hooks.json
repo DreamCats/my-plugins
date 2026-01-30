@@ -36,6 +36,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/mcp-tool-advisor.js\"",
+            "timeout": 3
+          }
+        ]
+      }
     ]
   }
 }

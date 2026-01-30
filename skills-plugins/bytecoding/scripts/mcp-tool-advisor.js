@@ -26,6 +26,9 @@ const BCINDEX_STATUS_CACHE = '/tmp/bytecoding-bcindex-status.json';
 // 配置文件路径
 const CONFIG_FILE = path.join(__dirname, '..', 'config', 'mcp-advisor-rules.json');
 
+// Metrics 文件路径
+const METRICS_FILE = '/tmp/bytecoding-advisor-metrics.jsonl';
+
 /**
  * 从缓存文件读取 bcindex 索引状态
  * @returns {boolean} 索引是否可用
@@ -65,6 +68,62 @@ function loadRules() {
 const CONFIG = loadRules();
 const USER_PROMPT_RULES = CONFIG.user_prompt_rules || [];
 const PRE_TOOL_USE_RULES = CONFIG.pre_tool_use_rules || [];
+
+// ============================================================================
+// Metrics 记录
+// ============================================================================
+
+/**
+ * 获取 session ID
+ * @param {Object} input - Hook 输入
+ * @returns {string} session ID
+ */
+function getSessionId(input) {
+  return input?.session_id || process.env.CLAUDE_SESSION_ID || 'unknown';
+}
+
+/**
+ * 写入 metrics 记录
+ * @param {Object} record - 记录对象
+ */
+function writeMetrics(record) {
+  try {
+    const line = JSON.stringify(record) + '\n';
+    fs.appendFileSync(METRICS_FILE, line);
+  } catch {
+    // 忽略写入错误
+  }
+}
+
+/**
+ * 记录建议
+ * @param {string} sessionId - Session ID
+ * @param {string} ruleName - 规则名称
+ * @param {string} suggestedTool - 建议的工具
+ */
+function recordSuggestion(sessionId, ruleName, suggestedTool) {
+  writeMetrics({
+    type: 'suggest',
+    ts: Date.now(),
+    session: sessionId,
+    rule: ruleName,
+    tool: suggestedTool,
+  });
+}
+
+/**
+ * 记录实际使用的工具
+ * @param {string} sessionId - Session ID
+ * @param {string} toolUsed - 实际使用的工具
+ */
+function recordActualUse(sessionId, toolUsed) {
+  writeMetrics({
+    type: 'actual',
+    ts: Date.now(),
+    session: sessionId,
+    tool: toolUsed,
+  });
+}
 
 // ============================================================================
 // 核心逻辑
@@ -172,12 +231,16 @@ function matchToolUse(toolName, toolInput, rule) {
 /**
  * 分析用户 prompt，返回工具建议
  * @param {string} prompt - 用户输入
+ * @param {string} sessionId - Session ID
  * @returns {string|null} 建议信息或 null
  */
-function analyzeUserPrompt(prompt) {
+function analyzeUserPrompt(prompt, sessionId) {
   if (!prompt || typeof prompt !== 'string') {
     return null;
   }
+
+  // 收集所有匹配的规则
+  const matchedRules = [];
 
   for (const rule of USER_PROMPT_RULES) {
     // 跳过不可用的规则
@@ -186,27 +249,43 @@ function analyzeUserPrompt(prompt) {
     }
 
     if (matchUserPrompt(prompt, rule)) {
-      let suggestion = `💡 MCP 工具建议：使用 \`${rule.tool}\` - ${rule.reason}`;
-      if (rule.params) {
-        suggestion += `\n   参数提示：${JSON.stringify(rule.params)}`;
-      }
-      return suggestion;
+      matchedRules.push(rule);
     }
   }
 
-  return null;
+  // 没有匹配的规则
+  if (matchedRules.length === 0) {
+    return null;
+  }
+
+  // 按 priority 降序排序，取最高优先级的规则
+  matchedRules.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+  const bestRule = matchedRules[0];
+
+  // 记录建议
+  recordSuggestion(sessionId, bestRule.name, bestRule.tool);
+
+  let suggestion = `💡 MCP 工具建议：使用 \`${bestRule.tool}\` - ${bestRule.reason}`;
+  if (bestRule.params) {
+    suggestion += `\n   参数提示：${JSON.stringify(bestRule.params)}`;
+  }
+  return suggestion;
 }
 
 /**
  * 分析工具调用，返回 MCP 替代建议
  * @param {string} toolName - 工具名称
  * @param {Object} toolInput - 工具输入参数
+ * @param {string} sessionId - Session ID
  * @returns {string|null} 建议信息或 null
  */
-function analyzeToolUse(toolName, toolInput) {
+function analyzeToolUse(toolName, toolInput, sessionId) {
   if (!toolName) {
     return null;
   }
+
+  // 收集所有匹配的规则
+  const matchedRules = [];
 
   for (const rule of PRE_TOOL_USE_RULES) {
     // 跳过不可用的规则
@@ -215,12 +294,24 @@ function analyzeToolUse(toolName, toolInput) {
     }
 
     if (matchToolUse(toolName, toolInput, rule)) {
-      const suggest = rule.suggest;
-      return `💡 提示：${suggest.reason}。可以考虑使用 \`${suggest.tool}\``;
+      matchedRules.push(rule);
     }
   }
 
-  return null;
+  // 没有匹配的规则
+  if (matchedRules.length === 0) {
+    return null;
+  }
+
+  // 按 priority 降序排序，取最高优先级的规则
+  matchedRules.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+  const bestRule = matchedRules[0];
+
+  // 记录建议
+  recordSuggestion(sessionId, bestRule.name, bestRule.suggest.tool);
+
+  const suggest = bestRule.suggest;
+  return `💡 提示：${suggest.reason}。可以考虑使用 \`${suggest.tool}\``;
 }
 
 /**
@@ -230,7 +321,8 @@ function analyzeToolUse(toolName, toolInput) {
  */
 function handleUserPromptSubmit(input) {
   const prompt = input?.prompt || input?.user_prompt || '';
-  const suggestion = analyzeUserPrompt(prompt);
+  const sessionId = getSessionId(input);
+  const suggestion = analyzeUserPrompt(prompt, sessionId);
 
   if (suggestion) {
     return {
@@ -252,7 +344,8 @@ function handleUserPromptSubmit(input) {
 function handlePreToolUse(input) {
   const toolName = input?.tool_name || input?.tool || '';
   const toolInput = input?.tool_input || input?.input || {};
-  const suggestion = analyzeToolUse(toolName, toolInput);
+  const sessionId = getSessionId(input);
+  const suggestion = analyzeToolUse(toolName, toolInput, sessionId);
 
   if (suggestion) {
     return {
@@ -264,6 +357,23 @@ function handlePreToolUse(input) {
     };
   }
 
+  return null;
+}
+
+/**
+ * 处理 PostToolUse 事件
+ * @param {Object} input - Hook 输入
+ * @returns {Object|null} Hook 输出或 null
+ */
+function handlePostToolUse(input) {
+  const toolName = input?.tool_name || input?.tool || '';
+  const sessionId = getSessionId(input);
+
+  if (toolName) {
+    recordActualUse(sessionId, toolName);
+  }
+
+  // PostToolUse 不需要返回任何内容
   return null;
 }
 
@@ -299,6 +409,8 @@ function handlePreToolUse(input) {
     output = handleUserPromptSubmit(input);
   } else if (hookEvent === 'PreToolUse') {
     output = handlePreToolUse(input);
+  } else if (hookEvent === 'PostToolUse') {
+    output = handlePostToolUse(input);
   }
 
   // 输出结果（只有在有建议时才输出）
