@@ -1,9 +1,68 @@
 #!/usr/bin/env node
 'use strict';
 
+const { spawn } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 const { findGitRoot, ensureBytecodingDir, ensureGitignore } = require('./lib/paths');
 const { checkRepotalkCookie } = require('./lib/repotalk-auth');
 const { checkAndEnsureCodingGuidelines } = require('./lib/coding-guidelines');
+
+// bcindex 状态缓存文件路径
+const BCINDEX_STATUS_CACHE = '/tmp/bytecoding-bcindex-status.json';
+
+/**
+ * 异步检查 bcindex 索引状态并写入缓存文件
+ * 不阻塞主流程，fire-and-forget
+ */
+function checkBcindexStatusAsync() {
+  const child = spawn('bcindex', ['stats', '-json'], {
+    stdio: ['ignore', 'pipe', 'ignore'],
+    timeout: 3000,
+  });
+
+  let stdout = '';
+
+  child.stdout.on('data', (data) => {
+    stdout += data.toString();
+  });
+
+  child.on('close', (code) => {
+    let available = false;
+    if (code === 0 && stdout) {
+      try {
+        const stats = JSON.parse(stdout);
+        available = stats.symbols > 0;
+      } catch {
+        // 解析失败，保持 false
+      }
+    }
+
+    // 写入缓存文件
+    try {
+      fs.writeFileSync(
+        BCINDEX_STATUS_CACHE,
+        JSON.stringify({ available, checkedAt: Date.now() }),
+        'utf-8'
+      );
+    } catch {
+      // 写入失败，忽略
+    }
+  });
+
+  child.on('error', () => {
+    // bcindex 命令不存在或执行失败，写入 false
+    try {
+      fs.writeFileSync(
+        BCINDEX_STATUS_CACHE,
+        JSON.stringify({ available: false, checkedAt: Date.now() }),
+        'utf-8'
+      );
+    } catch {
+      // 忽略
+    }
+  });
+}
 
 /**
  * Get available commands
@@ -126,4 +185,7 @@ function handleSessionStart() {
 
   const output = handleSessionStart();
   console.log(JSON.stringify(output));
+
+  // 异步检查 bcindex 状态（不阻塞输出）
+  checkBcindexStatusAsync();
 })();

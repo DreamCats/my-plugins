@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "description": "MCP Tool Advisor 规则配置 - Phase 2: 规则配置化",
+
+  "user_prompt_rules": [
+    {
+      "name": "symbol-search",
+      "keywords": ["函数定义", "方法定义", "在哪定义", "定义位置", "定义在哪", "符号搜索", "找到定义"],
+      "tool": "byte-lsp:search_symbols",
+      "reason": "可以精确搜索 Go 符号（函数、类型、变量）的定义位置"
+    },
+    {
+      "name": "call-hierarchy",
+      "keywords": ["谁调用", "被谁调用", "调用关系", "调用链", "调用层次", "调用了哪些", "哪些函数调用"],
+      "tool": "byte-lsp:get_call_hierarchy",
+      "reason": "可以分析函数的调用层次关系（谁调用它/它调用谁）"
+    },
+    {
+      "name": "symbol-explain",
+      "keywords": ["这个函数做什么", "函数功能", "函数作用", "看下源码", "函数源码", "符号详情", "方法做什么"],
+      "tool": "byte-lsp:explain_symbol",
+      "reason": "可以获取符号的完整信息（签名、文档、源码、引用）"
+    },
+    {
+      "name": "external-import",
+      "keywords": ["外部类型", "第三方库", "protobuf", "thrift", "外部包", "导入的类型", "pb 类型", "idl 类型"],
+      "tool": "byte-lsp:explain_import",
+      "reason": "可以获取外部包（包括第三方库、protobuf）的类型/函数信息"
+    },
+    {
+      "name": "semantic-search",
+      "keywords": ["怎么实现", "如何实现", "实现方式", "实现逻辑", "模块关系", "代码结构", "业务逻辑"],
+      "tool": "bcindex:bcindex_context",
+      "reason": "可以语义搜索并生成 AI 友好的结构化上下文证据包",
+      "requires_bcindex": true
+    },
+    {
+      "name": "interface-implements",
+      "keywords": ["谁实现了接口", "接口实现", "实现了哪些接口", "哪些类型实现"],
+      "tool": "bcindex:bcindex_refs",
+      "params": { "edge_type": "implements" },
+      "reason": "可以查询接口的实现关系",
+      "requires_bcindex": true
+    },
+    {
+      "name": "package-imports",
+      "keywords": ["谁导入了", "包依赖", "哪些包导入", "导入关系"],
+      "tool": "bcindex:bcindex_refs",
+      "params": { "edge_type": "imports" },
+      "reason": "可以查询包的导入关系",
+      "requires_bcindex": true
+    },
+    {
+      "name": "type-embeds",
+      "keywords": ["嵌入了", "哪些类型嵌入", "embed", "组合了哪些"],
+      "tool": "bcindex:bcindex_refs",
+      "params": { "edge_type": "embeds" },
+      "reason": "可以查询类型的嵌入关系",
+      "requires_bcindex": true
+    },
+    {
+      "name": "index-status",
+      "keywords": ["索引状态", "索引是否过期", "bcindex 状态", "索引新鲜度"],
+      "tool": "bcindex:bcindex_status",
+      "reason": "可以检查 bcindex 索引的状态和新鲜度"
+    }
+  ],
+
+  "pre_tool_use_rules": [
+    {
+      "name": "grep-go-symbols",
+      "tool": "Grep",
+      "pattern_in_input": "func\\s|type\\s|struct\\s|interface\\s",
+      "suggest": {
+        "tool": "byte-lsp:search_symbols",
+        "reason": "搜索 Go 符号（func/type/struct）用 byte-lsp 的 AST 分析更精准"
+      }
+    },
+    {
+      "name": "grep-go-files",
+      "tool": "Grep",
+      "pattern_in_input": "\\.go[\"']?\\s*$",
+      "suggest": {
+        "tool": "bcindex:bcindex_context",
+        "reason": "语义搜索 Go 代码用 bcindex 更智能，可以理解代码意图"
+      },
+      "requires_bcindex": true
+    },
+    {
+      "name": "glob-go-files",
+      "tool": "Glob",
+      "pattern_in_input": "\\*\\.go",
+      "suggest": {
+        "tool": "bcindex:bcindex_locate",
+        "reason": "定位 Go 文件用 bcindex_locate 带语义搜索能力"
+      },
+      "requires_bcindex": true
+    },
+    {
+      "name": "task-explore-go",
+      "tool": "Task",
+      "check_subagent": "Explore",
+      "pattern_in_prompt": "go|golang|代码结构|模块",
+      "suggest": {
+        "tool": "bcindex:bcindex_context",
+        "reason": "探索 Go 代码结构用 bcindex_context 可生成结构化证据包"
+      },
+      "requires_bcindex": true
+    }
+  ]
+}

@@ -76,6 +76,7 @@ Bytecoding 是一个简化版 spec-driven 开发工作流插件，帮助你高�
 
 - **repotalk-refresh-cookie** - Repotalk Cookie 失效时刷新
 - **bcindex-usage** - bcindex CLI 使用指南
+- **byte-lsp-usage** - byte-lsp MCP 使用指南（符号定位、调用层次）
 
 ## 目录结构
 
