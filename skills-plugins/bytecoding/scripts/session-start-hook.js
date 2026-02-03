@@ -119,14 +119,6 @@ function buildWelcomeMessage(options = {}) {
   }
 
   lines.push('');
-  lines.push('可用命令:');
-
-  const commands = getAvailableCommands();
-  for (const cmd of commands) {
-    lines.push(`  ${cmd.name} - ${cmd.desc}`);
-  }
-
-  lines.push('');
   lines.push('Tips: 经常运行 `bcindex index` 可以提高代码搜索准确度');
 
   return lines.join('\n');
