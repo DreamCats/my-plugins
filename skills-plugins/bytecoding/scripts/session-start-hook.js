@@ -5,7 +5,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { findGitRoot, ensureBytecodingDir, ensureGitignore } = require('./lib/paths');
-const { checkRepotalkCookie } = require('./lib/repotalk-auth');
+// const { checkRepotalkCookie } = require('./lib/repotalk-auth');
 const { checkAndEnsureCodingGuidelines } = require('./lib/coding-guidelines');
 
 // bcindex 状态缓存文件路径
@@ -82,7 +82,7 @@ function getAvailableCommands() {
  * @returns {string} Welcome message
  */
 function buildWelcomeMessage(options = {}) {
-  const { dirCreated, cookieStatus, guidelinesResult, gitignoreResult } = options;
+  const { dirCreated, /* cookieStatus, */ guidelinesResult, gitignoreResult } = options;
 
   const lines = [];
   lines.push('Bytecoding 插件已加载');
@@ -102,12 +102,12 @@ function buildWelcomeMessage(options = {}) {
     }
   }
 
-  // Cookie status
-  if (cookieStatus.configured) {
-    lines.push('Repotalk Cookie: 已配置');
-  } else {
-    lines.push('Repotalk Cookie: 未配置');
-  }
+  // Cookie status (已移除 repotalk)
+  // if (cookieStatus.configured) {
+  //   lines.push('Repotalk Cookie: 已配置');
+  // } else {
+  //   lines.push('Repotalk Cookie: 未配置');
+  // }
 
   // Coding Guidelines status
   if (guidelinesResult) {
@@ -140,11 +140,11 @@ function handleSessionStart() {
     guidelinesResult = checkAndEnsureCodingGuidelines();
   }
 
-  const cookieStatus = checkRepotalkCookie();
+  // const cookieStatus = checkRepotalkCookie();
 
   const welcomeMsg = buildWelcomeMessage({
     dirCreated,
-    cookieStatus,
+    // cookieStatus,
     guidelinesResult,
     gitignoreResult,
   });
@@ -153,13 +153,13 @@ function handleSessionStart() {
     systemMessage: welcomeMsg,
   };
 
-  // Add cookie tip if not configured
-  if (!cookieStatus.configured && cookieStatus.tip) {
-    output.hookSpecificOutput = {
-      hookEventName: 'SessionStart',
-      additionalContext: cookieStatus.tip,
-    };
-  }
+  // Add cookie tip if not configured (已移除 repotalk)
+  // if (!cookieStatus.configured && cookieStatus.tip) {
+  //   output.hookSpecificOutput = {
+  //     hookEventName: 'SessionStart',
+  //     additionalContext: cookieStatus.tip,
+  //   };
+  // }
 
   return output;
 }
