@@ -1,6 +1,6 @@
 {
   "name": "byted-logid",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "字节日志ID处理工具，用于日志追踪和分析",
   "author": {
     "name": "DreamCats",
