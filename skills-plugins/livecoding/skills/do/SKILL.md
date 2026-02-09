@@ -40,7 +40,7 @@ description: "当用户有明确的代码改动需求时触发 - 包括「帮我
 **如果是飞书链接**：
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/scripts/bytecoding/lark-import.js" \
+node "$CLAUDE_PLUGIN_ROOT/scripts/livecoding/lark-import.js" \
   --url "$ARGUMENTS" \
   --project-root "$(git rev-parse --show-toplevel)"
 ```
@@ -100,14 +100,14 @@ node "$CLAUDE_PLUGIN_ROOT/scripts/bytecoding/lark-import.js" \
 请 review 代码变更：
   git diff
 
-可选：/bytecoding:gcmsg 提交代码
+可选：/livecoding:gcmsg 提交代码
 ```
 
 ## 与其他技能的关系
 
 ```
 不确定怎么做？
-  └─► /bytecoding:brainstorming 探索交流 → /do
+  └─► /livecoding:brainstorming 探索交流 → /do
 
 需求明确？
   └─► /do（本技能）

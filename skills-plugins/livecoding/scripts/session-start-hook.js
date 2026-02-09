@@ -4,12 +4,12 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { findGitRoot, ensureBytecodingDir, ensureGitignore } = require('./lib/paths');
+const { findGitRoot, ensureLivecodingDir, ensureGitignore } = require('./lib/paths');
 // const { checkRepotalkCookie } = require('./lib/repotalk-auth');
 const { checkAndEnsureCodingGuidelines } = require('./lib/coding-guidelines');
 
 // bcindex 状态缓存文件路径
-const BCINDEX_STATUS_CACHE = '/tmp/bytecoding-bcindex-status.json';
+const BCINDEX_STATUS_CACHE = '/tmp/livecoding-bcindex-status.json';
 
 /**
  * 异步检查 bcindex 索引状态并写入缓存文件
@@ -70,9 +70,9 @@ function checkBcindexStatusAsync() {
  */
 function getAvailableCommands() {
   return [
-    { name: '/bytecoding:init', desc: '初始化项目配置（新项目首次使用）' },
-    { name: '/bytecoding:brainstorming', desc: '探索式问答，将想法转化为设计' },
-    { name: '/bytecoding:do', desc: '直接执行明确的改动' },
+    { name: '/livecoding:init', desc: '初始化项目配置（新项目首次使用）' },
+    { name: '/livecoding:brainstorming', desc: '探索式问答，将想法转化为设计' },
+    { name: '/livecoding:do', desc: '直接执行明确的改动' },
   ];
 }
 
@@ -85,20 +85,20 @@ function buildWelcomeMessage(options = {}) {
   const { dirCreated, /* cookieStatus, */ guidelinesResult, gitignoreResult } = options;
 
   const lines = [];
-  lines.push('Bytecoding 插件已加载');
+  lines.push('Livecoding 插件已加载');
   lines.push('');
 
   // Directory status
   if (dirCreated) {
-    lines.push('已创建 .bytecoding/ 目录');
+    lines.push('已创建 .livecoding/ 目录');
   }
 
   // .gitignore status
   if (gitignoreResult) {
     if (gitignoreResult.reason === 'created') {
-      lines.push('.gitignore: 已创建并添加 .bytecoding/');
+      lines.push('.gitignore: 已创建并添加 .livecoding/');
     } else if (gitignoreResult.reason === 'added') {
-      lines.push('.gitignore: 已添加 .bytecoding/');
+      lines.push('.gitignore: 已添加 .livecoding/');
     }
   }
 
@@ -135,7 +135,7 @@ function handleSessionStart() {
   let gitignoreResult = null;
 
   if (gitRoot) {
-    dirCreated = ensureBytecodingDir(gitRoot);
+    dirCreated = ensureLivecodingDir(gitRoot);
     gitignoreResult = ensureGitignore(gitRoot);
     guidelinesResult = checkAndEnsureCodingGuidelines();
   }

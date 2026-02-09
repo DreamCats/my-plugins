@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: "代码审查专家。审查最近修改的代码，检查规范性、安全性、性能和可维护性问题。输入 /bytecoding:code-reviewer 触发。"
+description: "代码审查专家。审查最近修改的代码，检查规范性、安全性、性能和可维护性问题。输入 /livecoding:code-reviewer 触发。"
 ---
 
 # Code Reviewer

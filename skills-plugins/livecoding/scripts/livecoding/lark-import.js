@@ -78,7 +78,7 @@ function main() {
   }
 
   // Create imports directory
-  const importsDir = path.join(args.projectRoot, '.bytecoding', 'imports');
+  const importsDir = path.join(args.projectRoot, '.livecoding', 'imports');
   fs.mkdirSync(importsDir, { recursive: true });
 
   // Create assets directory

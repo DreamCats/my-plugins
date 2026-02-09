@@ -36,7 +36,7 @@ Repotalk Cookie 已失效，请按以下步骤获取新 Cookie：
 收到用户输入后：
 
 1. **验证格式**：Cookie 应为 32 位十六进制字符串（`/^[a-f0-9]{32}$/i`）
-2. **更新 ~/.bytecoding/config.json**：
+2. **更新 ~/.livecoding/config.json**：
    ```json
    {
      "repotalk": {
@@ -73,7 +73,7 @@ Cookie 已更新！
 
 ## 配置文件路径
 
-- **用户配置**：`~/.bytecoding/config.json`
+- **用户配置**：`~/.livecoding/config.json`
 - **MCP 配置**：`${CLAUDE_PLUGIN_ROOT}/.mcp.json`
 
 ## 验证规则

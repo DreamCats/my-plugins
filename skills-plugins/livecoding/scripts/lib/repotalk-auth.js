@@ -52,7 +52,7 @@ function getCookieSetupTip() {
 配置步骤：
 1. 登录 https://cloud.bytedance.net
 2. 浏览器 F12 → Application → Cookies → 复制 CAS_SESSION 值
-3. 编辑 ~/.bytecoding/config.json：
+3. 编辑 ~/.livecoding/config.json：
    {
      "repotalk": {
        "auth": {

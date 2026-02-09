@@ -21,7 +21,7 @@ const path = require('path');
 // ============================================================================
 
 // 缓存文件路径（与 session-start-hook.js 保持一致）
-const BCINDEX_STATUS_CACHE = '/tmp/bytecoding-bcindex-status.json';
+const BCINDEX_STATUS_CACHE = '/tmp/livecoding-bcindex-status.json';
 
 // 配置文件路径
 const CONFIG_FILE = path.join(__dirname, '..', 'config', 'mcp-advisor-rules.json');

@@ -43,13 +43,13 @@ description: "在进行任何创造性工作之前必须使用此技能 - 包括
 
 **文档沉淀：**
 
-- 将验证过的设计写入 `.bytecoding/plans/YYYY-MM-DD-<主题>-design.md`
+- 将验证过的设计写入 `.livecoding/plans/YYYY-MM-DD-<主题>-design.md`
 - 将设计文档提交到 git
 
 **继续实现（如果需要）：**
 
 - 询问："准备好开始实现了吗？"
-- 引导用户使用 `/bytecoding:do` 执行改动
+- 引导用户使用 `/livecoding:do` 执行改动
 
 ## 核心原则
 

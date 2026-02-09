@@ -1,20 +1,20 @@
 ---
-description: 初始化项目的 bytecoding 配置
+description: 初始化项目的 livecoding 配置
 argument-hint:
 allowed-tools: Bash(bash*), Bash(node*), Bash(git*), Bash(bcindex*), Read, Write, Edit, Glob
 ---
 
 # /init 命令
 
-为当前项目初始化 bytecoding 配置，降低接入门槛。
+为当前项目初始化 livecoding 配置，降低接入门槛。
 
 ## 工作流程
 
 ```
-/bytecoding:init
+/livecoding:init
   │
   ├─ Step 1: 检查 Git 仓库
-  ├─ Step 2: 创建 .bytecoding/ 目录结构
+  ├─ Step 2: 创建 .livecoding/ 目录结构
   ├─ Step 3: 检查/创建用户配置
   ├─ Step 4: 更新 .gitignore
   ├─ Step 5: 注入 CLAUDE.md Coding Guidelines
@@ -34,16 +34,16 @@ git rev-parse --is-inside-work-tree
 
 如果不是 Git 仓库，提示用户先执行 `git init`。
 
-## Step 2: 创建 .bytecoding/ 目录结构
+## Step 2: 创建 .livecoding/ 目录结构
 
 ```bash
-mkdir -p .bytecoding/changes
-mkdir -p .bytecoding/plans
+mkdir -p .livecoding/changes
+mkdir -p .livecoding/plans
 ```
 
 ## Step 3: 检查/创建用户配置
 
-检查 `~/.bytecoding/config.json` 是否存在：
+检查 `~/.livecoding/config.json` 是否存在：
 
 - **存在** → 跳过
 - **不存在** → 创建默认配置：
@@ -62,14 +62,14 @@ mkdir -p .bytecoding/plans
 
 ## Step 4: 更新 .gitignore
 
-检查 `.gitignore` 是否包含 `.bytecoding/`：
+检查 `.gitignore` 是否包含 `.livecoding/`：
 
 - **已包含** → 跳过
 - **未包含** → 追加：
 
 ```
-# Bytecoding
-.bytecoding/
+# Livecoding
+.livecoding/
 ```
 
 ## Step 5: 注入 CLAUDE.md Coding Guidelines
@@ -147,21 +147,21 @@ bcindex index
 输出初始化摘要：
 
 ```
-Bytecoding 初始化完成！
+Livecoding 初始化完成！
 
-✅ .bytecoding/ 目录已创建
+✅ .livecoding/ 目录已创建
 ✅ .gitignore 已更新
 ✅ CLAUDE.md Coding Guidelines 已添加
 ✅ gopls 已安装（或：跳过）
 ✅ bcindex 索引已构建（或：跳过）
 
-用户配置：~/.bytecoding/config.json
+用户配置：~/.livecoding/config.json
   - Repotalk Cookie: [已配置 / 未配置，请手动配置]
 
 下一步：
-  - /bytecoding:design - 探索式方案设计
-  - /bytecoding:plan - 需求分析与任务生成
-  - /bytecoding:do - 直接执行明确的改动
+  - /livecoding:design - 探索式方案设计
+  - /livecoding:plan - 需求分析与任务生成
+  - /livecoding:do - 直接执行明确的改动
 
 Tips: 经常运行 `bcindex index` 可以提高代码搜索准确度
 ```

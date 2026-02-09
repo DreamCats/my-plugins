@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-Claude Code 插件集合，包含技能插件（Skills Plugins）和 MCP 插件。核心插件是 **bytecoding**，一个简化版 spec-driven 开发工作流系统。
+Claude Code 插件集合，包含技能插件（Skills Plugins）和 MCP 插件。核心插件是 **livecoding**，一个简化版 spec-driven 开发工作流系统。
 
 ## Project Architecture
 
@@ -17,14 +17,14 @@ Claude Code 插件集合，包含技能插件（Skills Plugins）和 MCP 插件�
 2. **MCP Plugins** (`mcp-plugins/`)
    - MCP 服务器集成，通过 `.mcp.json` 配置
 
-### Bytecoding 插件架构
+### Livecoding 插件架构
 
 **核心命令**：
 | 命令 | 场景 | 说明 |
 |------|------|------|
-| `/bytecoding:init` | 新项目 | 初始化配置（目录、gitignore、CLAUDE.md） |
-| `/bytecoding:brainstorming` | 不确定怎么做 | 探索式问答，将想法转化为设计 |
-| `/bytecoding:do` | 需求明确 | 直接执行改动 |
+| `/livecoding:init` | 新项目 | 初始化配置（目录、gitignore、CLAUDE.md） |
+| `/livecoding:brainstorming` | 不确定怎么做 | 探索式问答，将想法转化为设计 |
+| `/livecoding:do` | 需求明确 | 直接执行改动 |
 
 **MCP 集成**（配置在 `.mcp.json`）：
 - `repotalk-stdio` - 跨仓库代码搜索
@@ -33,7 +33,7 @@ Claude Code 插件集合，包含技能插件（Skills Plugins）和 MCP 插件�
 
 **目录结构**：
 ```
-.bytecoding/
+.livecoding/
 ├── plans/             # 设计文档
 │   └── YYYY-MM-DD-xxx-design.md
 └── imports/           # 飞书文档导入
@@ -45,7 +45,7 @@ Claude Code 插件集合，包含技能插件（Skills Plugins）和 MCP 插件�
 
 ```bash
 # 飞书文档导入
-node skills-plugins/bytecoding/scripts/bytecoding/lark-import.js --url "<飞书链接>"
+node skills-plugins/livecoding/scripts/livecoding/lark-import.js --url "<飞书链接>"
 
 # 飞书 CLI（由 lark-cli 提供）
 lark-cli send-message <ID> --receive-id-type email --msg-type text '{"text":"内容"}'

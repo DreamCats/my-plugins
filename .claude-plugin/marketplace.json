@@ -188,15 +188,15 @@
       "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/polish-image-prompt"
     },
     {
-      "name": "bytecoding",
+      "name": "livecoding",
       "description": "Spec-driven development workflow with PlanSpec generation, repotalk MCP integration, and automated change execution",
       "author": {
         "name": "DreamCats",
         "email": "maifeng@bytedance.com"
       },
-      "source": "./skills-plugins/bytecoding",
+      "source": "./skills-plugins/livecoding",
       "category": "development",
-      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/bytecoding"
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/livecoding"
     },
     {
       "name": "docshub",

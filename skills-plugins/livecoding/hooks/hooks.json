@@ -1,5 +1,5 @@
 {
-  "description": "Bytecoding 简化版开发工作流 hooks",
+  "description": "Livecoding 简化版开发工作流 hooks",
   "hooks": {
     "SessionStart": [
       {

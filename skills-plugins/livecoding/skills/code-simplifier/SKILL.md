@@ -1,6 +1,6 @@
 ---
 name: code-simplifier
-description: "代码简化专家。简化和优化最近修改的代码，提升清晰度、一致性和可维护性，同时保留所有功能。输入 /bytecoding:code-simplifier 触发。"
+description: "代码简化专家。简化和优化最近修改的代码，提升清晰度、一致性和可维护性，同时保留所有功能。输入 /livecoding:code-simplifier 触发。"
 ---
 
 # Code Simplifier
