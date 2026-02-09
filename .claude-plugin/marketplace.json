@@ -285,6 +285,17 @@
       "source": "./mcp-plugins/12306",
       "category": "productivity",
       "homepage": "https://github.com/DreamCats/my-plugins/tree/main/mcp-plugins/12306"
+    },
+    {
+      "name": "lark-to-debug-doc",
+      "description": "根据用户输入生成标准化的联调文档（Markdown），包含基础信息、参与人员、接口、环境、联调记录等，支持推送到飞书",
+      "author": {
+        "name": "DreamCats",
+        "email": "maifeng@bytedance.com"
+      },
+      "source": "./skills-plugins/lark-to-debug-doc",
+      "category": "productivity",
+      "homepage": "https://github.com/DreamCats/my-plugins/tree/main/skills-plugins/lark-to-debug-doc"
     }
   ]
 }

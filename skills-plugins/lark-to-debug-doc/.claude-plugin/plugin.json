@@ -1,0 +1,10 @@
+{
+  "name": "lark-to-debug-doc",
+  "version": "1.0.0",
+  "description": "根据用户输入生成标准化的联调文档（Markdown），支持推送到飞书",
+  "author": {
+    "name": "DreamCats",
+    "email": "maifeng@bytedance.com"
+  },
+  "skills": ["./skills/lark-to-debug-doc"]
+}
