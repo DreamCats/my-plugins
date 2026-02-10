@@ -27,7 +27,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Grep|Glob|Task",
+        "matcher": "Grep|Glob|Task|Bash",
         "hooks": [
           {
             "type": "command",

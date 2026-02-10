@@ -119,6 +119,16 @@
         "reason": "探索 Go 代码结构用 bcindex_context 可生成结构化证据包"
       },
       "requires_bcindex": true
+    },
+    {
+      "name": "commit-review-reminder",
+      "priority": 30,
+      "tool": "Bash",
+      "pattern_in_input": "git\\s+commit",
+      "suggest": {
+        "tool": "skill:code-reviewer",
+        "reason": "提交前建议先运行 `/livecoding:code-reviewer` 审查代码，确保质量"
+      }
     }
   ]
 }
