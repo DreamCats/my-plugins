@@ -27,6 +27,7 @@ ${GUIDELINES_START_MARKER}
 - **NEVER run global test commands** (e.g., \`go test ./...\`, \`go test ./...\`)
 - **ALWAYS compile with minimal changes** - only build the specific package/service that was modified
 - **NO magic values** - extract magic numbers/strings into local constants with descriptive names
+- **ALWAYS check nil** - add nil checks before dereferencing pointers, accessing map values, or using interface values
 
 ## Comment Guidelines
 
