@@ -1,6 +1,6 @@
 {
   "name": "figma-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Figma集成工具，支持设计文件操作和组件管理",
   "author": {
     "name": "DreamCats",
