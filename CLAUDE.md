@@ -79,6 +79,7 @@ lark-cli get-blocks <DOC_ID> --all
 - **NEVER run global build commands** (e.g., `go build ./...`, `go build ./...`)
 - **NEVER run global test commands** (e.g., `go test ./...`, `go test ./...`)
 - **ALWAYS compile with minimal changes** - only build the specific package/service that was modified
+- **NO magic values** - extract magic numbers/strings into local constants with descriptive names
 
 ## Comment Guidelines
 
